@@ -4,3 +4,8 @@ Action::Action()
 {
 
 }
+
+double Action::pick()
+{
+    return 0;
+}

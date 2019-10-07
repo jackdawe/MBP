@@ -9,3 +9,10 @@ ContinuousAction::ContinuousAction(double lowerBound, double upperBound):lowerBo
 {
 
 }
+
+double ContinuousAction::pick()
+{
+    default_random_engine generator(random_device{}());
+    uniform_real_distribution<double> dist(lowerBound,upperBound);
+    return dist(generator);
+}

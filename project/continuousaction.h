@@ -7,6 +7,7 @@ class ContinuousAction: public Action
 public:
     ContinuousAction();
     ContinuousAction(double lowerBound, double upperBound);
+    double pick();
 private:
     double lowerBound;
     double upperBound;
