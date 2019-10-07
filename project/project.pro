@@ -18,9 +18,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp \
     action.cpp \
     discreteaction.cpp \
-    continuousaction.cpp
+    continuousaction.cpp \
+    state.cpp
 
 HEADERS += \
     action.h \
     discreteaction.h \
-    continuousaction.h
+    continuousaction.h \
+    state.h
