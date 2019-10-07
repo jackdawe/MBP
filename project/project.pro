@@ -20,11 +20,13 @@ SOURCES += main.cpp \
     discreteaction.cpp \
     continuousaction.cpp \
     state.cpp \
-    agent.cpp
+    agent.cpp \
+    agenttrainer.cpp
 
 HEADERS += \
     action.h \
     discreteaction.h \
     continuousaction.h \
     state.h \
-    agent.h
+    agent.h \
+    agenttrainer.h

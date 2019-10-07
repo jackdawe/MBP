@@ -1,8 +1,8 @@
 #ifndef AGENT_H
 #define AGENT_H
 #include "state.h"
-#include "action.h"
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -17,11 +17,11 @@ public:
     virtual void savePolicy();
     virtual void loadPolicy();
     virtual void saveTrainingData();
+    void addToRewardHistory(double r);
 
 private:
     int episodeNumber;
     float epsilon;
-    State initialState;
     State previousState;
     vector<Action> actionSpace;
     vector<double> takenAction;

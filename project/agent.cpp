@@ -41,3 +41,8 @@ void Agent:: loadPolicy()
 void Agent::saveTrainingData()
 {
 }
+
+void Agent::addToRewardHistory(double r)
+{
+    rewardHistory.push_back(r);
+}
