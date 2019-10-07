@@ -5,11 +5,11 @@ State::State()
     generateStateVector();
 }
 
-void State::transition(Action a)
+void State::transition(double a)
 {
 }
 
-double State::reward(Action a)
+double State::reward(double a)
 {
     return 0;
 }

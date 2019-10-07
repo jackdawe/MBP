@@ -37,24 +37,59 @@ StateGW::StateGW(MapGW map)
     }
 }
 
-void StateGW::transition(Action a)
+void StateGW::transition(double a)
 {
-
+    if (!isTerminal())
+    {
+        switch ((int)a)
+        {
+        case 0:
+            agentX--;
+            break;
+        case 1:
+            agentY++;
+            break;
+        case 2:
+            agentX++;
+            break;
+        case 3:
+            agentY--;
+            break;
+        }
+    }
 }
 
-double StateGW::reward(Action a)
+double StateGW::reward(double a)
 {
-
+    StateGW s(*this);
+    s.transition(a);
+    if (obstacles[agentX][agentY] == 1)
+    {
+        return LOSE_REWARD;
+    }
+    if (agentX == goalX && agentY == goalY)
+    {
+        return WIN_REWARD;
+    }
+    return EMPTY_SQUARE_REWARD;
 }
 
 bool StateGW::isTerminal()
 {
-
+    return obstacles[agentX][agentY] == 1 || (agentX == goalX && agentY == goalY);
 }
 
 void StateGW::generateStateVector()
 {
-
+    stateVector.push_back((double)agentX), stateVector.push_back(&(double)agentY);
+    stateVector.push_back(&(double)goalX), stateVector.push_back(&(double)goalY);
+    for (unsigned int i=0;i<obstacles.size();i++)
+    {
+        for (unsigned int j=0;j<obstacles.size();j++)
+        {
+            stateVector.push_back(&(double)obstacles[i][j]);
+        }
+    }
 }
 
 int StateGW::getAgentX() const
