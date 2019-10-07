@@ -21,7 +21,9 @@ SOURCES += main.cpp \
     continuousaction.cpp \
     state.cpp \
     agent.cpp \
-    agenttrainer.cpp
+    agenttrainer.cpp \
+    GridWorld/stategw.cpp \
+    GridWorld/mapgw.cpp
 
 HEADERS += \
     action.h \
@@ -29,4 +31,6 @@ HEADERS += \
     continuousaction.h \
     state.h \
     agent.h \
-    agenttrainer.h
+    agenttrainer.h \
+    GridWorld/stategw.h \
+    GridWorld/mapgw.h

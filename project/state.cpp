@@ -2,7 +2,7 @@
 
 State::State()
 {
-
+    generateStateVector();
 }
 
 void State::transition(Action a)
@@ -17,4 +17,9 @@ double State::reward(Action a)
 bool State::isTerminal()
 {
     return false;
+}
+
+void State::generateStateVector()
+{
+    stateVector = stateVector;
 }
