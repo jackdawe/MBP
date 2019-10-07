@@ -7,7 +7,7 @@ class StateGW: public State
 {
 public:
     StateGW();
-    StateGW(MapGW *map, int agentX, int agentY);
+    StateGW(MapGW map);
     void transition(Action a);
     double reward(Action a);
     bool isTerminal();
@@ -19,8 +19,10 @@ public:
     void setAgentY(int value);
     int getGoalX() const;
     int getGoalY() const;
+    int getSize() const;
 
 private:
+    int size;
     vector<vector<int>> obstacles;
     int agentX;
     int agentY;

@@ -19,7 +19,7 @@ StateGW::StateGW(MapGW map)
     {
         for (int j=0;j<map.getSize();j++)
         {
-            switch(map->getMap()[i][j])
+            switch(map.getMap()[i][j])
             {
             case 1:
                 obstacles[i][j]=1;
@@ -85,5 +85,10 @@ int StateGW::getGoalX() const
 int StateGW::getGoalY() const
 {
     return goalY;
+}
+
+int StateGW::getSize() const
+{
+    return size;
 }
 
