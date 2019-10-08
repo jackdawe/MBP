@@ -8,7 +8,6 @@ Agent<T>::Agent()
 template<class T>
 Agent<T>::Agent(vector<Action> actionSpace, float epsilon): actionSpace(actionSpace), epsilon(epsilon)
 {
-    generateNameTag();
 }
 
 template <class T>

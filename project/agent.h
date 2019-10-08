@@ -1,11 +1,11 @@
 #ifndef AGENT_H
 #define AGENT_H
-#include "state.h"
+#include "controller.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
 
-template <class T>
+template <class C>
 class Agent
 {
 public:
@@ -24,12 +24,7 @@ public:
 private:
     int episodeNumber;
     float epsilon;
-    T previousState;
-    vector<Action> actionSpace;
-    vector<double> takenAction;
-    double takenReward;
-    T nextState;
-    vector<double> rewardHistory;
+    C controller;
     string nameTag;
 
 };
