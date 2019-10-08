@@ -1,19 +1,19 @@
-#include "qlearningagent.h"
+#include "qlearning.h"
 
 template <class T>
-QLearningAgent<T>::QLearningAgent()
+QLearning<T>::QLearning()
 {
 }
 
 template <class T>
-QLearningAgent<T>::QLearningAgent(vector<Action> actionSpace, float epsilon, float gamma):
+QLearning<T>::QLearning(vector<Action> actionSpace, float epsilon, float gamma):
     Agent<T>(actionSpace,epsilon), gamma(gamma)
 {
     Agent<T>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));
 }
 
 template <class T>
-void QLearningAgent<T>::greedyPolicy()
+void QLearning<T>::greedyPolicy()
 {
 //    vector<int> accessibleStates = currentState.accessibleStates();
 //    vector<double> possibleQValues;
@@ -24,27 +24,27 @@ void QLearningAgent<T>::greedyPolicy()
 }
 
 template <class T>
-void QLearningAgent<T>::updatePolicy()
+void QLearning<T>::updatePolicy()
 {
 
 }
 
 template <class T>
-void QLearningAgent<T>::savePolicy()
-{
-
-}
-
-
-template <class T>
-void QLearningAgent<T>::loadPolicy()
+void QLearning<T>::savePolicy()
 {
 
 }
 
 
 template <class T>
-void QLearningAgent<T>::saveTrainingData()
+void QLearning<T>::loadPolicy()
+{
+
+}
+
+
+template <class T>
+void QLearning<T>::saveTrainingData()
 {
 
 }

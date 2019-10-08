@@ -23,10 +23,10 @@ SOURCES += main.cpp \
     agent.cpp \
     agenttrainer.cpp \
     GridWorld/mapgw.cpp \
-    GridWorld/qlearningagent.cpp \
     actionspace.cpp \
     controller.cpp \
-    GridWorld/controllergw.cpp
+    GridWorld/controllergw.cpp \
+    Agents/qlearning.cpp
 
 HEADERS += \
     action.h \
@@ -36,7 +36,7 @@ HEADERS += \
     agent.h \
     agenttrainer.h \
     GridWorld/mapgw.h \
-    GridWorld/qlearningagent.h \
     actionspace.h \
     controller.h \
-    GridWorld/controllergw.h
+    GridWorld/controllergw.h \
+    Agents/qlearning.h

@@ -1,13 +1,13 @@
-#ifndef QLEARNINGAGENT_H
-#define QLEARNINGAGENT_H
+#ifndef QLEARNING_H
+#define QLEARNING_H
 #include "agent.h"
 
 template <class T>
-class QLearningAgent: public Agent<T>
+class QLearning: public Agent<T>
 {
 public:
-    QLearningAgent();
-    QLearningAgent(vector<Action> actionSpace, float epsilon, float gamma);
+    QLearning();
+    QLearning(vector<Action> actionSpace, float epsilon, float gamma);
     void greedyPolicy();
     void updatePolicy();
     void savePolicy();
@@ -19,4 +19,4 @@ private:
     vector<double> qvalues;
 };
 
-#endif // QLEARNINGAGENT_H
+#endif // QLEARNING_H
