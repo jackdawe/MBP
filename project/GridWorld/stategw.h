@@ -17,21 +17,21 @@ public:
     bool isTerminal();
     void generateStateVector();
 
-    int getAgentX() const;
-    void setAgentX(int value);
-    int getAgentY() const;
-    void setAgentY(int value);
-    int getGoalX() const;
-    int getGoalY() const;
+    double getAgentX() const;
+    void setAgentX(double value);
+    double getAgentY() const;
+    void setAgentY(double value);
+    double getGoalX() const;
+    double getGoalY() const;
     int getSize() const;
 
 private:
     int size;
-    vector<vector<int>> obstacles;
-    int agentX;
-    int agentY;
-    int goalX;
-    int goalY;
+    vector<vector<double>> obstacles;
+    double agentX;
+    double agentY;
+    double goalX;
+    double goalY;
 };
 
 #endif // STATEGW_H

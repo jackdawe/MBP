@@ -10,7 +10,7 @@ public:
     virtual double reward(double a); //Returns the reward for taking action a
     virtual bool isTerminal(); //returns true if the state is terminal
     virtual void generateStateVector(); //Converts any representation of a state to a state vector readable by the agentTrainer
-protected:
+//protected:
     vector<double*> stateVector;
 };
 

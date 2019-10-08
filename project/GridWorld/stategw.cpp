@@ -2,17 +2,20 @@
 
 StateGW::StateGW()
 {
-
+    agentY = 1;
+    generateStateVector();
+    agentX = 1;
 }
 
 StateGW::StateGW(MapGW map)
 {
+    generateStateVector();
     default_random_engine generator(std::random_device{}());
     uniform_int_distribution<int> dist(1,map.getSize()-1);
 
     for (int i=0;i<map.getSize();i++)
     {
-        obstacles.push_back(vector<int>(map.getSize(),0));
+        obstacles.push_back(vector<double>(map.getSize(),0));
     }
 
     for (int i=0;i<map.getSize();i++)
@@ -35,6 +38,7 @@ StateGW::StateGW(MapGW map)
     {
         agentX = dist(generator), agentY = dist(generator);
     }
+
 }
 
 void StateGW::transition(double a)
@@ -81,43 +85,43 @@ bool StateGW::isTerminal()
 
 void StateGW::generateStateVector()
 {
-    stateVector.push_back((double)agentX), stateVector.push_back(&(double)agentY);
-    stateVector.push_back(&(double)goalX), stateVector.push_back(&(double)goalY);
+    stateVector.push_back(&agentX), stateVector.push_back(&agentY);
+    stateVector.push_back(&goalX), stateVector.push_back(&goalY);
     for (unsigned int i=0;i<obstacles.size();i++)
     {
         for (unsigned int j=0;j<obstacles.size();j++)
         {
-            stateVector.push_back(&(double)obstacles[i][j]);
+            stateVector.push_back(&obstacles[i][j]);
         }
     }
 }
 
-int StateGW::getAgentX() const
+double StateGW::getAgentX() const
 {
     return agentX;
 }
 
-void StateGW::setAgentX(int value)
+void StateGW::setAgentX(double value)
 {
     agentX = value;
 }
 
-int StateGW::getAgentY() const
+double StateGW::getAgentY() const
 {
     return agentY;
 }
 
-void StateGW::setAgentY(int value)
+void StateGW::setAgentY(double value)
 {
     agentY = value;
 }
 
-int StateGW::getGoalX() const
+double StateGW::getGoalX() const
 {
     return goalX;
 }
 
-int StateGW::getGoalY() const
+double StateGW::getGoalY() const
 {
     return goalY;
 }
