@@ -8,7 +8,7 @@ class QLearningAgent: public Agent<T>
 public:
     QLearningAgent();
     QLearningAgent(vector<Action> actionSpace, float epsilon, float gamma);
-    void policy();
+    void greedyPolicy();
     void updatePolicy();
     void savePolicy();
     void loadPolicy();

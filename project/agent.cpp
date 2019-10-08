@@ -1,71 +1,64 @@
 #include "agent.h"
 
-template <class T>
-Agent<T>::Agent()
+template <class C>
+Agent<C>::Agent()
 {
 }
 
-template<class T>
-Agent<T>::Agent(vector<Action> actionSpace, float epsilon): actionSpace(actionSpace), epsilon(epsilon)
+template<class C>
+Agent<C>::Agent(float epsilon): epsilon(epsilon)
 {
 }
 
-template <class T>
-void Agent<T>::epsilonGreedyPolicy()
+template <class C>
+void Agent<C>::epsilonGreedyPolicy()
 {
     default_random_engine generator = default_random_engine(random_device{}());
     uniform_real_distribution<float> dist(0,1);
     if (dist(generator) < epsilon)
     {
-        for (int i=0;i<actionSpace.size();i++)
+        for (unsigned int i=0;i<daSize();i++)
         {
-            takenAction[i] = actionSpace[i].pick();
+            controller.updateTakenAction(i,discreteActions()[i].pick());
+        }
+        for (unsigned int i=caSize();i<actions().size();i++)
+        {
+            controller.updateTakenAction(i,continuousActions()[i].pick());
         }
     }
     else
     {
-        policy();
+        greedyPolicy();
     }
 }
 
-template <class T>
-void Agent<T>::initialiseEpisode()
+template <class C>
+void Agent<C>::initialiseEpisode()
 {
 }
 
-template <class T>
-void Agent<T>::policy()
+template <class C>
+void Agent<C>::greedyPolicy()
 {
 }
 
-template <class T>
-void Agent<T>::updatePolicy()
+template <class C>
+void Agent<C>::updatePolicy()
 {
 }
 
-template <class T>
-void Agent<T>::savePolicy()
+template <class C>
+void Agent<C>::savePolicy()
 {
 }
 
-template <class T>
-void Agent<T>:: loadPolicy()
+template <class C>
+void Agent<C>:: loadPolicy()
 {
 }
 
-template <class T>
-void Agent<T>::saveTrainingData()
-{
-}
-
-template <class T>
-void Agent<T>::addToRewardHistory(double r)
-{
-    rewardHistory.push_back(r);
-}
-
-template <class T>
-void Agent<T>::generateNameTag(vector<float> parameters, vector<string> parametersName)
+template <class C>
+void Agent<C>::generateNameTag(vector<float> parameters, vector<string> parametersName)
 {
     string id = "0";
     string tag = "";
@@ -97,4 +90,64 @@ void Agent<T>::generateNameTag(vector<float> parameters, vector<string> paramete
     {
         cout << "an error has occured while trying to update the idCount file" << endl;
     }
+}
+
+template<class C>
+int Agent<C>::daSize()
+{
+    return actions().getDiscreteActions().size();
+}
+
+template<class C>
+int Agent<C>::caSize()
+{
+    return actions().getContinuousActions().size();
+}
+
+template<class C>
+ActionSpace Agent<C>::actions()
+{
+    return controller.getActions();
+}
+
+template<class C>
+vector<DiscreteAction> Agent<C>::discreteActions()
+{
+    return actions().getDiscreteActions();
+}
+
+template<class C>
+vector<ContinuousAction> Agent<C>::continuousActions()
+{
+    return actions().getContinuousActions();
+}
+
+template<class C>
+State Agent<C>::previousState()
+{
+    return controller.getPreviousState();
+}
+
+template<class C>
+vector<double> Agent<C>::takenAction()
+{
+    return controller.getTakenAction();
+}
+
+template<class C>
+double Agent<C>::takenReward()
+{
+    return controller.getTakenReward();
+}
+
+template<class C>
+State Agent<C>::currentState()
+{
+    return controller.getCurrentState();
+}
+
+template<class C>
+vector<double> Agent<C>::rewardHistory()
+{
+    return controller.getRewardHistory();
 }

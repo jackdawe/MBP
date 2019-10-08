@@ -6,6 +6,7 @@ class State
 {
 public:
     State();
+    void add(double* value);
 
 protected:
     vector<double*> stateVector;

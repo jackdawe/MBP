@@ -10,16 +10,25 @@ class Agent
 {
 public:
     Agent();
-    Agent(vector<Action> actionSpace, float epsilon);
+    Agent(float epsilon);
     virtual void initialiseEpisode();
     void epsilonGreedyPolicy();
-    virtual void policy();
+    virtual void greedyPolicy();
     virtual void updatePolicy();
     virtual void savePolicy();
     virtual void loadPolicy();
-    virtual void saveTrainingData();
-    void addToRewardHistory(double r);
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
+
+    int daSize();
+    int caSize();
+    ActionSpace actions();
+    vector<DiscreteAction> discreteActions();
+    vector<ContinuousAction> continuousActions();
+    State previousState();
+    vector<double> takenAction();
+    double takenReward();
+    State currentState();
+    vector<double> rewardHistory();
 
 private:
     int episodeNumber;

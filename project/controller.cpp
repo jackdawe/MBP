@@ -1,28 +1,59 @@
 #include "controller.h"
 
-Controller::Controller()
+Controller::Controller():
+    takenAction(vector<double>(actions.size(),0))
 {
 
 }
 
-void State::transition(double a)
+double Controller::transition(double a)
 {
 }
 
-double State::reward(double a)
-{
-    return 0;
-}
-
-bool State::isTerminal()
+bool Controller::isTerminal()
 {
     return false;
 }
 
-void State::generateStateVector()
+void Controller::generateStateVector()
 {
 }
 
-vector<int> State::accessibleStates(State s)
+vector<int> Controller::accessibleStates(State s)
 {
+}
+
+ActionSpace Controller::getActions() const
+{
+    return actions;
+}
+
+State Controller::getPreviousState() const
+{
+    return previousState;
+}
+
+vector<double> Controller::getTakenAction() const
+{
+    return takenAction;
+}
+
+double Controller::getTakenReward() const
+{
+    return takenReward;
+}
+
+State Controller::getCurrentState() const
+{
+    return currentState;
+}
+
+vector<double> Controller::getRewardHistory() const
+{
+    return rewardHistory;
+}
+
+void Controller::updateTakenAction(int actionIndex, double value)
+{
+    takenAction[actionIndex] = value;
 }

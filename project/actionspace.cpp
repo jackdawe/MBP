@@ -20,3 +20,18 @@ int ActionSpace::cardinal()
         return discreteActions.size();
     }
 }
+
+int ActionSpace::size()
+{
+    return discreteActions.size() + continuousActions.size();
+}
+
+vector<DiscreteAction> ActionSpace::getDiscreteActions() const
+{
+    return discreteActions;
+}
+
+vector<ContinuousAction> ActionSpace::getContinuousActions() const
+{
+    return continuousActions;
+}

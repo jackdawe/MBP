@@ -13,14 +13,14 @@ QLearningAgent<T>::QLearningAgent(vector<Action> actionSpace, float epsilon, flo
 }
 
 template <class T>
-void QLearningAgent<T>::policy()
+void QLearningAgent<T>::greedyPolicy()
 {
-    vector<int> accessibleStates = currentState.accessibleStates();
-    vector<double> possibleQValues;
-    for (unsigned int i=0;i<accessibleStates.size;i++)
-    {
-        possibleQValues.push_back(qvalues[]);
-    }
+//    vector<int> accessibleStates = currentState.accessibleStates();
+//    vector<double> possibleQValues;
+//    for (unsigned int i=0;i<accessibleStates.size;i++)
+//    {
+//        possibleQValues.push_back(qvalues[]);
+//    }
 }
 
 template <class T>
