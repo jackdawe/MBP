@@ -15,7 +15,9 @@ public:
     double transition(double a);
     bool isTerminal();
     void generateStateVector();
-    vector<int> accessibleStates();
+    int stateId(State s);
+    vector<int> accessibleStates(State s);
+    int spaceStateSize();
 
     double getAgentX() const;
     void setAgentX(double value);

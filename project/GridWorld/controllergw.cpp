@@ -12,15 +12,15 @@ ControllerGW::ControllerGW(MapGW map)
     actions = ActionSpace(dactions, vector<ContinuousAction>());
     default_random_engine generator(std::random_device{}());
     uniform_int_distribution<int> dist(1,map.getSize()-1);
-
-    for (int i=0;i<map.getSize();i++)
+    size = map.getSize();
+    for (int i=0;i<size;i++)
     {
         obstacles.push_back(vector<double>(map.getSize(),0));
     }
 
-    for (int i=0;i<map.getSize();i++)
+    for (int i=0;i<size;i++)
     {
-        for (int j=0;j<map.getSize();j++)
+        for (int j=0;j<size;j++)
         {
             switch(map.getMap()[i][j])
             {
@@ -80,20 +80,33 @@ void ControllerGW::generateStateVector()
 {
     currentState.add(&agentX),currentState.add(&agentY),
             currentState.add(&goalX), currentState.add(&goalY);
-    for (unsigned int i=0;i<obstacles.size();i++)
+    for (unsigned int i=0;i<size;i++)
     {
-        for (unsigned int j=0;j<obstacles.size();j++)
+        for (unsigned int j=0;j<size;j++)
         {
             currentState.add(&obstacles[i][j]);
         }
     }
 }
 
-vector<int> ControllerGW::accessibleStates()
+int ControllerGW::stateId(State s)
 {
-    unsigned int size = obstacles.size();
-    vector<int> accessibleStates = {(agentX-1)*size+agentY,agentX*size+agentY+1,(agentX+1)*size+agentY,agentX*size+agentY-1};
+    double ax = *s.getStateVector()[0];
+    double ay = *s.getStateVector()[1];
+    return ax*size+ay;
+}
+
+vector<int> ControllerGW::accessibleStates(State s)
+{
+    double ax = *s.getStateVector()[0];
+    double ay = *s.getStateVector()[1];
+    vector<int> accessibleStates = {(ax-1)*size+ay,ax*size+ay+1,(ax+1)*size+ay,ax*size+ay-1};
     return accessibleStates;
+}
+
+int ControllerGW::spaceStateSize()
+{
+    return size*size;
 }
 
 double ControllerGW::getAgentX() const

@@ -2,8 +2,8 @@
 #define QLEARNING_H
 #include "agent.h"
 
-template <class T>
-class QLearning: public Agent<T>
+template <class C>
+class QLearning: public Agent<C>
 {
 public:
     QLearning();

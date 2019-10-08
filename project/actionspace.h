@@ -10,6 +10,7 @@ public:
     ActionSpace(vector<DiscreteAction> discreteActions, vector<ContinuousAction> continuousActions);
     int cardinal();
     int size();
+    double actionFromId(int id);
     vector<DiscreteAction> getDiscreteActions() const;
 
     vector<ContinuousAction> getContinuousActions() const;

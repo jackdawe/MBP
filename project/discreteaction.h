@@ -10,6 +10,8 @@ public:
     DiscreteAction();
     DiscreteAction(int size);
     double pick();
+    int getSize() const;
+
 private:
     int size;
 };

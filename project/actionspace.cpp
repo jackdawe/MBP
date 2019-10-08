@@ -17,6 +17,11 @@ int ActionSpace::cardinal()
     }
     else
     {
+        int cardinal;
+        for (unsigned i=0;i<discreteActions.size();i++)
+        {
+            cardinal *= discreteActions[i].getSize();
+        }
         return discreteActions.size();
     }
 }

@@ -8,6 +8,10 @@ public:
     ContinuousAction();
     ContinuousAction(double lowerBound, double upperBound);
     double pick();
+    double getLowerBound() const;
+
+    double getUpperBound() const;
+
 private:
     double lowerBound;
     double upperBound;

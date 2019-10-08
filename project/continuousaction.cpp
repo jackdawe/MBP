@@ -16,3 +16,13 @@ double ContinuousAction::pick()
     uniform_real_distribution<double> dist(lowerBound,upperBound);
     return dist(generator);
 }
+
+double ContinuousAction::getLowerBound() const
+{
+    return lowerBound;
+}
+
+double ContinuousAction::getUpperBound() const
+{
+    return upperBound;
+}

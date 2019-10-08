@@ -8,6 +8,9 @@ public:
     State();
     void add(double* value);
 
+    vector<double *> getStateVector() const;
+    void setStateVector(const vector<double *> &value);
+
 protected:
     vector<double*> stateVector;
 };

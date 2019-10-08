@@ -3,11 +3,11 @@
 Controller::Controller():
     takenAction(vector<double>(actions.size(),0))
 {
-
 }
 
 double Controller::transition(double a)
 {
+    return 0;
 }
 
 bool Controller::isTerminal()
@@ -19,8 +19,19 @@ void Controller::generateStateVector()
 {
 }
 
+int Controller::stateId(State s)
+{
+    return 0;
+}
+
 vector<int> Controller::accessibleStates(State s)
 {
+    return vector<int>();
+}
+
+int Controller::spaceStateSize()
+{
+    return 0;
 }
 
 ActionSpace Controller::getActions() const
@@ -56,4 +67,9 @@ vector<double> Controller::getRewardHistory() const
 void Controller::updateTakenAction(int actionIndex, double value)
 {
     takenAction[actionIndex] = value;
+}
+
+void Controller::setActions(const ActionSpace &value)
+{
+    actions = value;
 }

@@ -4,13 +4,14 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 template <class C>
 class Agent
 {
 public:
     Agent();
-    Agent(float epsilon);
+    Agent(ActionSpace actions, float epsilon);
     virtual void initialiseEpisode();
     void epsilonGreedyPolicy();
     virtual void greedyPolicy();
@@ -30,7 +31,7 @@ public:
     State currentState();
     vector<double> rewardHistory();
 
-private:
+protected:
     int episodeNumber;
     float epsilon;
     C controller;

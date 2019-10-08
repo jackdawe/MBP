@@ -16,3 +16,8 @@ double DiscreteAction::pick()
     uniform_int_distribution<int> dist(0,size-1);
     return dist(generator);
 }
+
+int DiscreteAction::getSize() const
+{
+    return size;
+}

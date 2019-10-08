@@ -6,8 +6,9 @@ Agent<C>::Agent()
 }
 
 template<class C>
-Agent<C>::Agent(float epsilon): epsilon(epsilon)
+Agent<C>::Agent(ActionSpace actions, float epsilon): epsilon(epsilon)
 {
+    controller.setActions(actions);
 }
 
 template <class C>
