@@ -16,6 +16,7 @@ public:
     double reward(double a);
     bool isTerminal();
     void generateStateVector();
+    vector<int> accessibleStates();
 
     double getAgentX() const;
     void setAgentX(double value);

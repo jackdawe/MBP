@@ -23,3 +23,7 @@ void State::generateStateVector()
 {
     stateVector = stateVector;
 }
+
+vector<int> State::accessibleStates()
+{
+}

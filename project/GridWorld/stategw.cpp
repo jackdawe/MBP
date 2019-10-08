@@ -96,6 +96,13 @@ void StateGW::generateStateVector()
     }
 }
 
+vector<int> StateGW::accessibleStates()
+{
+    unsigned int size = obstacles.size();
+    vector<int> accessibleStates = {(agentX-1)*size+agentY,agentX*size+agentY+1,(agentX+1)*size+agentY,agentX*size+agentY-1};
+    return accessibleStates;
+}
+
 double StateGW::getAgentX() const
 {
     return agentX;

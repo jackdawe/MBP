@@ -28,7 +28,7 @@ private:
     vector<Action> actionSpace;
     vector<double> takenAction;
     double takenReward;
-    T nextState;
+    T currentState;
     vector<double> rewardHistory;
     string nameTag;
 
