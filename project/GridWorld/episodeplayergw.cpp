@@ -1,0 +1,111 @@
+#include "episodeplayergw.h"
+
+EpisodePlayerGW::EpisodePlayerGW()
+{
+
+}
+
+EpisodePlayerGW::EpisodePlayerGW(MapGW map): map(map)
+{
+    initMap();
+    agentShape->hide();
+}
+
+EpisodePlayerGW::EpisodePlayerGW(MapGW map, vector<vector<double>> sequence): map(map), sequence(sequence)
+{
+    initMap();
+    agentShape->setPos((sequence[0][1]+0.1)*SQUARE_SIZE,(sequence[0][0]*0.1)*SQUARE_SIZE);
+    startShape->setPos(sequence[0][1]*SQUARE_SIZE,sequence[0][0]*SQUARE_SIZE);
+    connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
+}
+
+void EpisodePlayerGW::initMap()
+{
+    gwView.setScene(&gwScene);
+    gwScene.setSceneRect(0,0,map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
+    gwView.setFixedSize(map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
+    agentShape = new QGraphicsRectItem(0,0,4*SQUARE_SIZE/5,4*SQUARE_SIZE/5);
+    startShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
+    arrivalShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
+    agentShape->setBrush(QBrush(Qt::magenta));
+    agentShape->setZValue(1);
+    gwScene.addItem(agentShape);
+    startShape->setBrush(QBrush(Qt::yellow));
+    gwScene.addItem(startShape);
+    arrivalShape->setBrush(QBrush(Qt::green));
+    gwScene.addItem(arrivalShape);
+    for (int i=0;i<map.getSize();i++)
+    {
+        for (int j=0;j<map.getSize();j++)
+        {
+            switch(map.getMap()[i][j])
+            {
+                case 1:
+                    obstacleShapes.append(new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE));
+                    obstacleShapes.last()->setBrush(QBrush(Qt::red));
+                    obstacleShapes.last()->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
+                    gwScene.addItem(obstacleShapes.last());
+                    break;
+                case 2:
+                    arrivalShape->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
+                    break;
+            }
+        }
+    }
+}
+
+void EpisodePlayerGW::showMap()
+{
+    gwView.show();
+}
+
+void EpisodePlayerGW::playEpisode()
+{
+    gwView.show();
+    playClock.start(TIME_STEP);
+    stepCount=0;
+}
+
+void EpisodePlayerGW::update()
+{
+    if (stepCount == sequence.size())
+    {
+        playClock.stop();
+    }
+    else
+    {
+        agentShape->setPos((sequence[stepCount][1]+0.1)*SQUARE_SIZE,(sequence[stepCount][0]*0.1)*SQUARE_SIZE);
+        stepCount++;
+    }
+}
+
+MapGW EpisodePlayerGW::getMap()
+{
+    return map;
+}
+
+vector<vector<double>> EpisodePlayerGW::getSequence()
+{
+    return sequence;
+}
+
+void EpisodePlayerGW::setMap(MapGW map)
+{
+    this->map = map;
+}
+
+void EpisodePlayerGW::setSequence(vector<vector<double>> sequence)
+{
+    this->sequence=sequence;
+}
+
+EpisodePlayerGW::~EpisodePlayerGW()
+{
+    delete agentShape;
+    delete startShape;
+    delete arrivalShape;
+    for (int i=0;i<obstacleShapes.length();i++)
+    {
+        delete obstacleShapes.at(i);
+    }
+}

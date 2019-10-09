@@ -7,7 +7,7 @@ ControllerGW::ControllerGW()
 
 ControllerGW::ControllerGW(string mapTag)
 {
-    generateStateVector();
+
     MapGW map;
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
@@ -40,11 +40,11 @@ ControllerGW::ControllerGW(string mapTag)
     {
         agentX = dist(generator), agentY = dist(generator);
     }
+    generateStateVector();
 }
 
 ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
 {
-    generateStateVector();
     MapGW map;
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
@@ -73,6 +73,7 @@ ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
         }
     }
     agentX = agentXInit, agentY = agentYInit;
+    generateStateVector();
 }
 
 double ControllerGW::transition()

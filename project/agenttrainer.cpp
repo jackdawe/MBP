@@ -11,7 +11,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 {
     for (int k=0;k<numberOfEpisodes;k++)
     {
-        vector<vector<double>> actionSequence;
+        vector<vector<double>> stateSequence;
         double episodeTotalReward;
         State initialState;
         agent->setNextState(initialState);
@@ -22,9 +22,9 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         bool terminal = false;
         while(!terminal)
         {
+            stateSequence.push_back(agent->currentState().getStateVector());
             agent->epsilonGreedyPolicy();
-            terminal = agent->getNextState().isTerminal();
-            actionSequence.push_back(agent->getTakenAction());
+            terminal = agent->getNextState().isTerminal();           
             episodeTotalReward+=agent->getTakenReward();
             if (trainMode)
             {
@@ -33,23 +33,23 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         }
         if (savingSequenceMode)
         {
-            saveEpisode(actionSequence,k);
+            saveEpisode(stateSequence,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
     }
 }
 
 template <class A>
-void AgentTrainer<A>::saveEpisode(vector<vector<double> > actionSequence, int seqId)
+void AgentTrainer<A>::saveEpisode(vector<vector<double> > stateSequence, int seqId)
 {
     ofstream f("../Sequences/seq" + seqId);
     if (f)
     {
-        for (unsigned int i=0;i<actionSequence.size();i++)
+        for (unsigned int i=0;i<stateSequence.size();i++)
         {
-            for (unsigned int j=0;j<actionSequence[0].size();j++)
+            for (unsigned int j=0;j<stateSequence[0].size();j++)
 
-                f << to_string(actionSequence[i][j]) + " ";
+                f << to_string(stateSequence[i][j]) + " ";
             f << endl;
         }
     }

@@ -9,7 +9,7 @@ class AgentTrainer
 public:
     AgentTrainer();
     void train(A* agent, int numberOfEpisodes,int trainMode = 0,int savingSequenceMode = 0);
-    void saveEpisode(vector<vector<double>> actionSequence, int seqId);
+    void saveEpisode(vector<vector<double>> stateSequence, int seqId);
 };
 
 #endif // AGENTTRAINER_H

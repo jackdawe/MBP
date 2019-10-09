@@ -26,7 +26,8 @@ SOURCES += main.cpp \
     actionspace.cpp \
     controller.cpp \
     GridWorld/controllergw.cpp \
-    Agents/qlearning.cpp
+    Agents/qlearning.cpp \
+    GridWorld/episodeplayergw.cpp
 
 HEADERS += \
     action.h \
@@ -39,4 +40,5 @@ HEADERS += \
     actionspace.h \
     controller.h \
     GridWorld/controllergw.h \
-    Agents/qlearning.h
+    Agents/qlearning.h \
+    GridWorld/episodeplayergw.h

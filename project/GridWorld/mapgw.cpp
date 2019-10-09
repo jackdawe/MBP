@@ -3,7 +3,6 @@
 
 MapGW::MapGW()
 {
-
 }
 
 MapGW::MapGW(int size, string mapTag): size(size), mapTag(mapTag)
@@ -70,7 +69,7 @@ void MapGW::save()
     }
     else
     {
-        cout << "An error has occured while trying to open the file" << endl;
+        cout << "An error has occured while trying to save the map file" << endl;
     }
 
 
@@ -84,6 +83,10 @@ void MapGW::load(string mapTag)
     int i=0;
     getline(f,line);
     size = stoi(line);
+    for (int i=0;i<size;i++)
+    {
+        map.push_back(vector<int>(size,0));
+    }
     while (std::getline(f,line))
     {
         for (int j=0;j<size;j++)
