@@ -43,7 +43,9 @@ ControllerGW::ControllerGW(MapGW map)
 double ControllerGW::transition()
 {
     int a = (int)takenAction[0];
-    if (!isTerminal())
+    previousAgentX = agentX;
+    previousAgentY = agentY;
+    if (!isTerminal(currentState))
     {
         switch (a)
         {
@@ -72,8 +74,9 @@ double ControllerGW::transition()
     return EMPTY_SQUARE_REWARD;
 }
 
-bool ControllerGW::isTerminal()
+bool ControllerGW::isTerminal(State s)
 {
+    double agentX = *s.getStateVector()[0]; double agentY = *s.getStateVector()[1];
     return obstacles[agentX][agentY] == 1 || (agentX == goalX && agentY == goalY);
 }
 
@@ -81,11 +84,20 @@ void ControllerGW::generateStateVector()
 {
     currentState.add(&agentX),currentState.add(&agentY),
             currentState.add(&goalX), currentState.add(&goalY);
-    for (unsigned int i=0;i<size;i++)
+    for (int i=0;i<size;i++)
     {
-        for (unsigned int j=0;j<size;j++)
+        for (int j=0;j<size;j++)
         {
             currentState.add(&obstacles[i][j]);
+        }
+    }
+    previousState.add(&agentX),previousState.add(&agentY),
+            previousState.add(&goalX), previousState.add(&goalY);
+    for (int i=0;i<size;i++)
+    {
+        for (int j=0;j<size;j++)
+        {
+            previousState.add(&obstacles[i][j]);
         }
     }
 }
@@ -108,36 +120,6 @@ vector<int> ControllerGW::accessibleStates(State s)
 int ControllerGW::spaceStateSize()
 {
     return size*size;
-}
-
-double ControllerGW::getAgentX() const
-{
-    return agentX;
-}
-
-void ControllerGW::setAgentX(double value)
-{
-    agentX = value;
-}
-
-double ControllerGW::getAgentY() const
-{
-    return agentY;
-}
-
-void ControllerGW::setAgentY(double value)
-{
-    agentY = value;
-}
-
-double ControllerGW::getGoalX() const
-{
-    return goalX;
-}
-
-double ControllerGW::getGoalY() const
-{
-    return goalY;
 }
 
 int ControllerGW::getSize() const

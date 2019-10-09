@@ -11,6 +11,7 @@ public:
     int cardinal();
     int size();
     vector<double> actionFromId(int id, vector<double> *p_coordinates, unsigned int counter = 0);
+    int idFromAction(vector<double> actions);
 
     vector<DiscreteAction> getDiscreteActions() const;
     vector<ContinuousAction> getContinuousActions() const;

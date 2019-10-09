@@ -11,7 +11,7 @@ public:
     vector<double *> getStateVector() const;
     void setStateVector(const vector<double *> &value);
 
-protected:
+private:
     vector<double*> stateVector;
 };
 

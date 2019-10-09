@@ -22,7 +22,6 @@ QLearning<C>::QLearning(vector<Action> actionSpace, float epsilon, float gamma):
 template <class C>
 void QLearning<C>::greedyPolicy()
 {
-    vector<int> accessibleStates = this->controller.accessibleStates();
     vector<double> possibleQValues;
 
     for (unsigned i=0;i<Agent<C>::actions().cardinal();i++)
@@ -50,7 +49,26 @@ void QLearning<C>::greedyPolicy()
 template <class C>
 void QLearning<C>::updatePolicy()
 {
-
+    int psIndex = this->controller.stateId(this->previousState())*this->actions().cardinal();
+    int csIndex = this->controller.stateId(this->currentState())*this->actions().cardinal();
+    int actionId = this->actions().idFromAction(this->takenAction());
+    if (this->controller.isTerminal(this->previousState()))
+    {
+        for (unsigned int i=0;i<this->actions().cardinal();i++)
+        {
+            qvalues[psIndex+i] = (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex]-qvalues[psIndex]);
+        }
+    }
+    else
+    {
+        vector<double> updateChoice;
+        for (unsigned int i=0;i<this->actions().cardinal();i++)
+        {
+            updateChoice.push_back(qvalues[csIndex+i]);
+        }
+        double bestChoice = *max_element(updateChoice.begin(),updateChoice.end());
+        qvalues[psIndex+actionId] = (1./(this->episodeNumber+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex+actionId]);
+    }
 }
 
 template <class C>

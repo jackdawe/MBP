@@ -37,7 +37,7 @@ vector<double> ActionSpace::actionFromId(int id, vector<double> *p_coordinates, 
     {
         counter++;
         int product = 1;
-        for (unsigned int i=0;i<discreteActions.size()-counter;i++)
+        for (unsigned int i=counter;i<discreteActions.size();i++)
         {
             product*=discreteActions[i].getSize();
         }
@@ -46,6 +46,21 @@ vector<double> ActionSpace::actionFromId(int id, vector<double> *p_coordinates, 
     }
     vector<double> coordinates = *p_coordinates;
     return coordinates;
+}
+
+int ActionSpace::idFromAction(vector<double> actions)
+{
+    int id=0;
+    for (unsigned int i=0;i<discreteActions.size();i++)
+    {
+        int product = 1;
+        for (unsigned int j=i+1;j<discreteActions.size();j++)
+        {
+            product*=discreteActions[j].getSize();
+        }
+        id+=product*actions[i];
+    }
+    return id;
 }
 
 vector<DiscreteAction> ActionSpace::getDiscreteActions() const

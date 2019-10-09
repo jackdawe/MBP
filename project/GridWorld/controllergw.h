@@ -13,18 +13,12 @@ public:
     ControllerGW();
     ControllerGW(MapGW map);
     double transition();
-    bool isTerminal();
+    bool isTerminal(State s);
     void generateStateVector();
     int stateId(State s);
     vector<int> accessibleStates(State s);
     int spaceStateSize();
 
-    double getAgentX() const;
-    void setAgentX(double value);
-    double getAgentY() const;
-    void setAgentY(double value);
-    double getGoalX() const;
-    double getGoalY() const;
     int getSize() const;
 
 private:
@@ -32,6 +26,8 @@ private:
     vector<vector<double>> obstacles;
     double agentX;
     double agentY;
+    double previousAgentX;
+    double previousAgentY;
     double goalX;
     double goalY;
 };
