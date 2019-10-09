@@ -5,7 +5,7 @@ Controller::Controller():
 {
 }
 
-double Controller::transition(double a)
+double Controller::transition()
 {
     return 0;
 }
@@ -72,4 +72,14 @@ void Controller::updateTakenAction(int actionIndex, double value)
 void Controller::setActions(const ActionSpace &value)
 {
     actions = value;
+}
+
+void Controller::setTakenAction(const vector<double> &value)
+{
+    takenAction = value;
+}
+
+void Controller::setTakenReward(double value)
+{
+    takenReward = value;
 }

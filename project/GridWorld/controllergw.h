@@ -12,7 +12,7 @@ class ControllerGW: public Controller
 public:
     ControllerGW();
     ControllerGW(MapGW map);
-    double transition(double a);
+    double transition();
     bool isTerminal();
     void generateStateVector();
     int stateId(State s);

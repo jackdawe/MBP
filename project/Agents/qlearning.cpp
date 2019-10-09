@@ -44,7 +44,7 @@ void QLearning<C>::greedyPolicy()
     default_random_engine generator(random_device{}());
     uniform_int_distribution<int> dist(0,indexOfMax.size()-1);
     int actionId = indexOfMax[dist(generator)];
-
+    this->controller.setTakenAction(this->actions().actionFromId(actionId,new vector<double>()));
 }
 
 template <class C>

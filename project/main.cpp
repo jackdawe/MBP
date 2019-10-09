@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include "GridWorld/stategw.h"
+#include "actionspace.h"
 
 int main(int argc, char *argv[])
 {

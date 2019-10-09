@@ -40,11 +40,12 @@ ControllerGW::ControllerGW(MapGW map)
     }
 }
 
-double ControllerGW::transition(double a)
+double ControllerGW::transition()
 {
+    int a = (int)takenAction[0];
     if (!isTerminal())
     {
-        switch ((int)a)
+        switch (a)
         {
         case 0:
             agentX--;

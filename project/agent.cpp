@@ -31,6 +31,7 @@ void Agent<C>::epsilonGreedyPolicy()
     {
         greedyPolicy();
     }
+    controller.setTakenReward(controller.transition());
 }
 
 template <class C>
