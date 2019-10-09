@@ -3,12 +3,12 @@
 #include "agent.h"
 #include <iostream>
 
-template <class T>
+template <class A>
 class AgentTrainer
 {
 public:
     AgentTrainer();
-    void train(T* agent, int numberOfEpisodes,int trainMode = 0,int savingSequenceMode = 0);
+    void train(A* agent, int numberOfEpisodes,int trainMode = 0,int savingSequenceMode = 0);
     void saveEpisode(vector<vector<double>> actionSequence, int seqId);
 };
 

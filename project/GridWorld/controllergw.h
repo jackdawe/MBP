@@ -11,7 +11,8 @@ class ControllerGW: public Controller
 {
 public:
     ControllerGW();
-    ControllerGW(MapGW map);
+    ControllerGW(string mapTag);
+    ControllerGW(string mapTag, double agentXInit, double agentYInit);
     double transition();
     bool isTerminal(State s);
     void generateStateVector();

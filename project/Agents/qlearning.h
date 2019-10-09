@@ -7,7 +7,7 @@ class QLearning: public Agent<C>
 {
 public:
     QLearning();
-    QLearning(vector<Action> actionSpace, float epsilon, float gamma);
+    QLearning(C controller, float epsilon, float gamma);
     void greedyPolicy();
     void updatePolicy();
     void savePolicy(string path);

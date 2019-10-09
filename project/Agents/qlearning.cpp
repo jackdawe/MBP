@@ -6,8 +6,8 @@ QLearning<C>::QLearning()
 }
 
 template <class C>
-QLearning<C>::QLearning(vector<Action> actionSpace, float epsilon, float gamma):
-    Agent<C>(actionSpace,epsilon), gamma(gamma)
+QLearning<C>::QLearning(C controller, float epsilon, float gamma):
+    Agent<C>(controller, epsilon), gamma(gamma)
 {
     Agent<C>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));
 
@@ -74,10 +74,10 @@ void QLearning<C>::updatePolicy()
 template <class C>
 void QLearning<C>::savePolicy(string path)
 {
-    ofstream f(path + nameTag);
+    ofstream f(path + this->nameTag);
     if (f)
     {
-        f << to_string(epsilon) << endl;
+        f << to_string(this->epsilon) << endl;
         f << to_string(gamma) << endl;
         for (unsigned int i=0;i<qvalues.size();i++)
         {
@@ -99,7 +99,7 @@ void QLearning<C>::loadPolicy(string filename)
     {
         string line;
         getline(f,line);
-        epsilon = stof(line);
+        this->epsilon = stof(line);
         getline(f,line);
         gamma = stof(line);
         Agent<C>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));

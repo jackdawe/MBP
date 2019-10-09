@@ -11,7 +11,7 @@ class Agent
 {
 public:
     Agent();
-    Agent(ActionSpace actions, float epsilon);
+    Agent(C controller, float epsilon);
     virtual void initialiseEpisode();
     void epsilonGreedyPolicy();
     virtual void greedyPolicy();

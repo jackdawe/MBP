@@ -5,9 +5,11 @@ ControllerGW::ControllerGW()
 
 }
 
-ControllerGW::ControllerGW(MapGW map)
+ControllerGW::ControllerGW(string mapTag)
 {
     generateStateVector();
+    MapGW map;
+    map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
     default_random_engine generator(std::random_device{}());
@@ -38,6 +40,39 @@ ControllerGW::ControllerGW(MapGW map)
     {
         agentX = dist(generator), agentY = dist(generator);
     }
+}
+
+ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
+{
+    generateStateVector();
+    MapGW map;
+    map.load(mapTag);
+    vector<DiscreteAction> dactions = {DiscreteAction(4)};
+    actions = ActionSpace(dactions, vector<ContinuousAction>());
+    default_random_engine generator(std::random_device{}());
+    uniform_int_distribution<int> dist(1,map.getSize()-1);
+    size = map.getSize();
+    for (int i=0;i<size;i++)
+    {
+        obstacles.push_back(vector<double>(map.getSize(),0));
+    }
+
+    for (int i=0;i<size;i++)
+    {
+        for (int j=0;j<size;j++)
+        {
+            switch(map.getMap()[i][j])
+            {
+            case 1:
+                obstacles[i][j]=1;
+                break;
+            case 2:
+                goalX=i, goalY=j;
+                break;
+            }
+        }
+    }
+    agentX = agentXInit, agentY = agentYInit;
 }
 
 double ControllerGW::transition()

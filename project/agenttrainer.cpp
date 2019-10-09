@@ -1,13 +1,13 @@
 #include "agenttrainer.h"
 
-template <class T>
-AgentTrainer<T>::AgentTrainer()
+template <class A>
+AgentTrainer<A>::AgentTrainer()
 {
 
 }
 
-template <class T>
-void AgentTrainer<T>::train(T *agent,int numberOfEpisodes, int trainMode, int savingSequenceMode)
+template <class A>
+void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int savingSequenceMode)
 {
     for (int k=0;k<numberOfEpisodes;k++)
     {
@@ -39,8 +39,8 @@ void AgentTrainer<T>::train(T *agent,int numberOfEpisodes, int trainMode, int sa
     }
 }
 
-template <class T>
-void AgentTrainer<T>::saveEpisode(vector<vector<double> > actionSequence, int seqId)
+template <class A>
+void AgentTrainer<A>::saveEpisode(vector<vector<double> > actionSequence, int seqId)
 {
     ofstream f("../Sequences/seq" + seqId);
     if (f)

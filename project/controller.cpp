@@ -29,7 +29,7 @@ vector<int> Controller::accessibleStates(State s)
     return vector<int>();
 }
 
-int virtual Controller::spaceStateSize()
+int Controller::spaceStateSize()
 {
     return 0;
 }
