@@ -13,7 +13,7 @@ QLearning<C>::QLearning(vector<Action> actionSpace, float epsilon, float gamma):
 
     //Initialising the Q fonction to 0 for each state action pair
 
-    for (int i=0;i<Agent<C>::controller.spaceStateSize()*Agent<C>::actions().cardinal() ;i++)
+    for (int i=0;i<this->controller.saPairSpaceSize();i++)
     {
         qvalues[i] = 0;
     }
@@ -72,16 +72,47 @@ void QLearning<C>::updatePolicy()
 }
 
 template <class C>
-void QLearning<C>::savePolicy()
+void QLearning<C>::savePolicy(string path)
 {
-
+    ofstream f(path + nameTag);
+    if (f)
+    {
+        f << to_string(epsilon) << endl;
+        f << to_string(gamma) << endl;
+        for (unsigned int i=0;i<qvalues.size();i++)
+        {
+            f << to_string(qvalues[i]) << endl;
+        }
+    }
+    else
+    {
+        cout << "An error has occured while trying to save the qvalues for qlearning" << endl;
+    }
 }
 
 
 template <class C>
-void QLearning<C>::loadPolicy()
+void QLearning<C>::loadPolicy(string filename)
 {
-
+    ifstream f(filename);
+    if (f)
+    {
+        string line;
+        getline(f,line);
+        epsilon = stof(line);
+        getline(f,line);
+        gamma = stof(line);
+        Agent<C>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));
+        for (int i=0;i<this->controller.saPairSpaceSize();i++)
+        {
+            getline(f,line);
+            qvalues[i] = stof(line);
+        }
+    }
+    else
+    {
+        cout << "An error has occured while trying to load the policy file" << endl;
+    }
 }
 
 

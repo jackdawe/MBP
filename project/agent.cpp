@@ -50,12 +50,12 @@ void Agent<C>::updatePolicy()
 }
 
 template <class C>
-void Agent<C>::savePolicy()
+void Agent<C>::savePolicy(string path)
 {
 }
 
 template <class C>
-void Agent<C>:: loadPolicy()
+void Agent<C>:: loadPolicy(string filename)
 {
 }
 

@@ -29,9 +29,19 @@ vector<int> Controller::accessibleStates(State s)
     return vector<int>();
 }
 
-int Controller::spaceStateSize()
+int virtual Controller::spaceStateSize()
 {
     return 0;
+}
+
+int Controller::actionSpaceSize()
+{
+    return actions.cardinal();
+}
+
+int Controller::saPairSpaceSize()
+{
+    return spaceStateSize()*actionSpaceSize();
 }
 
 ActionSpace Controller::getActions() const

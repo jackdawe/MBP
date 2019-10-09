@@ -14,6 +14,8 @@ public:
     virtual vector<int> accessibleStates(State s);
 
     virtual int spaceStateSize();
+    int actionSpaceSize();
+    int saPairSpaceSize();
 
     ActionSpace getActions() const;
     State getPreviousState() const;

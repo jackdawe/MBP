@@ -16,8 +16,8 @@ public:
     void epsilonGreedyPolicy();
     virtual void greedyPolicy();
     virtual void updatePolicy();
-    virtual void savePolicy();
-    virtual void loadPolicy();
+    virtual void savePolicy(string path);
+    virtual void loadPolicy(string filename);
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
 
     int daSize();

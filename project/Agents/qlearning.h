@@ -10,8 +10,8 @@ public:
     QLearning(vector<Action> actionSpace, float epsilon, float gamma);
     void greedyPolicy();
     void updatePolicy();
-    void savePolicy();
-    void loadPolicy();
+    void savePolicy(string path);
+    void loadPolicy(string filename);
     void saveTrainingData();
 
 private:
