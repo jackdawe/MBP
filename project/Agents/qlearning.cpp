@@ -13,10 +13,7 @@ QLearning<C>::QLearning(C controller, float epsilon, float gamma):
 
     //Initialising the Q fonction to 0 for each state action pair
 
-    for (int i=0;i<this->controller.saPairSpaceSize();i++)
-    {
-        qvalues[i] = 0;
-    }
+    qvalues = vector<double>(controller.saPairSpaceSize(),0);
 }
 
 template <class C>
@@ -24,7 +21,7 @@ void QLearning<C>::greedyPolicy()
 {
     vector<double> possibleQValues;
 
-    for (unsigned i=0;i<Agent<C>::actions().cardinal();i++)
+    for (int i=0;i<Agent<C>::actions().cardinal();i++)
     {
         possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())*this->actions().cardinal()+i]);
     }
@@ -54,7 +51,7 @@ void QLearning<C>::updatePolicy()
     int actionId = this->actions().idFromAction(this->takenAction());
     if (this->controller.isTerminal(this->previousState()))
     {
-        for (unsigned int i=0;i<this->actions().cardinal();i++)
+        for (int i=0;i<this->actions().cardinal();i++)
         {
             qvalues[psIndex+i] = (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex]-qvalues[psIndex]);
         }
@@ -62,7 +59,7 @@ void QLearning<C>::updatePolicy()
     else
     {
         vector<double> updateChoice;
-        for (unsigned int i=0;i<this->actions().cardinal();i++)
+        for (int i=0;i<this->actions().cardinal();i++)
         {
             updateChoice.push_back(qvalues[csIndex+i]);
         }
@@ -121,3 +118,5 @@ void QLearning<C>::saveTrainingData()
 {
 
 }
+
+template class QLearning<ControllerGW>;

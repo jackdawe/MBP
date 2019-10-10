@@ -17,11 +17,11 @@ void Agent<C>::epsilonGreedyPolicy()
     uniform_real_distribution<float> dist(0,1);
     if (dist(generator) < epsilon)
     {
-        for (unsigned int i=0;i<daSize();i++)
+        for (int i=0;i<daSize();i++)
         {
             controller.updateTakenAction(i,discreteActions()[i].pick());
         }
-        for (unsigned int i=caSize();i<actions().size();i++)
+        for (int i=daSize();i<actions().size();i++)
         {
             controller.updateTakenAction(i,continuousActions()[i].pick());
         }
@@ -152,3 +152,17 @@ vector<double> Agent<C>::rewardHistory()
 {
     return controller.getRewardHistory();
 }
+
+template<class C>
+void Agent<C>::addToRewardHistory(double r)
+{
+    controller.addToRewardHistory(r);
+}
+
+template<class C>
+C Agent<C>::getController() const
+{
+    return controller;
+}
+
+template class Agent<ControllerGW>;

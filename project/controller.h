@@ -9,7 +9,7 @@ public:
     Controller();
     virtual double transition(); //Changing the state after performing an action and returns the reward for that state action pair
     virtual bool isTerminal(); //returns true if the state is terminal
-    virtual void generateStateVector(); //Converts any representation of a state to a state vector readable by the agentTrainer
+    virtual void updateStateVector(); //Converts any representation of a state to a state vector readable by the agentTrainer
     virtual int stateId(State s);
     virtual vector<int> accessibleStates(State s);
 
@@ -23,6 +23,7 @@ public:
     double getTakenReward() const;
     State getCurrentState() const;
     vector<double> getRewardHistory() const;
+    void addToRewardHistory(double r);
     void updateTakenAction(int actionIndex, double value);
     void setActions(const ActionSpace &value);
     void setTakenAction(const vector<double> &value);

@@ -15,7 +15,7 @@ bool Controller::isTerminal()
     return false;
 }
 
-void Controller::generateStateVector()
+void Controller::updateStateVector()
 {
 }
 
@@ -72,6 +72,11 @@ State Controller::getCurrentState() const
 vector<double> Controller::getRewardHistory() const
 {
     return rewardHistory;
+}
+
+void Controller::addToRewardHistory(double r)
+{
+    rewardHistory.push_back(r);
 }
 
 void Controller::updateTakenAction(int actionIndex, double value)

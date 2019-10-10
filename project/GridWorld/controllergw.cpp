@@ -40,7 +40,7 @@ ControllerGW::ControllerGW(string mapTag)
     {
         agentX = dist(generator), agentY = dist(generator);
     }
-    generateStateVector();
+    updateStateVector();
 }
 
 ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
@@ -73,7 +73,7 @@ ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
         }
     }
     agentX = agentXInit, agentY = agentYInit;
-    generateStateVector();
+    updateStateVector();
 }
 
 double ControllerGW::transition()
@@ -99,6 +99,7 @@ double ControllerGW::transition()
             break;
         }
     }
+    updateStateVector();
     if (obstacles[agentX][agentY] == 1)
     {
         return LOSE_REWARD;
@@ -112,43 +113,69 @@ double ControllerGW::transition()
 
 bool ControllerGW::isTerminal(State s)
 {
-    double agentX = *s.getStateVector()[0]; double agentY = *s.getStateVector()[1];
-    return obstacles[agentX][agentY] == 1 || (agentX == goalX && agentY == goalY);
+    double ax = s.getStateVector()[0];
+    double ay = s.getStateVector()[1];
+    return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
 }
 
-void ControllerGW::generateStateVector()
+void ControllerGW::updateStateVector()
 {
-    currentState.add(&agentX),currentState.add(&agentY),
-            currentState.add(&goalX), currentState.add(&goalY);
-    for (int i=0;i<size;i++)
+    if (currentState.getStateVector().size() == 0)
     {
-        for (int j=0;j<size;j++)
+        currentState.add(agentX),currentState.add(agentY),
+                currentState.add(goalX), currentState.add(goalY);
+        for (int i=0;i<size;i++)
         {
-            currentState.add(&obstacles[i][j]);
+            for (int j=0;j<size;j++)
+            {
+                currentState.add(obstacles[i][j]);
+            }
+        }
+        previousState.add(previousAgentX),previousState.add(previousAgentY),
+                previousState.add(goalX), previousState.add(goalY);
+        for (int i=0;i<size;i++)
+        {
+            for (int j=0;j<size;j++)
+            {
+                previousState.add(obstacles[i][j]);
+            }
         }
     }
-    previousState.add(&agentX),previousState.add(&agentY),
-            previousState.add(&goalX), previousState.add(&goalY);
-    for (int i=0;i<size;i++)
+    else
     {
-        for (int j=0;j<size;j++)
+        currentState.update(0,agentX), currentState.update(1,agentY),
+                currentState.update(2,goalX), currentState.update(3,goalY);
+        for (int i=0;i<size;i++)
         {
-            previousState.add(&obstacles[i][j]);
+            for (int j=0;j<size;j++)
+            {
+                currentState.update(3+i*size+j,obstacles[i][j]);
+            }
+        }
+        previousState.update(0,previousAgentX), previousState.update(1,previousAgentY),
+                previousState.update(2,goalX), previousState.update(3,goalY);
+        for (int i=0;i<size;i++)
+        {
+            for (int j=0;j<size;j++)
+            {
+                previousState.update(3+i*size+j,obstacles[i][j]);
+            }
         }
     }
+
 }
 
 int ControllerGW::stateId(State s)
 {
-    double ax = *s.getStateVector()[0];
-    double ay = *s.getStateVector()[1];
+    double ax = s.getStateVector()[0];
+    double ay = s.getStateVector()[1];
     return ax*size+ay;
 }
 
 vector<int> ControllerGW::accessibleStates(State s)
 {
-    double ax = *s.getStateVector()[0];
-    double ay = *s.getStateVector()[1];
+    int ax = s.getStateVector()[0];
+    int ay = s.getStateVector()[1];
     vector<int> accessibleStates = {(ax-1)*size+ay,ax*size+ay+1,(ax+1)*size+ay,ax*size+ay-1};
     return accessibleStates;
 }

@@ -6,13 +6,15 @@ class State
 {
 public:
     State();
-    void add(double* value);
+    void add(double value);
+    void update(int index, double value);
+    vector<double> currentStateVector();
 
-    vector<double *> getStateVector() const;
-    void setStateVector(const vector<double *> &value);
+    vector<double > getStateVector() const;
+    void setStateVector(const vector<double > &value);
 
 private:
-    vector<double*> stateVector;
+    vector<double> stateVector;
 };
 
 #endif // STATE_H

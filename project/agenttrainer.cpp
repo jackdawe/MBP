@@ -13,8 +13,6 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
     {
         vector<vector<double>> stateSequence;
         double episodeTotalReward;
-        State initialState;
-        agent->setNextState(initialState);
         if (trainMode)
         {
             agent->initialiseEpisode();
@@ -24,8 +22,8 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         {
             stateSequence.push_back(agent->currentState().getStateVector());
             agent->epsilonGreedyPolicy();
-            terminal = agent->getNextState().isTerminal();           
-            episodeTotalReward+=agent->getTakenReward();
+            terminal = agent->getController().isTerminal(agent->currentState());
+            episodeTotalReward+=agent->takenReward();
             if (trainMode)
             {
                 agent->updatePolicy();
@@ -58,3 +56,5 @@ void AgentTrainer<A>::saveEpisode(vector<vector<double> > stateSequence, int seq
         cout<<"An error has occured when trying to save the sequence"<<endl;
     }
 }
+
+template class AgentTrainer<QLearning<ControllerGW>>;

@@ -1,6 +1,6 @@
 #ifndef AGENT_H
 #define AGENT_H
-#include "controller.h"
+#include "GridWorld/controllergw.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -30,6 +30,8 @@ public:
     double takenReward();
     State currentState();
     vector<double> rewardHistory();
+    C getController() const;
+    void addToRewardHistory(double r);
 
 protected:
     int episodeNumber;
