@@ -17,6 +17,7 @@ public:
     bool isTerminal(State s);
     void updateStateVector();
     int stateId(State s);
+    void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
 
@@ -24,7 +25,10 @@ public:
 
 private:
     int size;
+    bool randomStart;
     vector<vector<double>> obstacles;
+    double initX;
+    double initY;
     double agentX;
     double agentY;
     double previousAgentX;

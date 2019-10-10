@@ -8,10 +8,15 @@
 
 int main(int argc, char *argv[])
 {
-//    QApplication a(argc, argv);
-    ControllerGW controller("2_8");
+    QApplication a(argc, argv);
+    string mapTag = "2_8";
+    ControllerGW controller(mapTag);
     QLearning<ControllerGW> agent(controller,0.05,0.9);
     AgentTrainer<QLearning<ControllerGW>> trainer;
-    trainer.train(&agent,1000,1);
-//    return a.exec();
+    trainer.train(&agent,10000,1);
+
+    trainer.train(&agent,1,1,1);
+    EpisodePlayerGW ep(mapTag,trainer.loadEpisode(0));
+    ep.playEpisode();
+    return a.exec();
 }

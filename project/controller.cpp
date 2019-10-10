@@ -1,7 +1,6 @@
 #include "controller.h"
 
-Controller::Controller():
-    takenAction(vector<double>(actions.size(),0))
+Controller::Controller()
 {
 }
 
@@ -22,6 +21,11 @@ void Controller::updateStateVector()
 int Controller::stateId(State s)
 {
     return 0;
+}
+
+void Controller::reset()
+{
+
 }
 
 vector<int> Controller::accessibleStates(State s)

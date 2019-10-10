@@ -7,13 +7,12 @@ ControllerGW::ControllerGW()
 
 ControllerGW::ControllerGW(string mapTag)
 {
-
+    randomStart = true;
     MapGW map;
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
-    default_random_engine generator(std::random_device{}());
-    uniform_int_distribution<int> dist(1,map.getSize()-1);
+    takenAction = vector<double>(1,0);
     size = map.getSize();
     for (int i=0;i<size;i++)
     {
@@ -35,22 +34,17 @@ ControllerGW::ControllerGW(string mapTag)
             }
         }
     }
-    agentX = dist(generator), agentY = dist(generator);
-    while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
-    {
-        agentX = dist(generator), agentY = dist(generator);
-    }
-    updateStateVector();
 }
 
-ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
+ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit):
+    initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
 {
+    randomStart=false;
     MapGW map;
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
-    default_random_engine generator(std::random_device{}());
-    uniform_int_distribution<int> dist(1,map.getSize()-1);
+    takenAction = vector<double>(1,0);
     size = map.getSize();
     for (int i=0;i<size;i++)
     {
@@ -72,7 +66,6 @@ ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit)
             }
         }
     }
-    agentX = agentXInit, agentY = agentYInit;
     updateStateVector();
 }
 
@@ -170,6 +163,25 @@ int ControllerGW::stateId(State s)
     double ax = s.getStateVector()[0];
     double ay = s.getStateVector()[1];
     return ax*size+ay;
+}
+
+void ControllerGW::reset()
+{
+    if (randomStart)
+    {
+        default_random_engine generator(std::random_device{}());
+        uniform_int_distribution<int> dist(1,size-1);
+        agentX = dist(generator), agentY = dist(generator);
+        while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
+        {
+            agentX = dist(generator), agentY = dist(generator);
+        }
+    }
+    else
+    {
+        agentX = initX; agentY = initY;
+    }
+    updateStateVector();
 }
 
 vector<int> ControllerGW::accessibleStates(State s)

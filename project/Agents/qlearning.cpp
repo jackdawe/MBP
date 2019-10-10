@@ -17,6 +17,12 @@ QLearning<C>::QLearning(C controller, float epsilon, float gamma):
 }
 
 template <class C>
+void QLearning<C>::initialiseEpisode()
+{
+    this->controller.reset();
+}
+
+template <class C>
 void QLearning<C>::greedyPolicy()
 {
     vector<double> possibleQValues;

@@ -5,16 +5,18 @@ EpisodePlayerGW::EpisodePlayerGW()
 
 }
 
-EpisodePlayerGW::EpisodePlayerGW(MapGW map): map(map)
+EpisodePlayerGW::EpisodePlayerGW(string mapTag)
 {
+    map.load(mapTag);
     initMap();
     agentShape->hide();
 }
 
-EpisodePlayerGW::EpisodePlayerGW(MapGW map, vector<vector<double>> sequence): map(map), sequence(sequence)
+EpisodePlayerGW::EpisodePlayerGW(string mapTag, vector<vector<double>> sequence): sequence(sequence)
 {
+    map.load(mapTag);
     initMap();
-    agentShape->setPos((sequence[0][1]+0.1)*SQUARE_SIZE,(sequence[0][0]*0.1)*SQUARE_SIZE);
+    agentShape->setPos((sequence[0][1]+0.1)*SQUARE_SIZE,(sequence[0][0]+0.1)*SQUARE_SIZE);
     startShape->setPos(sequence[0][1]*SQUARE_SIZE,sequence[0][0]*SQUARE_SIZE);
     connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
 }
@@ -68,14 +70,14 @@ void EpisodePlayerGW::playEpisode()
 
 void EpisodePlayerGW::update()
 {
-    if (stepCount == sequence.size())
+    if (stepCount == sequence.size()-1)
     {
         playClock.stop();
     }
     else
     {
-        agentShape->setPos((sequence[stepCount][1]+0.1)*SQUARE_SIZE,(sequence[stepCount][0]*0.1)*SQUARE_SIZE);
         stepCount++;
+        agentShape->setPos((sequence[stepCount][1]+0.1)*SQUARE_SIZE,(sequence[stepCount][0]+0.1)*SQUARE_SIZE);
     }
 }
 
