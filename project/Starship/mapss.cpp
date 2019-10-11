@@ -245,3 +245,18 @@ string MapSS::getMapTag() const
 {
     return mapTag;
 }
+
+vector<Planet> MapSS::getPlanets() const
+{
+    return planets;
+}
+
+vector<Waypoint> MapSS::getWaypoints() const
+{
+    return waypoints;
+}
+
+Ship MapSS::getShip() const
+{
+    return ship;
+}
