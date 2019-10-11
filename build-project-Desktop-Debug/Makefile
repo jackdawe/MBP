@@ -68,7 +68,8 @@ SOURCES       = ../project/main.cpp \
 		../project/Starship/ship.cpp \
 		../project/Starship/vect2d.cpp \
 		../project/Starship/controllerss.cpp \
-		../project/Starship/episodeplayerss.cpp moc_episodeplayergw.cpp
+		../project/Starship/episodeplayerss.cpp \
+		../project/Starship/mapss.cpp moc_episodeplayergw.cpp
 OBJECTS       = main.o \
 		action.o \
 		discreteaction.o \
@@ -88,6 +89,7 @@ OBJECTS       = main.o \
 		vect2d.o \
 		controllerss.o \
 		episodeplayerss.o \
+		mapss.o \
 		moc_episodeplayergw.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -184,7 +186,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/ship.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/controllerss.h \
-		../project/Starship/episodeplayerss.h ../project/main.cpp \
+		../project/Starship/episodeplayerss.h \
+		../project/Starship/mapss.h ../project/main.cpp \
 		../project/action.cpp \
 		../project/discreteaction.cpp \
 		../project/continuousaction.cpp \
@@ -202,7 +205,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/ship.cpp \
 		../project/Starship/vect2d.cpp \
 		../project/Starship/controllerss.cpp \
-		../project/Starship/episodeplayerss.cpp
+		../project/Starship/episodeplayerss.cpp \
+		../project/Starship/mapss.cpp
 QMAKE_TARGET  = project
 DESTDIR       = 
 TARGET        = project
@@ -394,8 +398,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -577,6 +581,13 @@ controllerss.o: ../project/Starship/controllerss.cpp ../project/Starship/control
 
 episodeplayerss.o: ../project/Starship/episodeplayerss.cpp ../project/Starship/episodeplayerss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o episodeplayerss.o ../project/Starship/episodeplayerss.cpp
+
+mapss.o: ../project/Starship/mapss.cpp ../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mapss.o ../project/Starship/mapss.cpp
 
 moc_episodeplayergw.o: moc_episodeplayergw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayergw.o moc_episodeplayergw.cpp

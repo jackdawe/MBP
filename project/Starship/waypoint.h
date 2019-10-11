@@ -1,5 +1,6 @@
 #ifndef WAYPOINT_H
 #define WAYPOINT_H
+
 #include "vect2d.h"
 
 class Waypoint
@@ -10,7 +11,7 @@ class Waypoint
         double getRadius();
         int getColor();
         void setCentre(Vect2d u);
-        void setRadius(double r);
+        void setRadius(float r);
         void setColor(int color);
 
     private:

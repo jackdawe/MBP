@@ -33,7 +33,8 @@ SOURCES += main.cpp \
     Starship/ship.cpp \
     Starship/vect2d.cpp \
     Starship/controllerss.cpp \
-    Starship/episodeplayerss.cpp
+    Starship/episodeplayerss.cpp \
+    Starship/mapss.cpp
 
 HEADERS += \
     action.h \
@@ -53,4 +54,5 @@ HEADERS += \
     Starship/ship.h \
     Starship/vect2d.h \
     Starship/controllerss.h \
-    Starship/episodeplayerss.h
+    Starship/episodeplayerss.h \
+    Starship/mapss.h

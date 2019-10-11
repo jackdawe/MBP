@@ -20,8 +20,8 @@ public:
     int spaceStateSize();
 
     vector<Planet> planets;
-    vector<Waypoint> Waypoint;
-
+    vector<Waypoint> waypoints;
+    Ship ship;
 
 };
 

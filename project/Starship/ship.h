@@ -16,16 +16,20 @@ class Ship
         void setP(Vect2d p);
         void setThrust(Vect2d ft);
         void setSignalColor(int signalColor);
-    private:
+        int getWidth() const;
+        void setWidth(int value);
+
+        int getHeight() const;
+        void setHeight(int value);
+
+private:
+        int width;
+        int height;
         Vect2d a;
         Vect2d v;
         Vect2d p;
         Vect2d thrust;
         int signalColor;
-
-
-
-
 };
 
 #endif // SHIP_H
