@@ -8,16 +8,16 @@ class Planet
     public:
         Planet();
         Vect2d getCentre();
-        double getRadius();
-        double getMass();
+        float getRadius();
+        float getMass();
         void setCentre(Vect2d centre);
-        void setRadius(double radius);
-        void setMass(double mass);
+        void setRadius(float radius);
+        void setMass(float mass);
 
     private:
         Vect2d centre;
-        double radius;
-        double mass;
+        float radius;
+        float mass;
 
 };
 

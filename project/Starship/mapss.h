@@ -11,11 +11,11 @@
 
 using namespace std;
 
-#define N_PLANETS 1
+#define N_PLANETS 3
 #define PLANET_MIN_SIZE 50
 #define PLANET_MAX_SIZE 100
 
-#define N_WAYPOINTS 3
+#define N_WAYPOINTS 5
 #define WAYPOINT_RADIUS 20
 
 #define SHIP_WIDTH WAYPOINT_RADIUS
