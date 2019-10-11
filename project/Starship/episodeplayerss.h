@@ -1,8 +1,13 @@
 #ifndef EPISODEPLAYERSS_H
 #define EPISODEPLAYERSS_H
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QTimer>
 
+#define
 
-class EpisodePlayerSS
+class EpisodePlayerSS: public QWidget
 {
 public:
     EpisodePlayerSS();
