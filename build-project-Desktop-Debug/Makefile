@@ -466,7 +466,12 @@ main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
 		../project/GridWorld/episodeplayergw.h \
 		../project/agenttrainer.h \
 		../project/Agents/qlearning.h \
-		../project/agent.h
+		../project/agent.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../project/main.cpp
 
 action.o: ../project/action.cpp ../project/action.h

@@ -5,6 +5,10 @@ MapSS::MapSS()
 
 }
 
+MapSS::MapSS(int size, string mapTag): size(size), mapTag(mapTag)
+{
+}
+
 void MapSS::generate(int nPlanets, int planetMinSize,
                      int planetMaxSize,int nWaypoints,
                      int wpRadius,int shipW, int shipH)
@@ -101,18 +105,18 @@ void MapSS::save()
         f << "--- PLANETS ---" << endl;
         for (unsigned int i=0;i<planets.size();i++)
         {
-            f << to_string(planets[i].getRadius()) + " " + to_string(planets[i].getCentre().getX())
-                 + " " + to_string(planets[i].getCentre().getY())<<endl;
+            f << to_string((int)planets[i].getRadius()) + " " + to_string((int)planets[i].getCentre().getX())
+                 + " " + to_string((int)planets[i].getCentre().getY())<<endl;
         }
         f << "--- WAYPOINTS ---" << endl;
         for (unsigned int i=0;i<waypoints.size();i++)
         {
-            f << to_string(waypoints[i].getRadius()) + " " + to_string(waypoints[i].getCentre().getX())
-                 + " " + to_string(waypoints[i].getCentre().getY())<<endl;
+            f << to_string((int)waypoints[i].getRadius()) + " " + to_string((int)waypoints[i].getCentre().getX())
+                 + " " + to_string((int)waypoints[i].getCentre().getY())<<endl;
         }
         f << "--- SHIP ---" << endl;
-        f << to_string(ship.getWidth()) + " " + to_string(ship.getHeight()) + " " + to_string(ship.getP().getX())
-             + " " + to_string(ship.getP().getY())<<endl;
+        f << to_string(ship.getWidth()) + " " + to_string(ship.getHeight()) + " " + to_string((int)ship.getP().getX())
+             + " " + to_string((int)ship.getP().getY())<<endl;
     }
     else
     {
@@ -130,9 +134,10 @@ void MapSS::load(string mapTag)
         size = stoi(line);
         getline(f,line);
         getline(f,line);
-        unsigned int i=0;
+
         while(line != "--- WAYPOINTS ---")
         {
+            unsigned int i=0;
             Planet p;
             string num;
             while(line[i]!=' ')
@@ -162,9 +167,9 @@ void MapSS::load(string mapTag)
             getline(f,line);
         }
         getline(f,line);
-        i = 0;
         while(line != "--- SHIP ---")
         {
+            unsigned int i=0;
             Waypoint wp;
             string num;
             while(line[i]!=' ')
@@ -193,7 +198,8 @@ void MapSS::load(string mapTag)
             waypoints.push_back(wp);
             getline(f,line);
         }
-        i =0;
+        getline(f,line);
+        unsigned int i=0;
         string num;
         while(line[i]!=' ')
         {

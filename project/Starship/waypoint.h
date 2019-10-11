@@ -8,7 +8,7 @@ class Waypoint
     public:
         Waypoint();
         Vect2d getCentre();
-        double getRadius();
+        float getRadius();
         int getColor();
         void setCentre(Vect2d u);
         void setRadius(float r);
@@ -16,7 +16,7 @@ class Waypoint
 
     private:
         Vect2d centre;
-        double radius;
+        float radius;
         int color;
 };
 
