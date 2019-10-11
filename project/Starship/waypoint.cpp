@@ -9,7 +9,7 @@ Vect2d Waypoint::getCentre()
     return this->centre;
 }
 
-double Waypoint::getRadius()
+float Waypoint::getRadius()
 {
     return this->radius;
 }
