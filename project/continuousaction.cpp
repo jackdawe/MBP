@@ -5,24 +5,24 @@ ContinuousAction::ContinuousAction()
 
 }
 
-ContinuousAction::ContinuousAction(double lowerBound, double upperBound):lowerBound(lowerBound), upperBound(upperBound)
+ContinuousAction::ContinuousAction(float lowerBound, float upperBound):lowerBound(lowerBound), upperBound(upperBound)
 {
 
 }
 
-double ContinuousAction::pick()
+float ContinuousAction::pick()
 {
     default_random_engine generator(random_device{}());
-    uniform_real_distribution<double> dist(lowerBound,upperBound);
+    uniform_real_distribution<float> dist(lowerBound,upperBound);
     return dist(generator);
 }
 
-double ContinuousAction::getLowerBound() const
+float ContinuousAction::getLowerBound() const
 {
     return lowerBound;
 }
 
-double ContinuousAction::getUpperBound() const
+float ContinuousAction::getUpperBound() const
 {
     return upperBound;
 }

@@ -6,15 +6,15 @@ class ContinuousAction: public Action
 {
 public:
     ContinuousAction();
-    ContinuousAction(double lowerBound, double upperBound);
-    double pick();
-    double getLowerBound() const;
+    ContinuousAction(float lowerBound, float upperBound);
+    float pick();
+    float getLowerBound() const;
 
-    double getUpperBound() const;
+    float getUpperBound() const;
 
 private:
-    double lowerBound;
-    double upperBound;
+    float lowerBound;
+    float upperBound;
 };
 
 #endif // CONTINUOUSACTION_H

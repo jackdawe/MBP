@@ -19,8 +19,8 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
             cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
         }
 
-        vector<vector<double>> stateSequence;
-        double episodeTotalReward;
+        vector<vector<float>> stateSequence;
+        float episodeTotalReward;
         agent->initialiseEpisode();
         bool terminal = false;
         while(!terminal)
@@ -43,7 +43,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 }
 
 template <class A>
-void AgentTrainer<A>::saveEpisode(vector<vector<double> > stateSequence, int seqId)
+void AgentTrainer<A>::saveEpisode(vector<vector<float> > stateSequence, int seqId)
 {
     ofstream f("../Sequences/seq" + to_string(seqId));
     if (f)
@@ -63,9 +63,9 @@ void AgentTrainer<A>::saveEpisode(vector<vector<double> > stateSequence, int seq
 }
 
 template <class A>
-vector<vector<double>> AgentTrainer<A>::loadEpisode(int seqId)
+vector<vector<float>> AgentTrainer<A>::loadEpisode(int seqId)
 {
-    vector<vector<double>> sequence;
+    vector<vector<float>> sequence;
     ifstream f("../Sequences/seq" + to_string(seqId));
     if (f)
     {
@@ -73,7 +73,7 @@ vector<vector<double>> AgentTrainer<A>::loadEpisode(int seqId)
         while(getline(f,line))
         {
             int i=0;
-            vector<double> vecline;
+            vector<float> vecline;
             while(i<line.size())
             {
                 vecline.push_back(line[i]-48);

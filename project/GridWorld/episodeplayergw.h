@@ -6,7 +6,7 @@
 #include <QGraphicsRectItem>
 #include <QTimer>
 
-#define TIME_STEP 50 //in ms
+#define TIME_STEP 200 //in ms
 #define SQUARE_SIZE 50 //in pixels
 
 class EpisodePlayerGW: public QWidget
@@ -15,21 +15,21 @@ class EpisodePlayerGW: public QWidget
 public:
     EpisodePlayerGW();
     EpisodePlayerGW(string mapTag);
-    EpisodePlayerGW(string mapTag,vector<vector<double>> sequence);
+    EpisodePlayerGW(string mapTag,vector<vector<float>> sequence);
     void initMap();
     void showMap();
     void playEpisode();
     MapGW getMap();
-    vector<vector<double>> getSequence();
+    vector<vector<float>> getSequence();
     void setMap(MapGW map);
-    void setSequence(vector<vector<double>> sequence);
+    void setSequence(vector<vector<float>> sequence);
     ~EpisodePlayerGW();
 
 public slots:
     void update();
 
 private:
-    vector<vector<double>> sequence;
+    vector<vector<float>> sequence;
     MapGW map;
     QTimer playClock;
     unsigned int stepCount;

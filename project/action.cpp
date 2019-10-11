@@ -5,7 +5,7 @@ Action::Action()
 
 }
 
-double Action::pick()
+float Action::pick()
 {
     return 0;
 }

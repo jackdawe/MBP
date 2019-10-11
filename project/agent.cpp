@@ -130,13 +130,13 @@ State Agent<C>::previousState()
 }
 
 template<class C>
-vector<double> Agent<C>::takenAction()
+vector<float> Agent<C>::takenAction()
 {
     return controller.getTakenAction();
 }
 
 template<class C>
-double Agent<C>::takenReward()
+float Agent<C>::takenReward()
 {
     return controller.getTakenReward();
 }
@@ -148,13 +148,13 @@ State Agent<C>::currentState()
 }
 
 template<class C>
-vector<double> Agent<C>::rewardHistory()
+vector<float> Agent<C>::rewardHistory()
 {
     return controller.getRewardHistory();
 }
 
 template<class C>
-void Agent<C>::addToRewardHistory(double r)
+void Agent<C>::addToRewardHistory(float r)
 {
     controller.addToRewardHistory(r);
 }

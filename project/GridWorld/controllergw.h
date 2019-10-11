@@ -12,8 +12,8 @@ class ControllerGW: public Controller
 public:
     ControllerGW();
     ControllerGW(string mapTag);
-    ControllerGW(string mapTag, double agentXInit, double agentYInit);
-    double transition();
+    ControllerGW(string mapTag, float agentXInit, float agentYInit);
+    float transition();
     bool isTerminal(State s);
     void updateStateVector();
     int stateId(State s);
@@ -26,15 +26,15 @@ public:
 private:
     int size;
     bool randomStart;
-    vector<vector<double>> obstacles;
-    double initX;
-    double initY;
-    double agentX;
-    double agentY;
-    double previousAgentX;
-    double previousAgentY;
-    double goalX;
-    double goalY;
+    vector<vector<float>> obstacles;
+    float initX;
+    float initY;
+    float agentX;
+    float agentY;
+    float previousAgentX;
+    float previousAgentY;
+    float goalX;
+    float goalY;
 };
 
 #endif // CONTROLLERGW_H

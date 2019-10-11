@@ -26,12 +26,12 @@ public:
     vector<DiscreteAction> discreteActions();
     vector<ContinuousAction> continuousActions();
     State previousState();
-    vector<double> takenAction();
-    double takenReward();
+    vector<float> takenAction();
+    float takenReward();
     State currentState();
-    vector<double> rewardHistory();
+    vector<float> rewardHistory();
     C getController() const;
-    void addToRewardHistory(double r);
+    void addToRewardHistory(float r);
 
 protected:
     int episodeNumber;

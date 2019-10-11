@@ -8,7 +8,7 @@ class Action
 {
 public:
     Action();
-    virtual double pick();
+    virtual float pick();
 };
 
 #endif // ACTION_H

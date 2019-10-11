@@ -27,7 +27,13 @@ SOURCES += main.cpp \
     controller.cpp \
     GridWorld/controllergw.cpp \
     Agents/qlearning.cpp \
-    GridWorld/episodeplayergw.cpp
+    GridWorld/episodeplayergw.cpp \
+    Starship/planet.cpp \
+    Starship/waypoint.cpp \
+    Starship/ship.cpp \
+    Starship/vect2d.cpp \
+    Starship/controllerss.cpp \
+    Starship/episodeplayerss.cpp
 
 HEADERS += \
     action.h \
@@ -41,4 +47,10 @@ HEADERS += \
     controller.h \
     GridWorld/controllergw.h \
     Agents/qlearning.h \
-    GridWorld/episodeplayergw.h
+    GridWorld/episodeplayergw.h \
+    Starship/planet.h \
+    Starship/waypoint.h \
+    Starship/ship.h \
+    Starship/vect2d.h \
+    Starship/controllerss.h \
+    Starship/episodeplayerss.h

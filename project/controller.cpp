@@ -4,7 +4,7 @@ Controller::Controller()
 {
 }
 
-double Controller::transition()
+float Controller::transition()
 {
     return 0;
 }
@@ -58,12 +58,12 @@ State Controller::getPreviousState() const
     return previousState;
 }
 
-vector<double> Controller::getTakenAction() const
+vector<float> Controller::getTakenAction() const
 {
     return takenAction;
 }
 
-double Controller::getTakenReward() const
+float Controller::getTakenReward() const
 {
     return takenReward;
 }
@@ -73,17 +73,17 @@ State Controller::getCurrentState() const
     return currentState;
 }
 
-vector<double> Controller::getRewardHistory() const
+vector<float> Controller::getRewardHistory() const
 {
     return rewardHistory;
 }
 
-void Controller::addToRewardHistory(double r)
+void Controller::addToRewardHistory(float r)
 {
     rewardHistory.push_back(r);
 }
 
-void Controller::updateTakenAction(int actionIndex, double value)
+void Controller::updateTakenAction(int actionIndex, float value)
 {
     takenAction[actionIndex] = value;
 }
@@ -93,12 +93,12 @@ void Controller::setActions(const ActionSpace &value)
     actions = value;
 }
 
-void Controller::setTakenAction(const vector<double> &value)
+void Controller::setTakenAction(const vector<float> &value)
 {
     takenAction = value;
 }
 
-void Controller::setTakenReward(double value)
+void Controller::setTakenReward(float value)
 {
     takenReward = value;
 }

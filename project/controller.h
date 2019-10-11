@@ -7,7 +7,7 @@ class Controller
 {
 public:
     Controller();
-    virtual double transition(); //Changing the state after performing an action and returns the reward for that state action pair
+    virtual float transition(); //Changing the state after performing an action and returns the reward for that state action pair
     virtual bool isTerminal(); //returns true if the state is terminal
     virtual void updateStateVector(); //Converts any representation of a state to a state vector readable by the agentTrainer
     virtual int stateId(State s);
@@ -20,23 +20,23 @@ public:
 
     ActionSpace getActions() const;
     State getPreviousState() const;
-    vector<double> getTakenAction() const;
-    double getTakenReward() const;
+    vector<float> getTakenAction() const;
+    float getTakenReward() const;
     State getCurrentState() const;
-    vector<double> getRewardHistory() const;
-    void addToRewardHistory(double r);
-    void updateTakenAction(int actionIndex, double value);
+    vector<float> getRewardHistory() const;
+    void addToRewardHistory(float r);
+    void updateTakenAction(int actionIndex, float value);
     void setActions(const ActionSpace &value);
-    void setTakenAction(const vector<double> &value);
-    void setTakenReward(double value);
+    void setTakenAction(const vector<float> &value);
+    void setTakenReward(float value);
 
 protected:
     ActionSpace actions;
     State previousState;
-    vector<double> takenAction;
-    double takenReward;
+    vector<float> takenAction;
+    float takenReward;
     State currentState;
-    vector<double> rewardHistory;
+    vector<float> rewardHistory;
 };
 
 #endif // CONTROLLER_H

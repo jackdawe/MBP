@@ -17,7 +17,7 @@ public:
 
 private:
     float gamma;
-    vector<double> qvalues;
+    vector<float> qvalues;
 };
 
 #endif // QLEARNING_H

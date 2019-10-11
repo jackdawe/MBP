@@ -12,7 +12,7 @@ EpisodePlayerGW::EpisodePlayerGW(string mapTag)
     agentShape->hide();
 }
 
-EpisodePlayerGW::EpisodePlayerGW(string mapTag, vector<vector<double>> sequence): sequence(sequence)
+EpisodePlayerGW::EpisodePlayerGW(string mapTag, vector<vector<float>> sequence): sequence(sequence)
 {
     map.load(mapTag);
     initMap();
@@ -86,7 +86,7 @@ MapGW EpisodePlayerGW::getMap()
     return map;
 }
 
-vector<vector<double>> EpisodePlayerGW::getSequence()
+vector<vector<float>> EpisodePlayerGW::getSequence()
 {
     return sequence;
 }
@@ -96,7 +96,7 @@ void EpisodePlayerGW::setMap(MapGW map)
     this->map = map;
 }
 
-void EpisodePlayerGW::setSequence(vector<vector<double>> sequence)
+void EpisodePlayerGW::setSequence(vector<vector<float>> sequence)
 {
     this->sequence=sequence;
 }

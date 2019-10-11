@@ -12,11 +12,11 @@ ControllerGW::ControllerGW(string mapTag)
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
-    takenAction = vector<double>(1,0);
+    takenAction = vector<float>(1,0);
     size = map.getSize();
     for (int i=0;i<size;i++)
     {
-        obstacles.push_back(vector<double>(map.getSize(),0));
+        obstacles.push_back(vector<float>(map.getSize(),0));
     }
 
     for (int i=0;i<size;i++)
@@ -36,7 +36,7 @@ ControllerGW::ControllerGW(string mapTag)
     }
 }
 
-ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit):
+ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
     initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
 {
     randomStart=false;
@@ -44,11 +44,11 @@ ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit):
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
-    takenAction = vector<double>(1,0);
+    takenAction = vector<float>(1,0);
     size = map.getSize();
     for (int i=0;i<size;i++)
     {
-        obstacles.push_back(vector<double>(map.getSize(),0));
+        obstacles.push_back(vector<float>(map.getSize(),0));
     }
 
     for (int i=0;i<size;i++)
@@ -69,7 +69,7 @@ ControllerGW::ControllerGW(string mapTag, double agentXInit, double agentYInit):
     updateStateVector();
 }
 
-double ControllerGW::transition()
+float ControllerGW::transition()
 {
     int a = (int)takenAction[0];
     previousAgentX = agentX;
@@ -106,8 +106,8 @@ double ControllerGW::transition()
 
 bool ControllerGW::isTerminal(State s)
 {
-    double ax = s.getStateVector()[0];
-    double ay = s.getStateVector()[1];
+    float ax = s.getStateVector()[0];
+    float ay = s.getStateVector()[1];
     return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
 }
 
@@ -160,8 +160,8 @@ void ControllerGW::updateStateVector()
 
 int ControllerGW::stateId(State s)
 {
-    double ax = s.getStateVector()[0];
-    double ay = s.getStateVector()[1];
+    float ax = s.getStateVector()[0];
+    float ay = s.getStateVector()[1];
     return ax*size+ay;
 }
 

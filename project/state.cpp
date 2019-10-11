@@ -4,22 +4,22 @@ State::State()
 {
 }
 
-void State::add(double value)
+void State::add(float value)
 {
     stateVector.push_back(value);
 }
 
-void State::update(int index, double value)
+void State::update(int index, float value)
 {
     stateVector[index] = value;
 }
 
-vector<double> State::getStateVector() const
+vector<float> State::getStateVector() const
 {
     return stateVector;
 }
 
-void State::setStateVector(const vector<double> &value)
+void State::setStateVector(const vector<float> &value)
 {
     stateVector = value;
 }
