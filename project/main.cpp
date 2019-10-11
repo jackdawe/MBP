@@ -5,7 +5,7 @@
 #include "GridWorld/episodeplayergw.h"
 #include "agenttrainer.h"
 #include "Agents/qlearning.h"
-#include "Starship/mapss.h"
+#include "Starship/episodeplayerss.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 //    EpisodePlayerGW ep(mapTag,trainer.loadEpisode(0));
 //    ep.playEpisode();
 
-    MapSS map;
-    map.load("1");
+    EpisodePlayerSS ep("1");
+    ep.showMap();
     return a.exec();
 }

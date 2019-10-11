@@ -35,6 +35,12 @@ public:
     int getSize() const;
     string getMapTag() const;
 
+    vector<Planet> getPlanets() const;
+
+    vector<Waypoint> getWaypoints() const;
+
+    Ship getShip() const;
+
 private:
     int size;
     string mapTag;
