@@ -15,7 +15,8 @@ public:
     ControllerGW(string mapTag, float agentXInit, float agentYInit);
     float transition();
     bool isTerminal(State s);
-    void updateStateVector();
+    void generateStates();
+    void updateStates();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);

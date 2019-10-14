@@ -66,7 +66,6 @@ ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
             }
         }
     }
-    updateStateVector();
 }
 
 float ControllerGW::transition()
@@ -92,7 +91,6 @@ float ControllerGW::transition()
             break;
         }
     }
-    updateStateVector();
     if (obstacles[agentX][agentY] == 1)
     {
         return LOSE_REWARD;
@@ -111,51 +109,32 @@ bool ControllerGW::isTerminal(State s)
     return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
 }
 
-void ControllerGW::updateStateVector()
+void ControllerGW::generateStates()
 {
-    if (currentState.getStateVector().size() == 0)
+    currentState.add(agentX),currentState.add(agentY),
+            currentState.add(goalX), currentState.add(goalY);
+    for (int i=0;i<size;i++)
     {
-        currentState.add(agentX),currentState.add(agentY),
-                currentState.add(goalX), currentState.add(goalY);
-        for (int i=0;i<size;i++)
+        for (int j=0;j<size;j++)
         {
-            for (int j=0;j<size;j++)
-            {
-                currentState.add(obstacles[i][j]);
-            }
-        }
-        previousState.add(previousAgentX),previousState.add(previousAgentY),
-                previousState.add(goalX), previousState.add(goalY);
-        for (int i=0;i<size;i++)
-        {
-            for (int j=0;j<size;j++)
-            {
-                previousState.add(obstacles[i][j]);
-            }
+            currentState.add(obstacles[i][j]);
         }
     }
-    else
+    previousState.add(previousAgentX),previousState.add(previousAgentY),
+            previousState.add(goalX), previousState.add(goalY);
+    for (int i=0;i<size;i++)
     {
-        currentState.update(0,agentX), currentState.update(1,agentY),
-                currentState.update(2,goalX), currentState.update(3,goalY);
-        for (int i=0;i<size;i++)
+        for (int j=0;j<size;j++)
         {
-            for (int j=0;j<size;j++)
-            {
-                currentState.update(3+i*size+j,obstacles[i][j]);
-            }
-        }
-        previousState.update(0,previousAgentX), previousState.update(1,previousAgentY),
-                previousState.update(2,goalX), previousState.update(3,goalY);
-        for (int i=0;i<size;i++)
-        {
-            for (int j=0;j<size;j++)
-            {
-                previousState.update(3+i*size+j,obstacles[i][j]);
-            }
+            previousState.add(obstacles[i][j]);
         }
     }
+}
 
+void ControllerGW::updateStates()
+{
+    currentState.update(0,agentX), currentState.update(1,agentY);
+    previousState.update(0,previousAgentX), previousState.update(2,previousAgentY);
 }
 
 int ControllerGW::stateId(State s)
@@ -181,7 +160,6 @@ void ControllerGW::reset()
     {
         agentX = initX; agentY = initY;
     }
-    updateStateVector();
 }
 
 vector<int> ControllerGW::accessibleStates(State s)

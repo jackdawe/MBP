@@ -44,8 +44,6 @@ float ControllerSS::transition()
         ship.setP(ship.getP().sum(ship.getV().dilate(STEP_SIZE)));
         ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
     }
-    updateStateVector();
-
     for (unsigned int i=0;i<planets.size();i++)
     {
         if (ship.getP().distance(planets[i].getCentre()) < ship.getWidth()+planets[i].getRadius())
@@ -99,10 +97,15 @@ bool ControllerSS::isTerminal(State s)
     return false;
 }
 
-void ControllerSS::updateStateVector()
+void ControllerSS::generateStates()
 {
-    vector<double> stateVector = {ship.getP().getX(),ship.getP().getY(),ship.getV().getX(),
-                                 ship.getV.getY(),ship.getWidth()};
+
+}
+
+void ControllerSS::updateStates()
+{
+    vector<float> stateVector = {ship.getP().getX(),ship.getP().getY(),ship.getV().getX(),
+                                 ship.getV().getY(),ship.getWidth()};
     for (unsigned int i=0;i<waypoints.size();i++)
     {
         stateVector.push_back(waypoints[i].getCentre().getX());

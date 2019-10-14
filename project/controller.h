@@ -9,7 +9,8 @@ public:
     Controller();
     virtual float transition(); //Changing the state after performing an action and returns the reward for that state action pair
     virtual bool isTerminal(State s); //returns true if the state is terminal
-    virtual void updateStateVector(); //Converts any representation of a state to a state vector readable by the agentTrainer
+    virtual void generateStates(); //Converts the controller's representation of a state into a state vector readable by any agent. CurrentState and PreviousState are then updated
+    virtual void updateStates();
     virtual int stateId(State s);
     virtual void reset();
     virtual vector<int> accessibleStates(State s);
