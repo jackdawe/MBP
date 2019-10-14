@@ -25,6 +25,10 @@ ControllerSS::ControllerSS(string mapTag, Ship s)
 
 float ControllerSS::transition()
 {
+
+    previousState.update(0,ship.getP().getX()),previousState.update(1,ship.getP().getY()),
+            previousState.update(2,ship.getV().getX()), previousState.update(3,ship.getV().getY());
+
     float thrustPow = takenAction[0];
     float thrustOri = takenAction[1];
     int signal = (int)takenAction[2];
@@ -51,6 +55,10 @@ float ControllerSS::transition()
             return CRASH_REWARD;
         }
     }
+
+    currentState.update(0,ship.getP().getX()),currentState.update(1,ship.getP().getY()),
+            currentState.update(2,ship.getV().getX()), currentState.update(3,ship.getV().getY());
+
     if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize())
     {
         for (unsigned int i=0;i<waypoints.size();i++)
@@ -98,11 +106,6 @@ bool ControllerSS::isTerminal(State s)
 }
 
 void ControllerSS::generateStates()
-{
-
-}
-
-void ControllerSS::updateStates()
 {
     vector<float> stateVector = {ship.getP().getX(),ship.getP().getY(),ship.getV().getX(),
                                  ship.getV().getY(),ship.getWidth()};

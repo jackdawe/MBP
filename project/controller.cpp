@@ -18,11 +18,6 @@ void Controller::generateStates()
 {
 }
 
-void Controller::updateStates()
-{
-
-}
-
 int Controller::stateId(State s)
 {
     return 0;
