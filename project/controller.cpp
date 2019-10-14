@@ -20,7 +20,7 @@ void Controller::generateStates()
 
 int Controller::stateId(State s)
 {
-    return 0;
+    return -1;
 }
 
 void Controller::reset()
@@ -30,12 +30,12 @@ void Controller::reset()
 
 vector<int> Controller::accessibleStates(State s)
 {
-    return vector<int>();
+    return {-1};
 }
 
 int Controller::spaceStateSize()
 {
-    return 0;
+    return -1;
 }
 
 int Controller::actionSpaceSize()
