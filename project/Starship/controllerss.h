@@ -30,6 +30,7 @@ public:
     vector<int> accessibleStates(State s);
     int spaceStateSize();
 
+
     vector<Planet> planets;
     vector<Waypoint> waypoints;
     Ship ship;

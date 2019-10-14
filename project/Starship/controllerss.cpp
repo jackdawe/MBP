@@ -71,11 +71,32 @@ float ControllerSS::transition()
             return SIGNAL_OFF_WAYPOINT_REWARD;
         }
     }
+    return 0;
 }
 
 bool ControllerSS::isTerminal(State s)
 {
-
+    for (unsigned int i=0;i<planets.size();i++)
+    {
+        if (ship.getP().distance(planets[i].getCentre()) < ship.getWidth()+planets[i].getRadius())
+        {
+            return true;
+        }
+    }
+    if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize())
+    {
+        for (unsigned int i=0;i<waypoints.size();i++)
+        {
+            if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
+            {
+                if (ship.getSignalColor() == i)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void ControllerSS::updateStateVector()
