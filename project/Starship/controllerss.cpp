@@ -101,7 +101,20 @@ bool ControllerSS::isTerminal(State s)
 
 void ControllerSS::updateStateVector()
 {
-
+    vector<double> stateVector = {ship.getP().getX(),ship.getP().getY(),ship.getV().getX(),
+                                 ship.getV.getY(),ship.getWidth()};
+    for (unsigned int i=0;i<waypoints.size();i++)
+    {
+        stateVector.push_back(waypoints[i].getCentre().getX());
+        stateVector.push_back(waypoints[i].getCentre().getY());
+        stateVector.push_back(waypoints[i].getRadius());
+    }
+    for (unsigned int i=0;i<planets.size();i++)
+    {
+        stateVector.push_back(planets[i].getCentre().getX());
+        stateVector.push_back(planets[i].getCentre().getY());
+        stateVector.push_back(planets[i].getRadius());
+    }
 }
 
 int ControllerSS::stateId(State s)
