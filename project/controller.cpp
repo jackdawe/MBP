@@ -9,7 +9,7 @@ float Controller::transition()
     return 0;
 }
 
-bool Controller::isTerminal()
+bool Controller::isTerminal(State s)
 {
     return false;
 }
