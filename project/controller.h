@@ -36,7 +36,7 @@ public:
      * @brief stateId
      * Attributes an Id to a state by defining an order between states
      * @param s the state being identified
-     * @return the Id of state s
+     * @return the Id of state s or -1 if the state space is infinite
      */
     virtual int stateId(State s);
 
@@ -51,6 +51,7 @@ public:
      * A simple way to get the accessible states
      * @param s the state being evaluated
      * @return A vector containing the id of each state that is accessible from s in one transition
+     * or the vector {-1} there is an infinite amount of accessible states.
      */
     virtual vector<int> accessibleStates(State s);
 

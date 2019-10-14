@@ -9,6 +9,7 @@ ControllerSS::ControllerSS(string mapTag)
 {
     MapSS map;
     map.load(mapTag);
+    size = map.getSize();
     planets = map.getPlanets();
     waypoints = map.getWaypoints();
     ship = map.getShip();
@@ -123,22 +124,38 @@ void ControllerSS::generateStates()
     }
 }
 
-int ControllerSS::stateId(State s)
-{
-
-}
-
 void ControllerSS::reset()
 {
-
+    default_random_engine generator(random_device{}());
+    uniform_int_distribution<int> dist(ship.getHeight(),size-ship.getHeight());
+    bool invalidPosition = true;
+    while (invalidPosition)
+    {
+        invalidPosition = false;
+        Vect2d spawn(dist(generator),dist(generator));
+        ship.setP(spawn);
+        for (unsigned int i=0;i<planets.size();i++)
+        {
+            if (spawn.distance(planets[i].getCentre()) < 1.1 * (ship.getHeight()+planets[i].getRadius())) {
+                invalidPosition = true;
+                break;
+            }
+        }
+        if (!invalidPosition)
+        {
+            for (unsigned int i=0;i<waypoints.size();i++)
+            {
+                if (spawn.distance(waypoints[i].getCentre()) < 1.1 * (waypoints[i].getRadius() + ship.getHeight()))
+                {
+                    invalidPosition = true;
+                    break;
+                }
+            }
+        }
+    }
+    ship.setA(Vect2d(0,0));
+    ship.setV(Vect2d(0,0));
+    ship.setThrust(Vect2d(0,0));
+    ship.setSignalColor(waypoints.size());
 }
 
-vector<int> ControllerSS::accessibleStates(State s)
-{
-
-}
-
-int ControllerSS::spaceStateSize()
-{
-
-}
