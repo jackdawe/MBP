@@ -91,3 +91,4 @@ vector<vector<float>> AgentTrainer<A>::loadEpisode(int seqId)
 }
 
 template class AgentTrainer<QLearning<ControllerGW>>;
+template class AgentTrainer<RandomAgent<ControllerSS>>;

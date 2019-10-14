@@ -34,7 +34,8 @@ SOURCES += main.cpp \
     Starship/vect2d.cpp \
     Starship/controllerss.cpp \
     Starship/episodeplayerss.cpp \
-    Starship/mapss.cpp
+    Starship/mapss.cpp \
+    Agents/randomagent.cpp
 
 HEADERS += \
     action.h \
@@ -55,4 +56,5 @@ HEADERS += \
     Starship/vect2d.h \
     Starship/controllerss.h \
     Starship/episodeplayerss.h \
-    Starship/mapss.h
+    Starship/mapss.h \
+    Agents/randomagent.h

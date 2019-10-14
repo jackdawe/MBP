@@ -1,6 +1,7 @@
 #ifndef AGENTTRAINER_H
 #define AGENTTRAINER_H
 #include "Agents/qlearning.h"
+#include "Agents/randomagent.h"
 #include <iostream>
 
 template <class A>

@@ -160,9 +160,16 @@ void Agent<C>::addToRewardHistory(float r)
 }
 
 template<class C>
+void Agent<C>::setController(const C &value)
+{
+    controller = value;
+}
+
+template<class C>
 C Agent<C>::getController() const
 {
     return controller;
 }
 
 template class Agent<ControllerGW>;
+template class Agent<ControllerSS>;

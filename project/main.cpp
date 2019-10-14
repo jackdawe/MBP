@@ -20,7 +20,11 @@ int main(int argc, char *argv[])
 //    EpisodePlayerGW ep(mapTag,trainer.loadEpisode(0));
 //    ep.playEpisode();
 
+    AgentTrainer<RandomAgent<ControllerSS>> trainer;
+    ControllerSS controller("1");
+    RandomAgent<ControllerSS> agent(controller);
+    trainer.train(&agent,1,0,1);
     EpisodePlayerSS ep("1");
-    ep.showMap();
+    ep.playEpisode();
     return a.exec();
 }

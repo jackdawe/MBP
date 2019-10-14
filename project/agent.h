@@ -1,6 +1,7 @@
 #ifndef AGENT_H
 #define AGENT_H
 #include "GridWorld/controllergw.h"
+#include "Starship/controllerss.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -32,6 +33,8 @@ public:
     vector<float> rewardHistory();
     C getController() const;
     void addToRewardHistory(float r);
+
+    void setController(const C &value);
 
 protected:
     int episodeNumber;
