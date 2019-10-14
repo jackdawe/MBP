@@ -11,7 +11,6 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 {
     for (int k=0;k<numberOfEpisodes;k++)
     {
-
         //Displaying a progression bar in the terminal
 
         if (numberOfEpisodes > 100 && k%(5*numberOfEpisodes/100) == 0)
@@ -21,6 +20,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 
         vector<vector<float>> stateSequence;
         float episodeTotalReward;
+        agent->getController().generateStates();
         agent->initialiseEpisode();
         bool terminal = false;
         while(!terminal)
@@ -39,6 +39,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
             saveEpisode(stateSequence,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
+        agent->getController().reset();
     }
 }
 

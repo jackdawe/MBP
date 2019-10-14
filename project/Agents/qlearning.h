@@ -8,7 +8,6 @@ class QLearning: public Agent<C>
 public:
     QLearning();
     QLearning(C controller, float epsilon, float gamma);
-    void initialiseEpisode();
     void greedyPolicy();
     void updatePolicy();
     void savePolicy(string path);

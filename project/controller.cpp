@@ -14,8 +14,13 @@ bool Controller::isTerminal(State s)
     return false;
 }
 
-void Controller::updateStateVector()
+void Controller::generateStates()
 {
+}
+
+void Controller::updateStates()
+{
+
 }
 
 int Controller::stateId(State s)
