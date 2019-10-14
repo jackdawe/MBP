@@ -16,7 +16,6 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateStates();
-    void updateStates();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
@@ -32,8 +31,6 @@ private:
     float initY;
     float agentX;
     float agentY;
-    float previousAgentX;
-    float previousAgentY;
     float goalX;
     float goalY;
 };

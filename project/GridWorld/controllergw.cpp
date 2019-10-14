@@ -71,8 +71,7 @@ ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
 float ControllerGW::transition()
 {
     int a = (int)takenAction[0];
-    previousAgentX = agentX;
-    previousAgentY = agentY;
+    previousState.update(0,agentX), previousState.update(2,agentY);
     if (!isTerminal(currentState))
     {
         switch (a)
@@ -91,6 +90,7 @@ float ControllerGW::transition()
             break;
         }
     }
+    currentState.update(0,agentX), currentState.update(1,agentY);
     if (obstacles[agentX][agentY] == 1)
     {
         return LOSE_REWARD;
@@ -120,21 +120,7 @@ void ControllerGW::generateStates()
             currentState.add(obstacles[i][j]);
         }
     }
-    previousState.add(previousAgentX),previousState.add(previousAgentY),
-            previousState.add(goalX), previousState.add(goalY);
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            previousState.add(obstacles[i][j]);
-        }
-    }
-}
-
-void ControllerGW::updateStates()
-{
-    currentState.update(0,agentX), currentState.update(1,agentY);
-    previousState.update(0,previousAgentX), previousState.update(2,previousAgentY);
+    previousState = State(currentState);
 }
 
 int ControllerGW::stateId(State s)

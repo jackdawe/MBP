@@ -25,7 +25,6 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateStates();
-    void updateStates();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
@@ -35,7 +34,6 @@ public:
     vector<Planet> planets;
     vector<Waypoint> waypoints;
     Ship ship;
-
 };
 
 #endif // CONTROLLERSS_H
