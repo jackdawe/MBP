@@ -80,9 +80,9 @@ void EpisodePlayerSS::update()
     else
     {
         stepCount++;
-        float thrustPow = actionSequence[stepCount][0];
-        float thrustO = actionSequence[stepCount][1];
-        int signalColor = actionSequence[stepCount][2];
+        float thrustPow = actionSequence[stepCount][1];
+        float thrustO = actionSequence[stepCount][2];
+        int signalColor = actionSequence[stepCount][0];
         if (signalColor != wpColors.size())
         {
             QColor a = wpColors[signalColor];
