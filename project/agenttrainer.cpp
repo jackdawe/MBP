@@ -17,17 +17,20 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         {
             cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
         }
-
-        vector<vector<float>> stateSequence;
         float episodeTotalReward;
-        agent->getController().generateStates();
         agent->initialiseEpisode();
         bool terminal = false;
-        while(!terminal)
-        {
-            stateSequence.push_back(agent->currentState().getStateVector());
+        int i = 0;
+        while(!terminal && i != 1000)
+        {            
+            i++;
             agent->epsilonGreedyPolicy();
             terminal = agent->getController().isTerminal(agent->currentState());
+            if(savingSequenceMode)
+            {
+                actionSequence.push_back(agent->takenAction());
+                stateSequence.push_back(agent->currentState().getStateVector());
+            }
             episodeTotalReward+=agent->takenReward();
             if (trainMode)
             {
@@ -36,7 +39,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         }
         if (savingSequenceMode)
         {
-            saveEpisode(stateSequence,k);
+            saveEpisode(*agent,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
         agent->getController().reset();
@@ -44,17 +47,30 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 }
 
 template <class A>
-void AgentTrainer<A>::saveEpisode(vector<vector<float> > stateSequence, int seqId)
+void AgentTrainer<A>::saveEpisode(A agent, int seqId)
 {
     ofstream f("../Sequences/seq" + to_string(seqId));
     if (f)
     {
+        vector<string> paramLabels = agent.getController().getParamLabels();
+        vector<float> paramValues = agent.getController().getParamValues();
+        for (unsigned int i=0; i<paramLabels.size();i++)
+        {
+            f << paramLabels[i] + " = " + to_string(paramValues[i])<<endl;;
+        }
+        f << "---SEQUENCE---" <<endl;
         for (unsigned int i=0;i<stateSequence.size();i++)
         {
+            string line;
+            for (unsigned int j=0;j<actionSequence[0].size();j++)
+            {
+                line += to_string(actionSequence[i][j]) + " ";
+            }
+            line += "| ";
             for (unsigned int j=0;j<stateSequence[0].size();j++)
 
-                f << to_string((int)stateSequence[i][j]) + " ";
-            f << endl;
+                line+= to_string(stateSequence[i][j]) + " ";
+            f << line << endl;
         }
     }
     else
@@ -64,30 +80,107 @@ void AgentTrainer<A>::saveEpisode(vector<vector<float> > stateSequence, int seqI
 }
 
 template <class A>
-vector<vector<float>> AgentTrainer<A>::loadEpisode(int seqId)
+void AgentTrainer<A>::loadSequence(int seqId)
 {
-    vector<vector<float>> sequence;
+    stateSequence = vector<vector<float>>();
+    actionSequence = vector<vector<float>>();
     ifstream f("../Sequences/seq" + to_string(seqId));
     if (f)
     {
         string line;
+        while (line != "---SEQUENCE---")
+        {
+            getline(f,line);
+        }
         while(getline(f,line))
         {
+            int a = line.size();
             int i=0;
-            vector<float> vecline;
-            while(i<line.size())
+            vector<float> vecline;          
+            while (line[i] != '|')
             {
-                vecline.push_back(line[i]-48);
-                i+=2;
+                string num;
+                while(line[i] != ' ')
+                {
+                    num+=line[i];
+                    i++;
+                }
+                vecline.push_back(stof(num));
+                i++;
             }
-            sequence.push_back(vecline);
+            i+=2;
+            actionSequence.push_back(vecline);
+            vecline = vector<float>();
+            while (i < line.size())
+            {
+                string num;
+                while(line[i] != ' ')
+                {
+                    num+=line[i];
+                    i++;
+                }
+                vecline.push_back(stof(num));
+                i++;
+            }
+            stateSequence.push_back(vecline);
         }
     }
     else
     {
         cout<<"An error has occured when trying to load the sequence"<<endl;
     }
-    return sequence;
+}
+
+template <class A>
+vector<float> AgentTrainer<A>::loadParameters(int seqId)
+{
+    vector<float> paramValues;
+    ifstream f("../Sequences/seq" + to_string(seqId));
+    if (f)
+    {
+        string line;
+        getline(f,line);
+        while (line != "---SEQUENCE---")
+        {
+            string param;
+            int i=0;
+            while (line[i] != '=')
+            {
+                i++;
+            }
+            i+=2;
+            while (i != line.size())
+            {
+                param += line[i];
+                i++;
+            }
+            paramValues.push_back(stof(param));
+            getline(f,line);
+        }
+    }
+    else
+    {
+        cout<<"An error has occured when trying to load the parameters used for the sequence"<<endl;
+    }
+    return paramValues;
+}
+
+template<class A>
+vector<vector<float> > AgentTrainer<A>::getActionSequence() const
+{
+    return actionSequence;
+}
+
+template<class A>
+vector<float> AgentTrainer<A>::getParameters() const
+{
+    return parameters;
+}
+
+template<class A>
+vector<vector<float> > AgentTrainer<A>::getStateSequence() const
+{
+    return stateSequence;
 }
 
 template class AgentTrainer<QLearning<ControllerGW>>;

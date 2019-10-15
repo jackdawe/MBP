@@ -102,3 +102,13 @@ void Controller::setTakenReward(float value)
 {
     takenReward = value;
 }
+
+vector<string> Controller::getParamLabels() const
+{
+    return paramLabels;
+}
+
+vector<float> Controller::getParamValues() const
+{
+    return paramValues;
+}

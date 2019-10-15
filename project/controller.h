@@ -62,6 +62,7 @@ public:
      */
     virtual int spaceStateSize();
 
+
     int actionSpaceSize();
     int saPairSpaceSize();
 
@@ -77,6 +78,10 @@ public:
     void setTakenAction(const vector<float> &value);
     void setTakenReward(float value);
 
+    vector<string> getParamLabels() const;
+
+    vector<float> getParamValues() const;
+
 protected:
     ActionSpace actions;
     State previousState;
@@ -84,6 +89,8 @@ protected:
     float takenReward;
     State currentState;
     vector<float> rewardHistory;
+    vector<string> paramLabels;
+    vector<float> paramValues;
 };
 
 #endif // CONTROLLER_H

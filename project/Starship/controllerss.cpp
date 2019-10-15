@@ -7,10 +7,18 @@ ControllerSS::ControllerSS()
 
 ControllerSS::ControllerSS(string mapTag)
 {
+    paramLabels = {"Gavity", "Damping","Planet Density", "Ship Mass", "Ship Maximum Thrust", "Step Size", "Win Reward",
+                   "Lose Reward", "Wrong signal on Waypoint Reward", "Signal Off Waypoint Reward"};
+    paramValues = {GRAVITY,DAMPING,PLANET_DENSITY,SHIP_MASS,SHIP_MAX_THRUST,STEP_SIZE,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,
+                   CRASH_REWARD, WRONG_SIGNAL_ON_WAYPOINT_REWARD,SIGNAL_OFF_WAYPOINT_REWARD};
     MapSS map;
     map.load(mapTag);
     size = map.getSize();
     planets = map.getPlanets();
+    for (unsigned int i=0;i<planets.size();i++)
+    {
+        planets[i].setMass(4*PLANET_DENSITY*pow(planets[i].getRadius(),3)*M_PI/3);
+    }
     waypoints = map.getWaypoints();
     ship = map.getShip();
     vector<DiscreteAction> dactions = {DiscreteAction(waypoints.size()+1)};
@@ -43,8 +51,8 @@ float ControllerSS::transition()
     for (unsigned int i=0;i<planets.size();i++)
     {
         Planet p = planets[i];
-        Vect2d vectPS = ship.getP().sum(p.getCentre());
-        gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),3)));
+        Vect2d vectPS = p.getCentre().sum(ship.getP().dilate(-1));
+        gravForce = gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),3)));
         ship.setA(Vect2d(gravForce.getX()-DAMPING*ship.getV().getX()-ship.getThrust().getX(),gravForce.getY()-DAMPING*ship.getV().getY()-ship.getThrust().getY()).dilate(1./SHIP_MASS));
         ship.setP(ship.getP().sum(ship.getV().dilate(STEP_SIZE)));
         ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
@@ -122,6 +130,8 @@ void ControllerSS::generateStates()
         stateVector.push_back(planets[i].getCentre().getY());
         stateVector.push_back(planets[i].getRadius());
     }
+    currentState.setStateVector(stateVector);
+    previousState.setStateVector(vector<float>(stateVector.size(),0));
 }
 
 void ControllerSS::reset()
