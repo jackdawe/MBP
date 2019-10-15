@@ -11,19 +11,20 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 {
     for (int k=0;k<numberOfEpisodes;k++)
     {
+        stateSequence = vector<vector<float>>();
+        actionSequence = vector<vector<float>>();
         //Displaying a progression bar in the terminal
 
         if (numberOfEpisodes > 100 && k%(5*numberOfEpisodes/100) == 0)
         {
             cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
         }
-        float episodeTotalReward;
+        float episodeTotalReward=0;
         agent->initialiseEpisode();
         bool terminal = false;
-        int i = 0;
-        while(!terminal && i != 1000)
+        stateSequence.push_back(agent->currentState().getStateVector());
+        while(!terminal)
         {            
-            i++;
             agent->epsilonGreedyPolicy();
             terminal = agent->getController().isTerminal(agent->currentState());
             if(savingSequenceMode)
@@ -42,7 +43,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
             saveEpisode(*agent,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
-        agent->getController().reset();
+        agent->resetController();
     }
 }
 
@@ -62,9 +63,12 @@ void AgentTrainer<A>::saveEpisode(A agent, int seqId)
         for (unsigned int i=0;i<stateSequence.size();i++)
         {
             string line;
-            for (unsigned int j=0;j<actionSequence[0].size();j++)
+            if (i!=0)
             {
-                line += to_string(actionSequence[i][j]) + " ";
+                for (unsigned int j=0;j<actionSequence[0].size();j++)
+                {
+                    line += to_string(actionSequence[i-1][j]) + " ";
+                }
             }
             line += "| ";
             for (unsigned int j=0;j<stateSequence[0].size();j++)

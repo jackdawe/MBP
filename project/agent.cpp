@@ -95,6 +95,12 @@ void Agent<C>::generateNameTag(vector<float> parameters, vector<string> paramete
 }
 
 template<class C>
+void Agent<C>::resetController()
+{
+    controller.reset();
+}
+
+template<class C>
 int Agent<C>::daSize()
 {
     return actions().getDiscreteActions().size();

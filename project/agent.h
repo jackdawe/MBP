@@ -20,6 +20,7 @@ public:
     virtual void savePolicy(string path);
     virtual void loadPolicy(string filename);
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
+    void resetController();
 
     int daSize();
     int caSize();

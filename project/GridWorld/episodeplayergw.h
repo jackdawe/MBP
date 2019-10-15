@@ -6,7 +6,7 @@
 #include <QGraphicsRectItem>
 #include <QTimer>
 
-#define TIME_STEP 200 //in ms
+#define TIME_STEP 300 //in ms
 #define SQUARE_SIZE 50 //in pixels
 
 class EpisodePlayerGW: public QWidget

@@ -34,6 +34,13 @@ ControllerGW::ControllerGW(string mapTag)
             }
         }
     }
+    default_random_engine generator(std::random_device{}());
+    uniform_int_distribution<int> dist(1,size-1);
+    agentX = dist(generator), agentY = dist(generator);
+    while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
+    {
+        agentX = dist(generator), agentY = dist(generator);
+    }
 }
 
 ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
