@@ -24,7 +24,7 @@ void Agent<C>::epsilonGreedyPolicy()
         }
         for (int i=0;i<caSize();i++)
         {
-            controller.updateTakenAction(i,continuousActions()[i].pick());
+            controller.updateTakenAction(i+daSize(),continuousActions()[i].pick());
         }
     }
     else

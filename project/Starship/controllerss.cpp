@@ -38,9 +38,9 @@ float ControllerSS::transition()
     previousState.update(0,ship.getP().getX()),previousState.update(1,ship.getP().getY()),
             previousState.update(2,ship.getV().getX()), previousState.update(3,ship.getV().getY());
 
-    float thrustPow = takenAction[0];
-    float thrustOri = takenAction[1];
-    int signal = (int)takenAction[2];
+    float thrustPow = takenAction[1];
+    float thrustOri = takenAction[2];
+    int signal = (int)takenAction[0];
 
     if (!isTerminal(currentState))
     {
