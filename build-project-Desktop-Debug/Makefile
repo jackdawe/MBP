@@ -70,7 +70,8 @@ SOURCES       = ../project/main.cpp \
 		../project/Starship/controllerss.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
-		../project/Agents/randomagent.cpp moc_episodeplayergw.cpp
+		../project/Agents/randomagent.cpp moc_episodeplayergw.cpp \
+		moc_episodeplayerss.cpp
 OBJECTS       = main.o \
 		action.o \
 		discreteaction.o \
@@ -92,7 +93,8 @@ OBJECTS       = main.o \
 		episodeplayerss.o \
 		mapss.o \
 		randomagent.o \
-		moc_episodeplayergw.o
+		moc_episodeplayergw.o \
+		moc_episodeplayerss.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -435,14 +437,24 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_episodeplayergw.cpp
+compiler_moc_header_make_all: moc_episodeplayergw.cpp moc_episodeplayerss.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_episodeplayergw.cpp
+	-$(DEL_FILE) moc_episodeplayergw.cpp moc_episodeplayerss.cpp
 moc_episodeplayergw.cpp: ../project/GridWorld/mapgw.h \
 		../project/GridWorld/episodeplayergw.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/GridWorld/episodeplayergw.h -o moc_episodeplayergw.cpp
+
+moc_episodeplayerss.cpp: ../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h \
+		../project/Starship/episodeplayerss.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/Starship/episodeplayerss.h -o moc_episodeplayerss.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -471,13 +483,13 @@ main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
 		../project/agenttrainer.h \
 		../project/Agents/qlearning.h \
 		../project/agent.h \
-		../project/Agents/randomagent.h \
 		../project/Starship/controllerss.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
+		../project/Agents/randomagent.h \
 		../project/Starship/episodeplayerss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../project/main.cpp
 
@@ -504,7 +516,13 @@ agent.o: ../project/agent.cpp ../project/agent.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
-		../project/GridWorld/mapgw.h
+		../project/GridWorld/mapgw.h \
+		../project/Starship/controllerss.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o agent.o ../project/agent.cpp
 
 agenttrainer.o: ../project/agenttrainer.cpp ../project/agenttrainer.h \
@@ -518,13 +536,13 @@ agenttrainer.o: ../project/agenttrainer.cpp ../project/agenttrainer.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Agents/randomagent.h \
 		../project/Starship/controllerss.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
-		../project/Starship/ship.h
+		../project/Starship/ship.h \
+		../project/Agents/randomagent.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o agenttrainer.o ../project/agenttrainer.cpp
 
 mapgw.o: ../project/GridWorld/mapgw.cpp ../project/GridWorld/mapgw.h
@@ -563,7 +581,13 @@ qlearning.o: ../project/Agents/qlearning.cpp ../project/Agents/qlearning.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
-		../project/GridWorld/mapgw.h
+		../project/GridWorld/mapgw.h \
+		../project/Starship/controllerss.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qlearning.o ../project/Agents/qlearning.cpp
 
 episodeplayergw.o: ../project/GridWorld/episodeplayergw.cpp ../project/GridWorld/episodeplayergw.h \
@@ -634,6 +658,9 @@ randomagent.o: ../project/Agents/randomagent.cpp ../project/Agents/randomagent.h
 
 moc_episodeplayergw.o: moc_episodeplayergw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayergw.o moc_episodeplayergw.cpp
+
+moc_episodeplayerss.o: moc_episodeplayerss.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayerss.o moc_episodeplayerss.cpp
 
 ####### Install
 

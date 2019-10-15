@@ -8,6 +8,7 @@ Agent<C>::Agent()
 template<class C>
 Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon)
 {
+    this->controller.generateStates();
 }
 
 template <class C>
@@ -21,7 +22,7 @@ void Agent<C>::epsilonGreedyPolicy()
         {
             controller.updateTakenAction(i,discreteActions()[i].pick());
         }
-        for (int i=daSize();i<actions().size();i++)
+        for (int i=0;i<caSize();i++)
         {
             controller.updateTakenAction(i,continuousActions()[i].pick());
         }
