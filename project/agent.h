@@ -17,9 +17,12 @@ public:
     void epsilonGreedyPolicy();
     virtual void greedyPolicy();
     virtual void updatePolicy();
+    virtual void finaliseEpisode();
     virtual void savePolicy(string path);
     virtual void loadPolicy(string filename);
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
+    void resetController();
+    void incrementEpisode();
 
     int daSize();
     int caSize();
