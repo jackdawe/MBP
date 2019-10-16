@@ -11,33 +11,21 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 {
     for (int k=0;k<numberOfEpisodes;k++)
     {
-<<<<<<< HEAD
-=======
         stateSequence = vector<vector<float>>();
         actionSequence = vector<vector<float>>();
->>>>>>> GridWorld
+
         //Displaying a progression bar in the terminal
 
         if (numberOfEpisodes > 100 && k%(5*numberOfEpisodes/100) == 0)
         {
             cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
         }
-<<<<<<< HEAD
-        float episodeTotalReward;
-        agent->initialiseEpisode();
-        bool terminal = false;
-        int i = 0;
-        while(!terminal && i != 1000)
-        {            
-            i++;
-=======
         float episodeTotalReward=0;
         agent->initialiseEpisode();
         bool terminal = false;
         stateSequence.push_back(agent->currentState().getStateVector());
         while(!terminal)
         {            
->>>>>>> GridWorld
             agent->epsilonGreedyPolicy();
             terminal = agent->getController().isTerminal(agent->currentState());
             if(savingSequenceMode)
@@ -57,12 +45,8 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
             saveEpisode(*agent,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
-<<<<<<< HEAD
-        agent->getController().reset();
-=======
         agent->incrementEpisode();
         agent->resetController();
->>>>>>> GridWorld
     }
 }
 
@@ -82,18 +66,12 @@ void AgentTrainer<A>::saveEpisode(A agent, int seqId)
         for (unsigned int i=0;i<stateSequence.size();i++)
         {
             string line;
-<<<<<<< HEAD
-            for (unsigned int j=0;j<actionSequence[0].size();j++)
-            {
-                line += to_string(actionSequence[i][j]) + " ";
-=======
             if (i!=0)
             {
                 for (unsigned int j=0;j<actionSequence[0].size();j++)
                 {
                     line += to_string(actionSequence[i-1][j]) + " ";
                 }
->>>>>>> GridWorld
             }
             line += "| ";
             for (unsigned int j=0;j<stateSequence[0].size();j++)
