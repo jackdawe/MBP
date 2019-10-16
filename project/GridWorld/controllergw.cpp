@@ -2,7 +2,6 @@
 
 ControllerGW::ControllerGW()
 {
-    path = "../GridWorld/Map"+mapTag+"/";
 }
 
 ControllerGW::ControllerGW(string mapTag)

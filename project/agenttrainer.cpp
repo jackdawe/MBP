@@ -26,8 +26,11 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
         agent->initialiseEpisode();
         bool terminal = false;
         stateSequence.push_back(agent->currentState().getStateVector());
+
+        float i = 0;
         while(!terminal)
-        {            
+        {
+            i++;
             agent->epsilonGreedyPolicy();
             terminal = agent->getController().isTerminal(agent->currentState());
             if(savingSequenceMode)
@@ -35,12 +38,13 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
                 actionSequence.push_back(agent->takenAction());
                 stateSequence.push_back(agent->currentState().getStateVector());
             }
-            episodeTotalReward+=agent->takenReward();
+            episodeTotalReward+=agent->takenReward()/i;
             if (trainMode)
             {
                 agent->updatePolicy();
             }
         }
+
         agent->finaliseEpisode();
         if (savingSequenceMode)
         {

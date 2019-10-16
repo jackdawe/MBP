@@ -14,16 +14,13 @@ int main(int argc, char *argv[])
     ControllerGW controller(mapTag);
     QLearning<ControllerGW> agent(controller,0.25,0.9);
     AgentTrainer<QLearning<ControllerGW>> trainer;
-    trainer.train(&agent,100,1);
-//    agent.saveRewardHistory();
-//    agent.savePolicy();
-
-    QLearning<ControllerGW> agent2;
-    agent2.loadPolicy("E025G090_140");
+    trainer.train(&agent,2000,1);
+    agent.saveRewardHistory();
+    agent.savePolicy();
 
 //    trainer.train(&agent,1,1,1);
 //    trainer.loadSequence(0);
 //    EpisodePlayerGW ep(mapTag,trainer.getStateSequence());
 //    ep.playEpisode();
-    return a.exec();
+//    return a.exec();
 }
