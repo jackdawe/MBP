@@ -38,11 +38,13 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
                 agent->updatePolicy();
             }
         }
+        agent->finaliseEpisode();
         if (savingSequenceMode)
         {
             saveEpisode(*agent,k);
         }
         agent->addToRewardHistory(episodeTotalReward);
+        agent->incrementEpisode();
         agent->resetController();
     }
 }

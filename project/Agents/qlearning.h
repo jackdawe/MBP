@@ -10,6 +10,7 @@ public:
     QLearning(C controller, float epsilon, float gamma);
     void greedyPolicy();
     void updatePolicy();
+    void finaliseEpisode();
     void savePolicy(string path);
     void loadPolicy(string filename);
     void saveTrainingData();

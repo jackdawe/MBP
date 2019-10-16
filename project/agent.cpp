@@ -6,7 +6,7 @@ Agent<C>::Agent()
 }
 
 template<class C>
-Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon)
+Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon), episodeNumber(0)
 {
     this->controller.generateStates();
 }
@@ -46,6 +46,11 @@ void Agent<C>::greedyPolicy()
 
 template <class C>
 void Agent<C>::updatePolicy()
+{
+}
+
+template <class C>
+void Agent<C>::finaliseEpisode()
 {
 }
 
@@ -98,6 +103,12 @@ template<class C>
 void Agent<C>::resetController()
 {
     controller.reset();
+}
+
+template<class C>
+void Agent<C>::incrementEpisode()
+{
+    episodeNumber++;
 }
 
 template<class C>

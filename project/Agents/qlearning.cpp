@@ -53,7 +53,7 @@ void QLearning<C>::updatePolicy()
     {
         for (int i=0;i<this->actions().cardinal();i++)
         {
-            qvalues[psIndex+i] = (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex]-qvalues[psIndex]);
+            qvalues[psIndex+3-i] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex]-qvalues[psIndex]);
         }
     }
     else
@@ -64,8 +64,15 @@ void QLearning<C>::updatePolicy()
             updateChoice.push_back(qvalues[csIndex+i]);
         }
         float bestChoice = *max_element(updateChoice.begin(),updateChoice.end());
-        qvalues[psIndex+actionId] = (1./(this->episodeNumber+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex+actionId]);
+        qvalues[psIndex+actionId] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex+actionId]);
     }
+}
+
+template <class C>
+void QLearning<C>::finaliseEpisode()
+{
+   this->controller.transition();
+   updatePolicy();
 }
 
 template <class C>
@@ -86,7 +93,6 @@ void QLearning<C>::savePolicy(string path)
         cout << "An error has occured while trying to save the qvalues for qlearning" << endl;
     }
 }
-
 
 template <class C>
 void QLearning<C>::loadPolicy(string filename)

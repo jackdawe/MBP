@@ -78,7 +78,7 @@ ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
 float ControllerGW::transition()
 {
     int a = (int)takenAction[0];
-    previousState.update(0,agentX), previousState.update(2,agentY);
+    previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
     {
         switch (a)
@@ -153,6 +153,7 @@ void ControllerGW::reset()
     {
         agentX = initX; agentY = initY;
     }
+    currentState.update(0,agentX), currentState.update(1,agentY);
 }
 
 vector<int> ControllerGW::accessibleStates(State s)
