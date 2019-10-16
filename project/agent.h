@@ -18,11 +18,12 @@ public:
     virtual void greedyPolicy();
     virtual void updatePolicy();
     virtual void finaliseEpisode();
-    virtual void savePolicy(string path);
-    virtual void loadPolicy(string filename);
+    virtual void savePolicy();
+    virtual void loadPolicy(string tag);
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
     void resetController();
     void incrementEpisode();
+    void saveRewardHistory();
 
     int daSize();
     int caSize();
@@ -38,10 +39,11 @@ public:
     void addToRewardHistory(float r);
 
     void setController(const C &value);
+    float epsilon;
 
 protected:
     int episodeNumber;
-    float epsilon;
+
     C controller;
     string nameTag;
 

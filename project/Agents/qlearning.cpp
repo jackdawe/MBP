@@ -76,9 +76,9 @@ void QLearning<C>::finaliseEpisode()
 }
 
 template <class C>
-void QLearning<C>::savePolicy(string path)
+void QLearning<C>::savePolicy()
 {
-    ofstream f(path + this->nameTag);
+    ofstream f(this->controller.getPath()+"Policies/"+this->nameTag);
     if (f)
     {
         f << to_string(this->epsilon) << endl;
@@ -95,9 +95,10 @@ void QLearning<C>::savePolicy(string path)
 }
 
 template <class C>
-void QLearning<C>::loadPolicy(string filename)
+void QLearning<C>::loadPolicy(string tag)
 {
-    ifstream f(filename);
+    this->nameTag = tag;
+    ifstream f(this->controller.getPath()+"Policies/"+tag);
     if (f)
     {
         string line;

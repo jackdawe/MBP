@@ -11,8 +11,8 @@ public:
     void greedyPolicy();
     void updatePolicy();
     void finaliseEpisode();
-    void savePolicy(string path);
-    void loadPolicy(string filename);
+    void savePolicy();
+    void loadPolicy(string tag);
     void saveTrainingData();
 
 private:

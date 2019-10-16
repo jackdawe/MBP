@@ -9,8 +9,10 @@ AgentTrainer<A>::AgentTrainer()
 template <class A>
 void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int savingSequenceMode)
 {
+    float e = agent->epsilon;
     for (int k=0;k<numberOfEpisodes;k++)
     {
+        agent->epsilon = e*exp(-k/(5*numberOfEpisodes));
         stateSequence = vector<vector<float>>();
         actionSequence = vector<vector<float>>();
 

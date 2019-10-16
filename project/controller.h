@@ -82,7 +82,10 @@ public:
 
     vector<float> getParamValues() const;
 
+    string getPath() const;
+
 protected:
+    string path;
     ActionSpace actions;
     State previousState;
     vector<float> takenAction;

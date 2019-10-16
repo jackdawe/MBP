@@ -112,3 +112,8 @@ vector<float> Controller::getParamValues() const
 {
     return paramValues;
 }
+
+string Controller::getPath() const
+{
+    return path;
+}

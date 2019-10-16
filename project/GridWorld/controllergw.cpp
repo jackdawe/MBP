@@ -2,7 +2,7 @@
 
 ControllerGW::ControllerGW()
 {
-
+    path = "../GridWorld/Map"+mapTag+"/";
 }
 
 ControllerGW::ControllerGW(string mapTag)
@@ -14,6 +14,7 @@ ControllerGW::ControllerGW(string mapTag)
     actions = ActionSpace(dactions, vector<ContinuousAction>());
     takenAction = vector<float>(1,0);
     size = map.getSize();
+    path = "../GridWorld/Map"+mapTag+"/";
     for (int i=0;i<size;i++)
     {
         obstacles.push_back(vector<float>(map.getSize(),0));

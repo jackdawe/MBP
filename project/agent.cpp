@@ -55,19 +55,19 @@ void Agent<C>::finaliseEpisode()
 }
 
 template <class C>
-void Agent<C>::savePolicy(string path)
+void Agent<C>::savePolicy()
 {
 }
 
 template <class C>
-void Agent<C>:: loadPolicy(string filename)
+void Agent<C>:: loadPolicy(string tag)
 {
 }
 
 template <class C>
 void Agent<C>::generateNameTag(vector<float> parameters, vector<string> parametersName)
 {
-    string id = "0";
+    string id;
     string tag = "";
     ifstream fr("../idCount");
     if (fr)
@@ -80,14 +80,14 @@ void Agent<C>::generateNameTag(vector<float> parameters, vector<string> paramete
     }
     tag+="E";
     string eps = to_string(epsilon);
-    tag+=eps[0] + eps[2] + eps[3];
+    tag+=eps[0],tag+=eps[2],tag+=eps[3];
     for (unsigned int i=0;i<parameters.size();i++)
     {
         tag+=parametersName[i];
         string param = to_string(parameters[i]);
-        tag+=param[0] + param[2] + param[3];
+        tag+=param[0],tag+=param[2],tag+=param[3];
     }
-
+    nameTag = tag+"_"+id;
     ofstream fw("../idCount");
     if (fw)
     {
@@ -109,6 +109,25 @@ template<class C>
 void Agent<C>::incrementEpisode()
 {
     episodeNumber++;
+}
+
+template<class C>
+void Agent<C>::saveRewardHistory()
+{
+    {
+        ofstream f(controller.getPath() +"Rewards/"+this->nameTag);
+        if (f)
+        {
+            for (unsigned int i=0;i<rewardHistory().size();i++)
+            {
+                f << to_string(rewardHistory()[i]) << endl;
+            }
+        }
+        else
+        {
+            cout << "An error has occured while trying to save the reward history" << endl;
+        }
+    }
 }
 
 template<class C>
