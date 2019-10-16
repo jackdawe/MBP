@@ -86,12 +86,18 @@ public:
 
 protected:
     string path;
+
     ActionSpace actions;
+
     State previousState;
     vector<float> takenAction;
     float takenReward;
     State currentState;
+
+    vector<vector<float>> stateSequence;
+    vector<vector<float>> actionSequence;
     vector<float> rewardHistory;
+
     vector<string> paramLabels;
     vector<float> paramValues;
 };

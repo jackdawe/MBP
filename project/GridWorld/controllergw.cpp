@@ -78,6 +78,7 @@ ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
 float ControllerGW::transition()
 {
     int a = (int)takenAction[0];
+    int r = 0;
     previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
     {
@@ -96,17 +97,22 @@ float ControllerGW::transition()
             agentY--;
             break;
         }
-    }
-    currentState.update(0,agentX), currentState.update(1,agentY);
+        //Probleme d'effet de bord avec la sauvegarde des etats
+        currentState.update(0,agentX), currentState.update(1,agentY);
+        actionSequence.push_back({a});
+        stateSequence.push_back(currentState.getStateVector());
+    }   
     if (obstacles[agentX][agentY] == 1)
     {
-        return LOSE_REWARD;
+        r = LOSE_REWARD;
     }
     if (agentX == goalX && agentY == goalY)
     {
-        return WIN_REWARD;
+        r = WIN_REWARD;
     }
-    return EMPTY_SQUARE_REWARD;
+    r = EMPTY_SQUARE_REWARD;
+    rewardHistory.push_back(r);
+    return r;
 }
 
 bool ControllerGW::isTerminal(State s)

@@ -23,7 +23,6 @@ public:
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
     void resetController();
     void incrementEpisode();
-    void saveRewardHistory();
 
     int daSize();
     int caSize();
@@ -34,16 +33,13 @@ public:
     vector<float> takenAction();
     float takenReward();
     State currentState();
-    vector<float> rewardHistory();
     C getController() const;
-    void addToRewardHistory(float r);
 
     void setController(const C &value);
     float epsilon;
 
 protected:
     int episodeNumber;
-
     C controller;
     string nameTag;
 
