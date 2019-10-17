@@ -13,7 +13,10 @@ QLearning<C>::QLearning(C controller, float epsilon, float gamma):
 
     //Initialising the Q fonction to 0 for each state action pair
 
-    qvalues = vector<float>(controller.saPairSpaceSize(),0);
+    for (int i=0;i<controller.spaceStateSize();i++)
+    {
+        qvalues.push_back(vector<float>(this->actions().cardinal(),0));
+    }
 }
 
 template <class C>
@@ -23,7 +26,7 @@ void QLearning<C>::greedyPolicy()
 
     for (int i=0;i<Agent<C>::actions().cardinal();i++)
     {
-        possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())*this->actions().cardinal()+i]);
+        possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())][i]);
     }
     float maxQValue = *max_element(possibleQValues.begin(),possibleQValues.end());
 
@@ -46,14 +49,14 @@ void QLearning<C>::greedyPolicy()
 template <class C>
 void QLearning<C>::updatePolicy()
 {
-    int psIndex = this->controller.stateId(this->previousState())*this->actions().cardinal();
-    int csIndex = this->controller.stateId(this->currentState())*this->actions().cardinal();
+    int psIndex = this->controller.stateId(this->previousState());
+    int csIndex = this->controller.stateId(this->currentState());
     int actionId = this->actions().idFromAction(this->takenAction());
     if (this->controller.isTerminal(this->previousState()))
     {
         for (int i=0;i<this->actions().cardinal();i++)
         {
-            qvalues[psIndex+3-i] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex]-qvalues[psIndex]);
+            qvalues[psIndex][3-i] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex][0]-qvalues[psIndex][0]);
         }
     }
     else
@@ -61,10 +64,10 @@ void QLearning<C>::updatePolicy()
         vector<float> updateChoice;
         for (int i=0;i<this->actions().cardinal();i++)
         {
-            updateChoice.push_back(qvalues[csIndex+i]);
+            updateChoice.push_back(qvalues[csIndex][i]);
         }
         float bestChoice = *max_element(updateChoice.begin(),updateChoice.end());
-        qvalues[psIndex+actionId] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex+actionId]);
+        qvalues[psIndex][actionId] += (1./(sqrt(this->episodeNumber)+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex][actionId]);
     }
 }
 
@@ -85,7 +88,11 @@ void QLearning<C>::savePolicy()
         f << to_string(gamma) << endl;
         for (unsigned int i=0;i<qvalues.size();i++)
         {
-            f << to_string(qvalues[i]) << endl;
+            for (unsigned int j=0;j<qvalues[0].size();j++)
+            {
+                f << to_string(qvalues[i][j]) + " ";
+            }
+            f << endl;
         }
     }
     else
@@ -107,10 +114,21 @@ void QLearning<C>::loadPolicy(string tag)
         getline(f,line);
         gamma = stof(line);
         Agent<C>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));
-        for (int i=0;i<this->controller.saPairSpaceSize();i++)
+        for (int i=0;i<qvalues.size();i++)
         {
-            getline(f,line);
-            qvalues[i] = stof(line);
+            getline(f,line);            
+            int k=0;
+            for (int j=0;j<qvalues[0].size();j++)
+            {
+                string num;
+                while(line[k]!=' ')
+                {
+                    num+=line[k];
+                    k++;
+                }
+                qvalues[i][j] = stof(num);
+                k++;
+            }
         }
     }
     else
