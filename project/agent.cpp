@@ -97,6 +97,7 @@ void Agent<C>::generateNameTag(vector<float> parameters, vector<string> paramete
     {
         cout << "an error has occured while trying to update the idCount file" << endl;
     }
+    cout << "Files saved during training under the name: " + nameTag << endl;
 }
 
 template<class C>

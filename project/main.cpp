@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
     QLearning<ControllerGW> agent(controller,0.25,0.9);
     AgentTrainer<QLearning<ControllerGW>> trainer;
     trainer.train(&agent,2000,1);
-    agent.savePolicy();
+    //agent.savePolicy();
+    agent.saveRewardHistory();
 
 //    trainer.train(&agent,1,1,1);
 //    trainer.loadSequence(0);
