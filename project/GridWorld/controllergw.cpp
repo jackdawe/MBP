@@ -7,33 +7,7 @@ ControllerGW::ControllerGW()
 ControllerGW::ControllerGW(string mapTag)
 {
     randomStart = true;
-    MapGW map;
-    map.load(mapTag);
-    vector<DiscreteAction> dactions = {DiscreteAction(4)};
-    actions = ActionSpace(dactions, vector<ContinuousAction>());
-    takenAction = vector<float>(1,0);
-    size = map.getSize();
-    path = "../GridWorld/Map"+mapTag+"/";
-    for (int i=0;i<size;i++)
-    {
-        obstacles.push_back(vector<float>(map.getSize(),0));
-    }
-
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            switch(map.getMap()[i][j])
-            {
-            case 1:
-                obstacles[i][j]=1;
-                break;
-            case 2:
-                goalX=i, goalY=j;
-                break;
-            }
-        }
-    }
+    init(mapTag);
     default_random_engine generator(std::random_device{}());
     uniform_int_distribution<int> dist(1,size-1);
     agentX = dist(generator), agentY = dist(generator);
@@ -47,12 +21,19 @@ ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
     initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
 {
     randomStart=false;
+    init(mapTag);
+}
+
+void ControllerGW::init(string mapTag)
+{
     MapGW map;
     map.load(mapTag);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
+    rewardHistory.push_back(0);
     takenAction = vector<float>(1,0);
     size = map.getSize();
+    path = "../GridWorld/Map"+mapTag+"/";
     for (int i=0;i<size;i++)
     {
         obstacles.push_back(vector<float>(map.getSize(),0));
@@ -97,7 +78,6 @@ float ControllerGW::transition()
             agentY--;
             break;
         }
-        //Probleme d'effet de bord avec la sauvegarde des etats
         currentState.update(0,agentX), currentState.update(1,agentY);
         actionSequence.push_back({a});
         stateSequence.push_back(currentState.getStateVector());
@@ -111,7 +91,7 @@ float ControllerGW::transition()
         r = WIN_REWARD;
     }
     r = EMPTY_SQUARE_REWARD;
-    rewardHistory.push_back(r);
+    rewardHistory.back()+= r;
     return r;
 }
 
@@ -134,6 +114,7 @@ void ControllerGW::generateStates()
         }
     }
     previousState = State(currentState);
+    stateSequence.push_back(currentState.getStateVector());
 }
 
 int ControllerGW::stateId(State s)
@@ -145,6 +126,7 @@ int ControllerGW::stateId(State s)
 
 void ControllerGW::reset()
 {
+    rewardHistory.push_back(0);
     if (randomStart)
     {
         default_random_engine generator(std::random_device{}());
@@ -160,6 +142,8 @@ void ControllerGW::reset()
         agentX = initX; agentY = initY;
     }
     currentState.update(0,agentX), currentState.update(1,agentY);
+    actionSequence = vector<vector<float>>();
+    stateSequence = {currentState.getStateVector()};
 }
 
 vector<int> ControllerGW::accessibleStates(State s)

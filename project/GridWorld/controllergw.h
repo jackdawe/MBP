@@ -13,6 +13,7 @@ public:
     ControllerGW();
     ControllerGW(string mapTag);
     ControllerGW(string mapTag, float agentXInit, float agentYInit);
+    void init(string mapTag);
     float transition();
     bool isTerminal(State s);
     void generateStates();

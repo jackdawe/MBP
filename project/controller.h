@@ -63,6 +63,9 @@ public:
     virtual int spaceStateSize();
 
 
+    void saveRewardHistory(string nameTag);
+    void saveLastEpisode(string nameTag);
+    void loadEpisode(string nameTag);
     int actionSpaceSize();
     int saPairSpaceSize();
 

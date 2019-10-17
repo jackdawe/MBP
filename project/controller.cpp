@@ -38,6 +38,110 @@ int Controller::spaceStateSize()
     return -1;
 }
 
+void Controller::saveRewardHistory(string nameTag)
+{
+    {
+        ofstream f(getPath() +"Rewards/"+nameTag);
+        if (f)
+        {
+            for (unsigned int i=0;i<rewardHistory.size();i++)
+            {
+                f << to_string(rewardHistory[i]) << endl;
+            }
+        }
+        else
+        {
+            cout << "An error has occured while trying to save the reward history" << endl;
+        }
+    }
+}
+
+void Controller::saveLastEpisode(string nameTag)
+{
+    ofstream f("../Sequences/seq" + nameTag);
+    if (f)
+    {
+//        vector<string> paramLabels = agent.getController().getParamLabels();
+//        vector<float> paramValues = agent.getController().getParamValues();
+//        for (unsigned int i=0; i<paramLabels.size();i++)
+//        {
+//            f << paramLabels[i] + " = " + to_string(paramValues[i])<<endl;;
+//        }
+        f << "---SEQUENCE---" <<endl;
+        for (unsigned int i=0;i<stateSequence.size();i++)
+        {
+            string line;
+            if (i!=0)
+            {
+                for (unsigned int j=0;j<actionSequence[0].size();j++)
+                {
+                    line += to_string(actionSequence[i-1][j]) + " ";
+                }
+            }
+            line += "| ";
+            for (unsigned int j=0;j<stateSequence[0].size();j++)
+
+                line+= to_string(stateSequence[i][j]) + " ";
+            f << line << endl;
+        }
+    }
+    else
+    {
+        cout<<"An error has occured when trying to save the sequence"<<endl;
+    }
+}
+
+void Controller::loadEpisode(string nameTag)
+{
+    actionSequence = {};
+    stateSequence = {};
+    ifstream f("../Sequences/seq" + nameTag);
+    if (f)
+    {
+        string line;
+        while (line != "---SEQUENCE---")
+        {
+            getline(f,line);
+        }
+        while(getline(f,line))
+        {
+            int a = line.size();
+            int i=0;
+            vector<float> vecline;
+            while (line[i] != '|')
+            {
+                string num;
+                while(line[i] != ' ')
+                {
+                    num+=line[i];
+                    i++;
+                }
+                vecline.push_back(stof(num));
+                i++;
+            }
+            i+=2;
+            actionSequence.push_back(vecline);
+            vecline = vector<float>();
+            while (i < line.size())
+            {
+                string num;
+                while(line[i] != ' ')
+                {
+                    num+=line[i];
+                    i++;
+                }
+                vecline.push_back(stof(num));
+                i++;
+            }
+            stateSequence.push_back(vecline);
+        }
+    }
+    else
+    {
+        cout<<"An error has occured when trying to load the sequence"<<endl;
+    }
+}
+
 int Controller::actionSpaceSize()
 {
     return actions.cardinal();

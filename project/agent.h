@@ -23,6 +23,9 @@ public:
     void generateNameTag(vector<float> parameters, vector<string> parametersName);
     void resetController();
     void incrementEpisode();
+    void saveRewardHistory();
+    void saveLastEpisode();
+    void loadEspisode(string nameTag);
 
     int daSize();
     int caSize();

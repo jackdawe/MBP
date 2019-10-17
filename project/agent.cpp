@@ -114,20 +114,19 @@ void Agent<C>::incrementEpisode()
 template<class C>
 void Agent<C>::saveRewardHistory()
 {
-    {
-        ofstream f(controller.getPath() +"Rewards/"+this->nameTag);
-        if (f)
-        {
-            for (unsigned int i=0;i<rewardHistory().size();i++)
-            {
-                f << to_string(rewardHistory()[i]) << endl;
-            }
-        }
-        else
-        {
-            cout << "An error has occured while trying to save the reward history" << endl;
-        }
-    }
+    controller.saveRewardHistory(nameTag);
+}
+
+template<class C>
+void Agent<C>::saveLastEpisode()
+{
+    controller.saveLastEpisode(nameTag);
+}
+
+template<class C>
+void Agent<C>::loadEspisode(string nameTag)
+{
+    controller.loadEpisode(nameTag);
 }
 
 template<class C>
@@ -184,17 +183,17 @@ State Agent<C>::currentState()
     return controller.getCurrentState();
 }
 
-template<class C>
-vector<float> Agent<C>::rewardHistory()
-{
-    return controller.getRewardHistory();
-}
+//template<class C>
+//vector<float> Agent<C>::rewardHistory()
+//{
+//    return controller.getRewardHistory();
+//}
 
-template<class C>
-void Agent<C>::addToRewardHistory(float r)
-{
-    controller.addToRewardHistory(r);
-}
+//template<class C>
+//void Agent<C>::addToRewardHistory(float r)
+//{
+//    controller.addToRewardHistory(r);
+//}
 
 template<class C>
 void Agent<C>::setController(const C &value)
