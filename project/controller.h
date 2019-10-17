@@ -87,6 +87,10 @@ public:
 
     string getPath() const;
 
+    vector<vector<float> > getStateSequence() const;
+
+    vector<vector<float> > getActionSequence() const;
+
 protected:
     string path;
 

@@ -59,7 +59,7 @@ void ControllerGW::init(string mapTag)
 float ControllerGW::transition()
 {
     int a = (int)takenAction[0];
-    int r = 0;
+    float r = 0;
     previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
     {
@@ -86,12 +86,15 @@ float ControllerGW::transition()
     {
         r = LOSE_REWARD;
     }
-    if (agentX == goalX && agentY == goalY)
+    else if (agentX == goalX && agentY == goalY)
     {
         r = WIN_REWARD;
     }
-    r = EMPTY_SQUARE_REWARD;
-    rewardHistory.back()+= r;
+    else
+    {
+        r = EMPTY_SQUARE_REWARD;
+    }
+    rewardHistory.back()+= r*(actionSequence.size());
     return r;
 }
 

@@ -221,3 +221,14 @@ string Controller::getPath() const
 {
     return path;
 }
+
+vector<vector<float> > Controller::getStateSequence() const
+{
+    return stateSequence;
+}
+
+vector<vector<float> > Controller::getActionSequence() const
+{
+    return actionSequence;
+}
+

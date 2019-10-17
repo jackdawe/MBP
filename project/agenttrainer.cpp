@@ -12,7 +12,7 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
     float e = agent->epsilon;
     for (int k=0;k<numberOfEpisodes;k++)
     {
-        agent->epsilon = e*exp(-k/(5*numberOfEpisodes));
+        agent->epsilon = e*exp(-k*5./numberOfEpisodes);
 
         //Displaying a progression bar in the terminal
 

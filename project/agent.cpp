@@ -203,6 +203,12 @@ void Agent<C>::setController(const C &value)
 }
 
 template<class C>
+string Agent<C>::getNameTag() const
+{
+    return nameTag;
+}
+
+template<class C>
 C Agent<C>::getController() const
 {
     return controller;

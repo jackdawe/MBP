@@ -41,6 +41,8 @@ public:
     void setController(const C &value);
     float epsilon;
 
+    string getNameTag() const;
+
 protected:
     int episodeNumber;
     C controller;
