@@ -70,7 +70,8 @@ SOURCES       = ../project/main.cpp \
 		../project/Starship/controllerss.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
-		../project/Agents/randomagent.cpp moc_episodeplayergw.cpp \
+		../project/Agents/randomagent.cpp \
+		../project/Agents/actorcritic.cpp moc_episodeplayergw.cpp \
 		moc_episodeplayerss.cpp
 OBJECTS       = main.o \
 		action.o \
@@ -93,6 +94,7 @@ OBJECTS       = main.o \
 		episodeplayerss.o \
 		mapss.o \
 		randomagent.o \
+		actorcritic.o \
 		moc_episodeplayergw.o \
 		moc_episodeplayerss.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -192,7 +194,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/controllerss.h \
 		../project/Starship/episodeplayerss.h \
 		../project/Starship/mapss.h \
-		../project/Agents/randomagent.h ../project/main.cpp \
+		../project/Agents/randomagent.h \
+		../project/Agents/actorcritic.h ../project/main.cpp \
 		../project/action.cpp \
 		../project/discreteaction.cpp \
 		../project/continuousaction.cpp \
@@ -212,7 +215,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/controllerss.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
-		../project/Agents/randomagent.cpp
+		../project/Agents/randomagent.cpp \
+		../project/Agents/actorcritic.cpp
 QMAKE_TARGET  = project
 DESTDIR       = 
 TARGET        = project
@@ -404,8 +408,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/Agents/randomagent.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/Agents/randomagent.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/Agents/randomagent.h ../project/Agents/actorcritic.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/Agents/randomagent.cpp ../project/Agents/actorcritic.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -479,7 +483,6 @@ main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
 		../project/discreteaction.h \
 		../project/GridWorld/controllergw.h \
 		../project/controller.h \
-		../project/GridWorld/episodeplayergw.h \
 		../project/agenttrainer.h \
 		../project/Agents/qlearning.h \
 		../project/agent.h \
@@ -490,6 +493,7 @@ main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
 		../project/Agents/randomagent.h \
+		../project/GridWorld/episodeplayergw.h \
 		../project/Starship/episodeplayerss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../project/main.cpp
 
@@ -542,7 +546,8 @@ agenttrainer.o: ../project/agenttrainer.cpp ../project/agenttrainer.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
-		../project/Agents/randomagent.h
+		../project/Agents/randomagent.h \
+		../project/GridWorld/episodeplayergw.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o agenttrainer.o ../project/agenttrainer.cpp
 
 mapgw.o: ../project/GridWorld/mapgw.cpp ../project/GridWorld/mapgw.h
@@ -655,6 +660,24 @@ randomagent.o: ../project/Agents/randomagent.cpp ../project/Agents/randomagent.h
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o randomagent.o ../project/Agents/randomagent.cpp
+
+actorcritic.o: ../project/Agents/actorcritic.cpp ../project/Agents/actorcritic.h \
+		../project/agent.h \
+		../project/GridWorld/controllergw.h \
+		../project/controller.h \
+		../project/state.h \
+		../project/action.h \
+		../project/actionspace.h \
+		../project/continuousaction.h \
+		../project/discreteaction.h \
+		../project/GridWorld/mapgw.h \
+		../project/Starship/controllerss.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o actorcritic.o ../project/Agents/actorcritic.cpp
 
 moc_episodeplayergw.o: moc_episodeplayergw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayergw.o moc_episodeplayergw.cpp

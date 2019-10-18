@@ -41,29 +41,29 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
     }
 }
 
-template <class A>
-void AgentTrainer<A>::displayScoresGW(string mapTag, string policyTag)
-{
-    MapGW map;
-    map.load(mapTag);
-    vector<vector<int>> r;
-    for (int i=0;i<map.getSize();i++)
-    {
-        vector<int> rl;
-        for (int j=0;j<map.getSize();j++)
-        {
-            ControllerGW controller(mapTag,i,j);
-            QLearning<ControllerGW> agent(controller,0.25,0.9);
-            agent.loadPolicy(policyTag);
-            agent.epsilon = 0;
-            this->train(&agent,1,0,0);
-            rl.push_back((int)agent.getController().getRewardHistory().front());
-        }
-        r.push_back(rl);
-    }
-    EpisodePlayerGW ep(mapTag);
-    ep.showScores(r);
-}
+//template <class A>
+//void AgentTrainer<A>::displayScoresGW(string mapTag, string policyTag)
+//{
+//    MapGW map;
+//    map.load(mapTag);
+//    vector<vector<int>> r;
+//    for (int i=0;i<map.getSize();i++)
+//    {
+//        vector<int> rl;
+//        for (int j=0;j<map.getSize();j++)
+//        {
+//            ControllerGW controller(mapTag,i,j);
+//            QLearning<ControllerGW> agent(controller,0.25,0.9);
+//            agent.loadPolicy(policyTag);
+//            agent.epsilon = 0;
+//            this->train(&agent,1,0,0);
+//            rl.push_back((int)agent.getController().getRewardHistory().front());
+//        }
+//        r.push_back(rl);
+//    }
+//    EpisodePlayerGW ep(mapTag);
+//    ep.showScores(r);
+//}
 
 //template <class A>
 //vector<float> AgentTrainer<A>::loadParameters(int seqId)

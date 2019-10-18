@@ -120,6 +120,11 @@ void ControllerGW::generateStates()
     stateSequence.push_back(currentState.getStateVector());
 }
 
+void ControllerGW::generateImage()
+{
+
+}
+
 int ControllerGW::stateId(State s)
 {
     float ax = s.getStateVector()[0];

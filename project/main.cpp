@@ -22,23 +22,5 @@ int main(int argc, char *argv[])
 //    EpisodePlayerGW ep(mapTag,agent.getController().getStateSequence());
 //    ep.playEpisode();
 
-//    AgentTrainer<QLearning<ControllerGW>> trainer;
-//    vector<vector<int>> r;
-//    for (int i=0;i<16;i++)
-//    {
-//        vector<int> rl;
-//        for (int j=0;j<16;j++)
-//        {
-//            ControllerGW controller(mapTag,i,j);
-//            QLearning<ControllerGW> agent(controller,0.25,0.9);
-//            agent.loadPolicy("E025G090_1900");
-//            agent.epsilon = 0;
-//            trainer.train(&agent,1,0,0);
-//            rl.push_back((int)agent.getController().getRewardHistory().front());
-//        }
-//        r.push_back(rl);
-//    }
-//    EpisodePlayerGW ep(mapTag);
-//    ep.showScores(r);
 //    return a.exec();
 }
