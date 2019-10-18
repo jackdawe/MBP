@@ -36,7 +36,8 @@ SOURCES += main.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
     Agents/randomagent.cpp \
-    Agents/actorcritic.cpp
+    Agents/actorcritic.cpp \
+    GridWorld/modela2cgw.cpp
 
 HEADERS += \
     action.h \
@@ -59,6 +60,7 @@ HEADERS += \
     Starship/episodeplayerss.h \
     Starship/mapss.h \
     Agents/randomagent.h \
+    GridWorld/modela2cgw.h \
     Agents/actorcritic.h
 
 
