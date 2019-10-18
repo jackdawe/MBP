@@ -60,3 +60,10 @@ HEADERS += \
     Starship/mapss.h \
     Agents/randomagent.h \
     Agents/actorcritic.h
+
+
+QMAKE_CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=0
+INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include
+INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include
+LIBS += -L/home/jack/Documents/pytorchTest/libtorch/lib
+LIBS += -ltorch -lc10

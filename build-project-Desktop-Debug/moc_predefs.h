@@ -272,6 +272,7 @@
 #define __UINTPTR_MAX__ 0xffffffffffffffffUL
 #define __INT_FAST64_WIDTH__ 64
 #define __DEC64_MIN_EXP__ (-382)
+#define _GLIBCXX_USE_CXX11_ABI 0
 #define __cpp_decltype 200707
 #define __FLT32_DECIMAL_DIG__ 9
 #define __INT_FAST64_MAX__ 0x7fffffffffffffffL

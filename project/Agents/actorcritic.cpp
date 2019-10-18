@@ -1,5 +1,5 @@
 #include "actorcritic.h"
-
+#include <torch/torch.h>
 template <class C>
 ActorCritic<C>::ActorCritic()
 {
@@ -9,30 +9,31 @@ ActorCritic<C>::ActorCritic()
 template <class C>
 void ActorCritic<C>::updatePolicy()
 {
-    vector<float>
+    evaluateRunValues();
+    //Do things using pytorch
 }
 
 
 template <class C>
 void ActorCritic<C>::train()
 {
-    episodeNumber = 0;
-    while (episodeNumber<nEpisodes)
+    this->episodeNumber = 0;
+    while (this->episodeNumber<nEpisodes)
     {
         runStates = {}, runActions = {}, runRewards = {}, runAreTerminal = {}, runValues = {};
 
         for (int i=0;i<batchSize;i++)
         {
-            epsilonGreedyPolicy();
-            runStates.push_back(previousState());
-            runRewards.push_back(takenReward());
-            runActions.push_back(takenAction());
-            runAreTerminal.push_back(controller.isTerminal(currentState()));
+            this->epsilonGreedyPolicy();
+            runStates.push_back(this->previousState());
+            runRewards.push_back(this->takenReward());
+            runActions.push_back(this->takenAction());
+            runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
 
             if (runAreTerminal.back())
             {
-                controller.reset();
-                episodeNumber++;
+                this->controller.reset();
+                this->episodeNumber++;
             }
         }
         updatePolicy();
@@ -51,7 +52,7 @@ void ActorCritic<C>::evaluateRunValues()
     {
         //Go through the Critic NN to evaluate the value of the last state
         //nextReturn = criticNN();
-        runValues.append(nextReturn);
+        runValues.push_back(nextReturn);
     }
     //GO backwards to evaluate the value of previous states using the estimated values of the future states
     for (int i=batchSize-1;i>=0;i--)
