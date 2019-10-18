@@ -17,6 +17,7 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateStates();
+    void generateImage();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
