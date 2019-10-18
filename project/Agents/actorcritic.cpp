@@ -1,5 +1,4 @@
 #include "actorcritic.h"
-#include <torch/torch.h>
 template <class C>
 ActorCritic<C>::ActorCritic()
 {
