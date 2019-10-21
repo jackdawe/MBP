@@ -42,11 +42,19 @@ void ActorCritic<C,M>::updatePolicy()
     torch::Tensor entropy = (actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss - actionGain - 0.0001*entropy;
+    torch::Tensor totalLoss = valueLoss - actionGain - 0.01*entropy;
 
+    //Displaying a progression bar in the terminal
+
+    if (true)//nEpisodes > 100 && this->episodeNumber%(5*nEpisodes/100) == 0)
+    {
+        cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(*totalLoss.data<float>())
+             + "  Current entropy: " + to_string(*entropy.data<float>())<< endl;
+    }
     optimizer.zero_grad();
     totalLoss.backward();
-//    torch::nn::utils::clip_grad_norm_(model.parameters(),0.5);
+    vector<torch::Tensor> param = model.parameters();
+    torch::nn::utils::clip_grad_norm_(param,0.5);
     optimizer.step();
 }
 
@@ -113,6 +121,12 @@ void ActorCritic<C,M>::evaluateRunValues()
         nextReturn = thisReturn;
     }
     reverse(runValues.begin(),runValues.end());
+}
+
+template <class C,class M>
+M ActorCritic<C,M>::getModel() const
+{
+    return model;
 }
 
 template class ActorCritic<ControllerGW,ModelA2CGW>;
