@@ -13,9 +13,11 @@ int main(int argc, char *argv[])
     string mapTag = "2_8";
     ControllerGW c(mapTag);
     ModelA2CGW model(c.getSize()*c.getSize()+4,64,128,64);
-    ActorCritic<ControllerGW,ModelA2CGW> agent(c,model,0.95,0.003,1000,20);
+    ActorCritic<ControllerGW,ModelA2CGW> agent(c,model,0.95,0.003,5000,5);
     agent.train();
-
+    ControllerGW c2(mapTag,5,2);
+    c2.generateStates();
+    cout<< agent.getModel().actorOutput(torch::tensor(c2.getCurrentState().getStateVector()).reshape({1,68})) <<endl;
 //    ModelA2CGW model(4,64,128,64);
 //    float a = 2.2;
 //    torch::Tensor x = torch::tensor({a,a,a,a}).view({-1,1});

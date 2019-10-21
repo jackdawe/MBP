@@ -12,6 +12,8 @@ public:
     void updatePolicy();
     void train();
     void evaluateRunValues();
+    M getModel() const;
+
 private:
     float gamma;
     float learningRate;
