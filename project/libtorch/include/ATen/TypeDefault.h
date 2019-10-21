@@ -325,6 +325,7 @@ namespace TypeDefault {
   Tensor & log10_(Tensor & self);
   Tensor log1p(const Tensor & self);
   Tensor log2(const Tensor & self);
+  Tensor & log2_(Tensor & self);
   Tensor logdet(const Tensor & self);
   Tensor logspace(Scalar start, Scalar end, int64_t steps, double base, const TensorOptions & options);
   Tensor log_softmax(const Tensor & self, int64_t dim, c10::optional<ScalarType> dtype);
@@ -412,7 +413,7 @@ namespace TypeDefault {
   Tensor ones_like(const Tensor & self);
   Tensor ones_like(const Tensor & self, const TensorOptions & options);
   Tensor pairwise_distance(const Tensor & x1, const Tensor & x2, double p, double eps, bool keepdim);
-  Tensor cdist(const Tensor & x1, const Tensor & x2, double p);
+  Tensor cdist(const Tensor & x1, const Tensor & x2, double p, c10::optional<int64_t> compute_mode);
   Tensor _cdist_backward(const Tensor & grad, const Tensor & x1, const Tensor & x2, double p, const Tensor & cdist);
   Tensor pdist(const Tensor & self, double p);
   Tensor _pdist_forward(const Tensor & self, double p);

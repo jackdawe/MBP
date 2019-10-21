@@ -139,8 +139,6 @@ Tensor & _th_sigmoid_out(Tensor & result, const Tensor & self);
 Tensor _th_sigmoid(const Tensor & self);
 Tensor & _th_log1p_out(Tensor & result, const Tensor & self);
 Tensor _th_log1p(const Tensor & self);
-Tensor & _th_log2_out(Tensor & result, const Tensor & self);
-Tensor _th_log2(const Tensor & self);
 Tensor & _th_exp_out(Tensor & result, const Tensor & self);
 Tensor _th_exp(const Tensor & self);
 Tensor & _th_cos_out(Tensor & result, const Tensor & self);

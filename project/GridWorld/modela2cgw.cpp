@@ -23,11 +23,13 @@ torch::Tensor ModelA2CGW::forward(torch::Tensor x)
 
 torch::Tensor ModelA2CGW::actorOutput(torch::Tensor x)
 {
+    x = forward(x);
     return torch::softmax(actor->forward(x),1);
 }
 
 torch::Tensor ModelA2CGW::criticOutput(torch::Tensor x)
 {
+    x = forward(x);
     return critic->forward(x);
 }
 

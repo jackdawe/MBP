@@ -489,6 +489,7 @@ static inline Tensor narrow(const Tensor & self, int64_t dim, int64_t start, int
 static inline std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & running_mean, const Tensor & running_var, bool training, double momentum, double eps);
 static inline std::tuple<Tensor,Tensor> batch_norm_stats(const Tensor & input, double eps);
 static inline Tensor batch_norm_elemt(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps);
+static inline Tensor & batch_norm_elemt_out(Tensor & out, const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps);
 static inline std::tuple<Tensor,Tensor> batch_norm_gather_stats(const Tensor & input, const Tensor & mean, const Tensor & invstd, const Tensor & running_mean, const Tensor & running_var, double momentum, double eps, int64_t count);
 static inline std::tuple<Tensor,Tensor> batch_norm_gather_stats_with_counts(const Tensor & input, const Tensor & mean, const Tensor & invstd, const Tensor & running_mean, const Tensor & running_var, double momentum, double eps, IntArrayRef counts);
 static inline std::tuple<Tensor,Tensor,Tensor> native_batch_norm_backward(const Tensor & grad_out, const Tensor & input, const Tensor & weight, const Tensor & running_mean, const Tensor & running_var, const Tensor & save_mean, const Tensor & save_invstd, bool train, double eps, std::array<bool,3> output_mask);
@@ -508,7 +509,7 @@ static inline Tensor & ones_out(Tensor & out, IntArrayRef size);
 static inline Tensor ones_like(const Tensor & self);
 static inline Tensor ones_like(const Tensor & self, const TensorOptions & options);
 static inline Tensor pairwise_distance(const Tensor & x1, const Tensor & x2, double p=2, double eps=1e-06, bool keepdim=false);
-static inline Tensor cdist(const Tensor & x1, const Tensor & x2, double p=2);
+static inline Tensor cdist(const Tensor & x1, const Tensor & x2, double p=2, c10::optional<int64_t> compute_mode=c10::nullopt);
 static inline Tensor _cdist_backward(const Tensor & grad, const Tensor & x1, const Tensor & x2, double p, const Tensor & cdist);
 static inline Tensor pdist(const Tensor & self, double p=2);
 static inline Tensor _pdist_forward(const Tensor & self, double p=2);
@@ -4924,13 +4925,7 @@ static inline Tensor log2(const Tensor & self) {
 }
 static inline Tensor & log2_(Tensor & self) {
 #ifdef USE_STATIC_DISPATCH
-    switch(tensorTypeIdToBackend(impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(self)))) {
-        case Backend::CPU:
-            return CPUType::log2_(self);
-            break;
-        default:
-            AT_ERROR("log2_ not implemented for ", at::toString(at::detail::multi_dispatch_tensor_type_set(self)));
-    }
+    return TypeDefault::log2_(self);
 #else
     static c10::OperatorHandle op = c10::Dispatcher::singleton()
         .findSchema({"aten::log2_", ""}).value();
@@ -5920,6 +5915,18 @@ static inline Tensor batch_norm_elemt(const Tensor & input, const Tensor & weigh
     return table->callUnboxed<Tensor, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, double>(input, weight, bias, mean, invstd, eps);
 #endif
 }
+static inline Tensor & batch_norm_elemt_out(Tensor & out, const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps) {
+#ifdef USE_STATIC_DISPATCH
+    switch(tensorTypeIdToBackend(impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(out, input, weight, bias, mean, invstd)))) {
+    
+        default:
+            AT_ERROR("batch_norm_elemt_out not implemented for ", at::toString(at::detail::multi_dispatch_tensor_type_set(out, input, weight, bias, mean, invstd)));
+    }
+#else
+    static auto table = globalATenDispatch().getOpTable("aten::batch_norm_elemt.out(Tensor input, Tensor? weight, Tensor? bias, Tensor mean, Tensor invstd, float eps, *, Tensor(a!) out) -> Tensor(a!)");
+    return table->callUnboxed<Tensor &, Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, double>(out, input, weight, bias, mean, invstd, eps);
+#endif
+}
 static inline std::tuple<Tensor,Tensor> batch_norm_gather_stats(const Tensor & input, const Tensor & mean, const Tensor & invstd, const Tensor & running_mean, const Tensor & running_var, double momentum, double eps, int64_t count) {
 #ifdef USE_STATIC_DISPATCH
     switch(tensorTypeIdToBackend(impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(input, mean, invstd, running_mean, running_var)))) {
@@ -6101,14 +6108,14 @@ static inline Tensor pairwise_distance(const Tensor & x1, const Tensor & x2, dou
         op, impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(x1, x2)), x1, x2, p, eps, keepdim);
 #endif
 }
-static inline Tensor cdist(const Tensor & x1, const Tensor & x2, double p) {
+static inline Tensor cdist(const Tensor & x1, const Tensor & x2, double p, c10::optional<int64_t> compute_mode) {
 #ifdef USE_STATIC_DISPATCH
-    return TypeDefault::cdist(x1, x2, p);
+    return TypeDefault::cdist(x1, x2, p, compute_mode);
 #else
     static c10::OperatorHandle op = c10::Dispatcher::singleton()
         .findSchema({"aten::cdist", ""}).value();
-    return c10::Dispatcher::singleton().callUnboxed<Tensor, const Tensor &, const Tensor &, double>(
-        op, impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(x1, x2)), x1, x2, p);
+    return c10::Dispatcher::singleton().callUnboxed<Tensor, const Tensor &, const Tensor &, double, c10::optional<int64_t>>(
+        op, impl::dispatchTypeId(at::detail::multi_dispatch_tensor_type_set(x1, x2)), x1, x2, p, compute_mode);
 #endif
 }
 static inline Tensor _cdist_backward(const Tensor & grad, const Tensor & x1, const Tensor & x2, double p, const Tensor & cdist) {
