@@ -8,7 +8,7 @@ class ActorCritic: public Agent<C>
 {
 public:
     ActorCritic();
-    ActorCritic(M model, float gamma, float learningRate, int nEpisodes, int batchSize);
+    ActorCritic(C Controller, M model, float gamma, float learningRate, int nEpisodes, int batchSize);
     void updatePolicy();
     void train();
     void evaluateRunValues();

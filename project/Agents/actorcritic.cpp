@@ -8,7 +8,8 @@ ActorCritic<C,M>::ActorCritic():
 }
 
 template <class C,class M>
-ActorCritic<C,M>::ActorCritic(M model,float gamma, float learningRate, int nEpisodes, int batchSize):
+ActorCritic<C,M>::ActorCritic(C controller, M model,float gamma, float learningRate, int nEpisodes, int batchSize):
+    Agent<C>(controller,0),model(model),
     optimizer(torch::optim::Adam(model.parameters(),learningRate)),gamma(gamma),learningRate(learningRate),
     nEpisodes(nEpisodes),batchSize(batchSize)
 {    
@@ -18,7 +19,6 @@ template <class C,class M>
 void ActorCritic<C,M>::updatePolicy()
 {
     evaluateRunValues();
-
     torch::Tensor states = torch::zeros({runStates.size(),runStates[0].size()});
 
     for (unsigned int i=0;i<runStates.size();i++)
@@ -36,7 +36,7 @@ void ActorCritic<C,M>::updatePolicy()
     torch::Tensor actionProbs = model.actorOutput(states);
     torch::Tensor valuesEstimate = model.criticOutput(states);
     torch::Tensor actionLogProbs = actionProbs.log();
-    torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions);
+    torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions.to(torch::kLong)).to(torch::kFloat32);
 
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
     torch::Tensor entropy = (actionProbs*actionLogProbs).sum(1).mean();
@@ -61,12 +61,13 @@ void ActorCritic<C,M>::train()
 
         for (int i=0;i<batchSize;i++)
         {
-            torch::Tensor s = torch::tensor(this->currentState().getStateVector());
-            torch::Tensor actionProbabilities = model.actorOutput(s);
-            torch::Tensor action = actionProbabilities.multinomial(1);
+            torch::Tensor s = torch::tensor(this->previousState().getStateVector());
+            torch::Tensor actionProbabilities = model.actorOutput(s.reshape({1,s.size(0)}));
+            torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
             vector<float> a(action.data<float>(),action.data<float>()+action.numel());
+
             this->controller.setTakenAction(a);
-            this->controller.transition();
+            this->controller.setTakenReward(this->controller.transition());
             runStates.push_back(this->previousState().getStateVector());
             runRewards.push_back(this->takenReward());
             runActions.push_back(this->takenAction());
@@ -84,33 +85,34 @@ void ActorCritic<C,M>::train()
 
 template <class C,class M>
 void ActorCritic<C,M>::evaluateRunValues()
-{
+{            
     float nextReturn = 0;
     if (runAreTerminal.back())
     {
-        nextReturn = 0;
+        nextReturn = runRewards.back();
     }
     else
     {
-        //Go through the Critic NN to evaluate the value of the current state
-        torch::Tensor s = torch::tensor(this->currentState().getStateVector());
-        torch::Tensor co = model.criticOutput(s);
+        //Go through the Critic layer to evaluate the value of the current state
+        torch::Tensor s = torch::tensor(this->previousState().getStateVector());
+        torch::Tensor co = model.criticOutput(s.reshape({1,s.size(0)}));
         nextReturn = *co.data<float>();
     }
     runValues.push_back(nextReturn);
     //GO backwards to evaluate the value of previous states using the estimated values of the future states
-    for (int i=batchSize-1;i>=0;i--)
+    float thisReturn = 0;
+    for (int i=batchSize-2;i>=0;i--)
     {
         if (runAreTerminal[i])
         {
             nextReturn=0;
         }
-        else
-        {
-            nextReturn=runRewards[i] + gamma*nextReturn;
-        }
-        runValues.push_back(nextReturn);
+        thisReturn=runRewards[i] + gamma*nextReturn;
+
+        runValues.push_back(thisReturn);
+        nextReturn = thisReturn;
     }
+    reverse(runValues.begin(),runValues.end());
 }
 
 template class ActorCritic<ControllerGW,ModelA2CGW>;
