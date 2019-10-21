@@ -5,22 +5,18 @@
 #include "agenttrainer.h"
 #include "Agents/qlearning.h"
 #include "Starship/episodeplayerss.h"
+#include "Agents/actorcritic.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    string mapTag = "2_16";
-//    ControllerGW controller(mapTag);
-//    QLearning<ControllerGW> agent(controller,0.25,0.9);
-//    AgentTrainer<QLearning<ControllerGW>> trainer;
-//    trainer.train(&agent,100000,1);
-//    agent.savePolicy();
-//    agent.saveRewardHistory();
+//    QApplication a(argc, argv);
 
-//    trainer.train(&agent,1,0,1);
-//    agent.loadEspisode(agent.getNameTag());
-//    EpisodePlayerGW ep(mapTag,agent.getController().getStateSequence());
-//    ep.playEpisode();
+    string mapTag = "2_8";
+    ControllerGW c(mapTag);
+    ModelA2CGW model(c.getSize()*c.getSize()+4,64,128,64);
+    ActorCritic<ControllerGW,ModelA2CGW> agent(model,0.95,0.003,10,20);
+    agent.train();
 
 //    return a.exec();
+
 }

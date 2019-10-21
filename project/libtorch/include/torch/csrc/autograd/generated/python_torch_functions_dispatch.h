@@ -958,6 +958,11 @@ inline std::tuple<Tensor,Tensor,Tensor,Tensor> dispatch_batch_norm_backward_redu
   AutoNoGIL no_gil;
   return at::batch_norm_backward_reduce(grad_out, input, mean, invstd, weight, input_g, weight_g, bias_g);
 }
+inline Tensor dispatch_batch_norm_elemt(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps, Tensor out) {
+
+  AutoNoGIL no_gil;
+  return at::batch_norm_elemt_out(out, input, weight, bias, mean, invstd, eps);
+}
 inline Tensor dispatch_batch_norm_elemt(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps) {
 
   AutoNoGIL no_gil;
@@ -1078,10 +1083,10 @@ inline Tensor dispatch_cat(TensorList tensors, int64_t dim) {
   AutoNoGIL no_gil;
   return at::cat(tensors, dim);
 }
-inline Tensor dispatch_cdist(const Tensor & x1, const Tensor & x2, double p) {
+inline Tensor dispatch_cdist(const Tensor & x1, const Tensor & x2, double p, c10::optional<int64_t> compute_mode) {
 
   AutoNoGIL no_gil;
-  return at::cdist(x1, x2, p);
+  return at::cdist(x1, x2, p, compute_mode);
 }
 inline Tensor dispatch_ceil(const Tensor & self, Tensor out) {
 

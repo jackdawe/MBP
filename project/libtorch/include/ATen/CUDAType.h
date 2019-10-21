@@ -146,7 +146,6 @@ namespace CUDAType {
   Tensor & log10_out(Tensor & out, const Tensor & self);
   Tensor & log1p_(Tensor & self);
   Tensor & log1p_out(Tensor & out, const Tensor & self);
-  Tensor & log2_(Tensor & self);
   Tensor & log2_out(Tensor & out, const Tensor & self);
   Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps, double base);
   Tensor _log_softmax(const Tensor & self, int64_t dim, bool half_to_float);
@@ -184,6 +183,7 @@ namespace CUDAType {
   std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & running_mean, const Tensor & running_var, bool training, double momentum, double eps);
   std::tuple<Tensor,Tensor> batch_norm_stats(const Tensor & input, double eps);
   Tensor batch_norm_elemt(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps);
+  Tensor & batch_norm_elemt_out(Tensor & out, const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & mean, const Tensor & invstd, double eps);
   std::tuple<Tensor,Tensor> batch_norm_gather_stats(const Tensor & input, const Tensor & mean, const Tensor & invstd, const Tensor & running_mean, const Tensor & running_var, double momentum, double eps, int64_t count);
   std::tuple<Tensor,Tensor> batch_norm_gather_stats_with_counts(const Tensor & input, const Tensor & mean, const Tensor & invstd, const Tensor & running_mean, const Tensor & running_var, double momentum, double eps, IntArrayRef counts);
   std::tuple<Tensor,Tensor,Tensor> native_batch_norm_backward(const Tensor & grad_out, const Tensor & input, const Tensor & weight, const Tensor & running_mean, const Tensor & running_var, const Tensor & save_mean, const Tensor & save_invstd, bool train, double eps, std::array<bool,3> output_mask);
