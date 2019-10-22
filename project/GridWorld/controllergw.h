@@ -3,8 +3,8 @@
 #include "controller.h"
 #include "mapgw.h"
 
-#define WIN_REWARD 0.5
-#define LOSE_REWARD -0.5
+#define WIN_REWARD 1
+#define LOSE_REWARD -1
 #define EMPTY_SQUARE_REWARD 0
 
 class ControllerGW: public Controller

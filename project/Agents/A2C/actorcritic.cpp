@@ -96,6 +96,7 @@ void ActorCritic<C,M>::train()
         updatePolicy();        
     }
     saveTrainingData();
+    this->controller.saveRewardHistory("A2C");
 }
 
 template <class C, class M>

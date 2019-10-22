@@ -94,7 +94,7 @@ float ControllerGW::transition()
     {
         r = EMPTY_SQUARE_REWARD;
     }
-    rewardHistory.back()+= r*(actionSequence.size());
+    rewardHistory.back()+= r;//*(actionSequence.size());
     return r;
 }
 
