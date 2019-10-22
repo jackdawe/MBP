@@ -40,18 +40,16 @@ void ActorCritic<C,M>::updatePolicy()
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions.to(torch::kLong)).to(torch::kFloat32);
 
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
-    torch::Tensor entropy = (actionProbs*actionLogProbs).sum(1).mean();
+    torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss - actionGain - entropyMultiplier*entropy;
+    torch::Tensor totalLoss = valueLoss - actionGain + entropyMultiplier*entropy;
 
-    //Displaying a progression bar in the terminal
+    actionGainHistory.push_back(*actionGain.data<float>());
+    valueLossHistory.push_back(*valueLoss.data<float>());
+    entropyHistory.push_back(*entropy.data<float>());
+    lossHistory.push_back(*totalLoss.data<float>());
 
-    if (true)//nEpisodes > 100 && this->episodeNumber%(5*nEpisodes/100) == 0)
-    {
-        cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(*totalLoss.data<float>())
-             + "  Current entropy: " + to_string(*entropy.data<float>())<< endl;
-    }
     optimizer.zero_grad();
     totalLoss.backward();
     vector<torch::Tensor> param = model.parameters();
@@ -86,10 +84,18 @@ void ActorCritic<C,M>::train()
             {
                 this->controller.reset();
                 this->episodeNumber++;
+                //Displaying a progression bar in the terminal
+
+                if (nEpisodes > 100 && this->episodeNumber%(5*nEpisodes/100) == 0)
+                {
+                    cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
+                         + "  Current entropy: " + to_string(entropyHistory.back())<< endl;
+                }
             }
         }
-        updatePolicy();
+        updatePolicy();        
     }
+    saveTrainingData();
 }
 
 template <class C, class M>
@@ -139,6 +145,26 @@ void ActorCritic<C,M>::evaluateRunValues()
         nextReturn = thisReturn;
     }
     reverse(runValues.begin(),runValues.end());
+}
+
+template <class C,class M>
+void ActorCritic<C,M>::saveTrainingData()
+{
+    ofstream ag("../ActionGain");
+    ofstream vl("../ValueLoss");
+    ofstream e("../Entropy");
+    ofstream tl("../TotalLoss");
+    if(!ag)
+    {
+        cout<<"oups"<<endl;
+    }
+    for (unsigned int i=0;i<actionGainHistory.size();i++)
+    {
+        ag<<to_string(actionGainHistory[i])<<endl;
+        vl<<to_string(valueLossHistory[i]) <<endl;
+        e<<to_string(entropyHistory[i])<<endl;
+        tl<<to_string(lossHistory[i])<<endl;
+    }
 }
 
 template <class C,class M>

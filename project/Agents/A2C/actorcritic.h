@@ -14,6 +14,7 @@ public:
     void train();
     void playOne();
     void evaluateRunValues();
+    void saveTrainingData();
     M getModel() const;
 
 private:
@@ -29,6 +30,11 @@ private:
     vector<float> runValues;
     M model;
     torch::optim::Adam optimizer;
+
+    vector<float> actionGainHistory;
+    vector<float> valueLossHistory;
+    vector<float> entropyHistory;
+    vector<float> lossHistory;
 };
 
 #endif // ACTORCRITIC_H
