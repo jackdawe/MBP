@@ -12,6 +12,7 @@ public:
     ActorCritic(C Controller, ParametersA2C param);
     void updatePolicy();
     void train();
+    void playOne();
     void evaluateRunValues();
     M getModel() const;
 

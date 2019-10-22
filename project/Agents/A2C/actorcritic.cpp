@@ -92,6 +92,23 @@ void ActorCritic<C,M>::train()
     }
 }
 
+template <class C, class M>
+void ActorCritic<C,M>::playOne()
+{
+    while(!this->controller.isTerminal(this->currentState()))
+    {
+        torch::Tensor s = torch::tensor(this->previousState().getStateVector());
+        torch::Tensor actionProbabilities = model.actorOutput(s.reshape({1,s.size(0)}));
+        torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
+        vector<float> a(action.data<float>(),action.data<float>()+action.numel());
+        this->controller.setTakenAction(a);
+        this->controller.setTakenReward(this->controller.transition());
+    }
+    this->saveLastEpisode();
+}
+
+
+
 template <class C,class M>
 void ActorCritic<C,M>::evaluateRunValues()
 {            
