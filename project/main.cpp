@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     string mapTag = "2_8";
     ControllerGW c(mapTag);
-    ParametersA2C params(0.95,0.003,0.01,5,1000,{64,128,64});
+    ParametersA2C params(0.95,0.003,0.01,5,10000,{64,128,64});
     ActorCritic<ControllerGW,ModelA2CGW> agent(c,params);
     agent.train();
     ControllerGW c2(mapTag,5,2);
