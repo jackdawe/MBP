@@ -36,8 +36,9 @@ SOURCES += main.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
     Agents/randomagent.cpp \
-    Agents/actorcritic.cpp \
-    GridWorld/modela2cgw.cpp
+    GridWorld/modela2cgw.cpp \
+    Agents/A2C/actorcritic.cpp \
+    Agents/A2C/parametersa2c.cpp
 
 HEADERS += \
     action.h \
@@ -61,7 +62,8 @@ HEADERS += \
     Starship/mapss.h \
     Agents/randomagent.h \
     GridWorld/modela2cgw.h \
-    Agents/actorcritic.h
+    Agents/A2C/actorcritic.h \
+    Agents/A2C/parametersa2c.h
 
 
 QMAKE_CXXFLAGS += -isystem -D_GLIBCXX_USE_CXX11_ABI=0
