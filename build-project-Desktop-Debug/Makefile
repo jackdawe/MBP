@@ -14,7 +14,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -isystem -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I../project -I. -I../../pytorchTest/libtorch/include -I../../pytorchTest/libtorch/include/torch/csrc/api/include -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
@@ -71,8 +71,9 @@ SOURCES       = ../project/main.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
 		../project/Agents/randomagent.cpp \
-		../project/Agents/actorcritic.cpp \
-		../project/GridWorld/modela2cgw.cpp moc_episodeplayergw.cpp \
+		../project/GridWorld/modela2cgw.cpp \
+		../project/Agents/A2C/actorcritic.cpp \
+		../project/Agents/A2C/parametersa2c.cpp moc_episodeplayergw.cpp \
 		moc_episodeplayerss.cpp
 OBJECTS       = main.o \
 		action.o \
@@ -95,8 +96,9 @@ OBJECTS       = main.o \
 		episodeplayerss.o \
 		mapss.o \
 		randomagent.o \
-		actorcritic.o \
 		modela2cgw.o \
+		actorcritic.o \
+		parametersa2c.o \
 		moc_episodeplayergw.o \
 		moc_episodeplayerss.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -198,7 +200,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/mapss.h \
 		../project/Agents/randomagent.h \
 		../project/GridWorld/modela2cgw.h \
-		../project/Agents/actorcritic.h ../project/main.cpp \
+		../project/Agents/A2C/actorcritic.h \
+		../project/Agents/A2C/parametersa2c.h ../project/main.cpp \
 		../project/action.cpp \
 		../project/discreteaction.cpp \
 		../project/continuousaction.cpp \
@@ -219,8 +222,9 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
 		../project/Agents/randomagent.cpp \
-		../project/Agents/actorcritic.cpp \
-		../project/GridWorld/modela2cgw.cpp
+		../project/GridWorld/modela2cgw.cpp \
+		../project/Agents/A2C/actorcritic.cpp \
+		../project/Agents/A2C/parametersa2c.cpp
 QMAKE_TARGET  = project
 DESTDIR       = 
 TARGET        = project
@@ -412,8 +416,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/Agents/randomagent.h ../project/GridWorld/modela2cgw.h ../project/Agents/actorcritic.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/Agents/randomagent.cpp ../project/Agents/actorcritic.cpp ../project/GridWorld/modela2cgw.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/Agents/randomagent.h ../project/GridWorld/modela2cgw.h ../project/Agents/A2C/actorcritic.h ../project/Agents/A2C/parametersa2c.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/Agents/randomagent.cpp ../project/GridWorld/modela2cgw.cpp ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/parametersa2c.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -443,7 +447,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
-	g++ -pipe -isystem -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
+	g++ -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_episodeplayergw.cpp moc_episodeplayerss.cpp
 compiler_moc_header_clean:
@@ -486,7 +490,7 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Agents/actorcritic.h \
+		../project/Agents/A2C/actorcritic.h \
 		../project/agent.h \
 		../project/Starship/controllerss.h \
 		../project/Starship/mapss.h \
@@ -494,6 +498,7 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
+		../project/Agents/A2C/parametersa2c.h \
 		../project/GridWorld/modela2cgw.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/all.h \
@@ -990,354 +995,6 @@ randomagent.o: ../project/Agents/randomagent.cpp ../project/Agents/randomagent.h
 		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o randomagent.o ../project/Agents/randomagent.cpp
 
-actorcritic.o: ../project/Agents/actorcritic.cpp ../project/Agents/actorcritic.h \
-		../project/agent.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
-		../project/state.h \
-		../project/action.h \
-		../project/actionspace.h \
-		../project/continuousaction.h \
-		../project/discreteaction.h \
-		../project/GridWorld/mapgw.h \
-		../project/Starship/controllerss.h \
-		../project/Starship/mapss.h \
-		../project/Starship/planet.h \
-		../project/Starship/vect2d.h \
-		../project/Starship/waypoint.h \
-		../project/Starship/ship.h \
-		../project/GridWorld/modela2cgw.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/all.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/cuda.h \
-		../../pytorchTest/libtorch/include/torch/csrc/WindowsTorchApiMacro.h \
-		../../pytorchTest/libtorch/include/c10/macros/Export.h \
-		../../pytorchTest/libtorch/include/c10/macros/cmake_macros.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/stateful.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/base.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader_options.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/arg.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/types.h \
-		../../pytorchTest/libtorch/include/ATen/ATen.h \
-		../../pytorchTest/libtorch/include/c10/core/Allocator.h \
-		../../pytorchTest/libtorch/include/c10/core/Device.h \
-		../../pytorchTest/libtorch/include/c10/core/DeviceType.h \
-		../../pytorchTest/libtorch/include/c10/macros/Macros.h \
-		../../pytorchTest/libtorch/include/c10/util/Exception.h \
-		../../pytorchTest/libtorch/include/c10/util/StringUtil.h \
-		../../pytorchTest/libtorch/include/c10/util/string_utils.h \
-		../../pytorchTest/libtorch/include/c10/util/Deprecated.h \
-		../../pytorchTest/libtorch/include/c10/util/UniqueVoidPtr.h \
-		../../pytorchTest/libtorch/include/ATen/core/ATenGeneral.h \
-		../../pytorchTest/libtorch/include/ATen/Context.h \
-		../../pytorchTest/libtorch/include/ATen/Tensor.h \
-		../../pytorchTest/libtorch/include/ATen/core/TensorBody.h \
-		../../pytorchTest/libtorch/include/c10/core/Layout.h \
-		../../pytorchTest/libtorch/include/c10/core/Backend.h \
-		../../pytorchTest/libtorch/include/c10/core/TensorTypeId.h \
-		../../pytorchTest/libtorch/include/c10/core/MemoryFormat.h \
-		../../pytorchTest/libtorch/include/c10/util/ArrayRef.h \
-		../../pytorchTest/libtorch/include/c10/util/SmallVector.h \
-		../../pytorchTest/libtorch/include/c10/util/AlignOf.h \
-		../../pytorchTest/libtorch/include/c10/util/C++17.h \
-		../../pytorchTest/libtorch/include/c10/core/QScheme.h \
-		../../pytorchTest/libtorch/include/c10/core/Scalar.h \
-		../../pytorchTest/libtorch/include/c10/core/ScalarType.h \
-		../../pytorchTest/libtorch/include/c10/util/Half.h \
-		../../pytorchTest/libtorch/include/c10/util/Half-inl.h \
-		../../pytorchTest/libtorch/include/c10/util/Optional.h \
-		../../pytorchTest/libtorch/include/c10/util/in_place.h \
-		../../pytorchTest/libtorch/include/c10/util/typeid.h \
-		../../pytorchTest/libtorch/include/c10/util/Backtrace.h \
-		../../pytorchTest/libtorch/include/c10/util/IdWrapper.h \
-		../../pytorchTest/libtorch/include/c10/util/Type.h \
-		../../pytorchTest/libtorch/include/c10/util/TypeIndex.h \
-		../../pytorchTest/libtorch/include/c10/util/ConstexprCrc.h \
-		../../pytorchTest/libtorch/include/c10/util/qint32.h \
-		../../pytorchTest/libtorch/include/c10/util/qint8.h \
-		../../pytorchTest/libtorch/include/c10/util/quint8.h \
-		../../pytorchTest/libtorch/include/c10/util/BFloat16.h \
-		../../pytorchTest/libtorch/include/c10/util/BFloat16-inl.h \
-		../../pytorchTest/libtorch/include/c10/util/flat_hash_map.h \
-		../../pytorchTest/libtorch/include/c10/core/Storage.h \
-		../../pytorchTest/libtorch/include/c10/core/StorageImpl.h \
-		../../pytorchTest/libtorch/include/c10/util/intrusive_ptr.h \
-		../../pytorchTest/libtorch/include/ATen/core/TensorAccessor.h \
-		../../pytorchTest/libtorch/include/c10/core/TensorImpl.h \
-		../../pytorchTest/libtorch/include/c10/core/TensorOptions.h \
-		../../pytorchTest/libtorch/include/c10/core/DefaultDtype.h \
-		../../pytorchTest/libtorch/include/c10/core/TensorTypeSet.h \
-		../../pytorchTest/libtorch/include/c10/util/llvmMathExtras.h \
-		../../pytorchTest/libtorch/include/c10/core/impl/LocalTensorTypeSet.h \
-		../../pytorchTest/libtorch/include/c10/core/CopyBytes.h \
-		../../pytorchTest/libtorch/include/c10/util/Flags.h \
-		../../pytorchTest/libtorch/include/c10/util/Registry.h \
-		../../pytorchTest/libtorch/include/c10/util/Logging.h \
-		../../pytorchTest/libtorch/include/c10/util/logging_is_google_glog.h \
-		../../pytorchTest/libtorch/include/c10/util/logging_is_not_google_glog.h \
-		../../pytorchTest/libtorch/include/c10/util/python_stub.h \
-		../../pytorchTest/libtorch/include/c10/core/UndefinedTensorImpl.h \
-		../../pytorchTest/libtorch/include/ATen/core/DeprecatedTypePropertiesRegistry.h \
-		../../pytorchTest/libtorch/include/ATen/core/DeprecatedTypeProperties.h \
-		../../pytorchTest/libtorch/include/ATen/core/Generator.h \
-		../../pytorchTest/libtorch/include/ATen/core/EnableNamedTensor.h \
-		../../pytorchTest/libtorch/include/ATen/core/NamedTensor.h \
-		../../pytorchTest/libtorch/include/ATen/core/Dimname.h \
-		../../pytorchTest/libtorch/include/ATen/core/interned_strings.h \
-		../../pytorchTest/libtorch/include/ATen/core/aten_interned_strings.h \
-		../../pytorchTest/libtorch/include/ATen/core/TensorMethods.h \
-		../../pytorchTest/libtorch/include/ATen/core/ATenDispatch.h \
-		../../pytorchTest/libtorch/include/ATen/core/OpsAlreadyMovedToC10.h \
-		../../pytorchTest/libtorch/include/ATen/core/Variadic.h \
-		../../pytorchTest/libtorch/include/ATen/core/stack.h \
-		../../pytorchTest/libtorch/include/ATen/core/ivalue.h \
-		../../pytorchTest/libtorch/include/ATen/core/blob.h \
-		../../pytorchTest/libtorch/include/ATen/core/ivalue_inl.h \
-		../../pytorchTest/libtorch/include/ATen/core/functional.h \
-		../../pytorchTest/libtorch/include/ATen/core/Dict.h \
-		../../pytorchTest/libtorch/include/c10/util/TypeTraits.h \
-		../../pytorchTest/libtorch/include/c10/util/TypeList.h \
-		../../pytorchTest/libtorch/include/c10/util/order_preserving_flat_hash_map.h \
-		../../pytorchTest/libtorch/include/ATen/core/Dict_inl.h \
-		../../pytorchTest/libtorch/include/ATen/core/jit_type.h \
-		../../pytorchTest/libtorch/include/ATen/core/qualified_name.h \
-		../../pytorchTest/libtorch/include/ATen/core/List.h \
-		../../pytorchTest/libtorch/include/ATen/core/List_inl.h \
-		../../pytorchTest/libtorch/include/ATen/core/dispatch/Dispatcher.h \
-		../../pytorchTest/libtorch/include/ATen/core/dispatch/OperatorEntry.h \
-		../../pytorchTest/libtorch/include/ATen/core/dispatch/DispatchTable.h \
-		../../pytorchTest/libtorch/include/ATen/core/function_schema.h \
-		../../pytorchTest/libtorch/include/ATen/core/alias_info.h \
-		../../pytorchTest/libtorch/include/ATen/core/operator_name.h \
-		../../pytorchTest/libtorch/include/ATen/core/function_schema_inl.h \
-		../../pytorchTest/libtorch/include/c10/util/LeftRight.h \
-		../../pytorchTest/libtorch/include/c10/util/Metaprogramming.h \
-		../../pytorchTest/libtorch/include/c10/util/Array.h \
-		../../pytorchTest/libtorch/include/c10/util/either.h \
-		../../pytorchTest/libtorch/include/ATen/core/boxing/KernelFunction.h \
-		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_functor.h \
-		../../pytorchTest/libtorch/include/ATen/core/op_registration/infer_schema.h \
-		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_function.h \
-		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_lambda.h \
-		../../pytorchTest/libtorch/include/ATen/core/dispatch/OperatorOptions.h \
-		../../pytorchTest/libtorch/include/ATen/core/dispatch/RegistrationHandleRAII.h \
-		../../pytorchTest/libtorch/include/ATen/TypeDefault.h \
-		../../pytorchTest/libtorch/include/ATen/Dimname.h \
-		../../pytorchTest/libtorch/include/ATen/CPUType.h \
-		../../pytorchTest/libtorch/include/ATen/QuantizedCPUType.h \
-		../../pytorchTest/libtorch/include/ATen/SparseCPUType.h \
-		../../pytorchTest/libtorch/include/ATen/Utils.h \
-		../../pytorchTest/libtorch/include/ATen/Formatting.h \
-		../../pytorchTest/libtorch/include/ATen/core/Formatting.h \
-		../../pytorchTest/libtorch/include/ATen/core/Tensor.h \
-		../../pytorchTest/libtorch/include/ATen/CPUGenerator.h \
-		../../pytorchTest/libtorch/include/ATen/core/MT19937RNGEngine.h \
-		../../pytorchTest/libtorch/include/ATen/core/PhiloxRNGEngine.h \
-		../../pytorchTest/libtorch/include/ATen/core/Array.h \
-		../../pytorchTest/libtorch/include/ATen/core/LegacyTypeDispatch.h \
-		../../pytorchTest/libtorch/include/ATen/core/LegacyDeviceTypeInit.h \
-		../../pytorchTest/libtorch/include/ATen/core/ScalarType.h \
-		../../pytorchTest/libtorch/include/ATen/detail/CUDAHooksInterface.h \
-		../../pytorchTest/libtorch/include/ATen/detail/HIPHooksInterface.h \
-		../../pytorchTest/libtorch/include/c10/core/impl/DeviceGuardImplInterface.h \
-		../../pytorchTest/libtorch/include/c10/core/Stream.h \
-		../../pytorchTest/libtorch/include/c10/core/QEngine.h \
-		../../pytorchTest/libtorch/include/ATen/Device.h \
-		../../pytorchTest/libtorch/include/ATen/DeviceGuard.h \
-		../../pytorchTest/libtorch/include/c10/core/DeviceGuard.h \
-		../../pytorchTest/libtorch/include/c10/core/impl/InlineDeviceGuard.h \
-		../../pytorchTest/libtorch/include/c10/core/impl/VirtualGuardImpl.h \
-		../../pytorchTest/libtorch/include/ATen/DimVector.h \
-		../../pytorchTest/libtorch/include/ATen/core/DimVector.h \
-		../../pytorchTest/libtorch/include/ATen/Dispatch.h \
-		../../pytorchTest/libtorch/include/ATen/DynamicLibrary.h \
-		../../pytorchTest/libtorch/include/ATen/Functions.h \
-		../../pytorchTest/libtorch/include/ATen/NativeFunctions.h \
-		../../pytorchTest/libtorch/include/ATen/core/Reduction.h \
-		../../pytorchTest/libtorch/include/ATen/TensorUtils.h \
-		../../pytorchTest/libtorch/include/ATen/TensorGeometry.h \
-		../../pytorchTest/libtorch/include/ATen/WrapDimUtils.h \
-		../../pytorchTest/libtorch/include/c10/core/WrapDimMinimal.h \
-		../../pytorchTest/libtorch/include/ATen/NamedTensor.h \
-		../../pytorchTest/libtorch/include/ATen/ScalarOps.h \
-		../../pytorchTest/libtorch/include/ATen/TensorOperators.h \
-		../../pytorchTest/libtorch/include/ATen/Version.h \
-		../../pytorchTest/libtorch/include/ATen/core/Scalar.h \
-		../../pytorchTest/libtorch/include/ATen/core/UnsafeFromTH.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/generated/variable_factories.h \
-		../../pytorchTest/libtorch/include/ATen/core/grad_mode.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/variable.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/python_stub.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/edge.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/hash.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/function_hook.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/cpp_hook.h \
-		../../pytorchTest/libtorch/include/ATen/NamedTensorUtils.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/tracer.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/variadic.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/ir.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/attributes.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/graph_node_list.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/named_value.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/constants.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/scope.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/source_range.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/operator.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/script/function_schema_parser.h \
-		../../pytorchTest/libtorch/include/ATen/core/Macros.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/operator_options.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/disallow_copy.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/data_shuttle.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/queue.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/sequencers.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/iterator.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/random.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/base.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/worker_exception.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/memory.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/stateless.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/base.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/example.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/chunk.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/stateful.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/custom_batch_request.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/distributed.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/sequential.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/serialize.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/archive.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/input-archive.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/script/module.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/argument_spec.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/graph_executor.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/interpreter.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/variable_tensor_list.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/update_graph_executor_opt.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/passes/shape_analysis.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/ordered_dict.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/script/compilation_unit.h \
-		../../pytorchTest/libtorch/include/torch/csrc/jit/function.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/output-archive.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/stream.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/tensor.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/map.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/mnist.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/shared.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/tensor.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/base.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/collate.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/lambda.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/stack.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/tensor.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/enum.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/jit.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/cloneable.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/module.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/pimpl.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/detail/static.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/pimpl-inl.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/utils.h \
-		../../pytorchTest/libtorch/include/ATen/Parallel.h \
-		../../pytorchTest/libtorch/include/ATen/ParallelOpenMP.h \
-		../../pytorchTest/libtorch/include/ATen/ParallelNative.h \
-		../../pytorchTest/libtorch/include/ATen/ParallelNativeTBB.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/grad_mode.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/distance.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/distance.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/embedding.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/fold.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/fold.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/expanding_array.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/loss.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/loss.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/normalization.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/normalization.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/pooling.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/pooling.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/vision.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/init.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/any.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/functional.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/modulelist.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/named_any.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/sequential.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/batchnorm.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/batchnorm.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/conv.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/conv.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/dropout.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/dropout.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/distance.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/embedding.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/fold.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/linear.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/linear.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/linear.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/loss.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/pooling.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/rnn.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/rnn.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/activation.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/activation.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/activation.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/utils.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/utils/clip_grad.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/adagrad.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/optimizer.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/serialize.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/adam.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/lbfgs.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/rmsprop.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/sgd.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/autograd.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/autograd.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/custom_function.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/function.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/anomaly_mode.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/profiler.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/record_function.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/saved_variable.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/input_metadata.h \
-		../../pytorchTest/libtorch/include/torch/extension.h \
-		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/python.h \
-		../../pytorchTest/libtorch/include/torch/csrc/Device.h \
-		../../pytorchTest/libtorch/include/torch/csrc/python_headers.h \
-		../../pytorchTest/libtorch/include/torch/csrc/Dtype.h \
-		../../pytorchTest/libtorch/include/torch/csrc/DynamicTypes.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/pybind.h \
-		../../pytorchTest/libtorch/include/pybind11/pybind11.h \
-		../../pytorchTest/libtorch/include/pybind11/attr.h \
-		../../pytorchTest/libtorch/include/pybind11/cast.h \
-		../../pytorchTest/libtorch/include/pybind11/pytypes.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/common.h \
-		../../pytorchTest/libtorch/include/pybind11/buffer_info.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/typeid.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/descr.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/internals.h \
-		../../pytorchTest/libtorch/include/pybind11/options.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/class.h \
-		../../pytorchTest/libtorch/include/pybind11/detail/init.h \
-		../../pytorchTest/libtorch/include/pybind11/stl.h \
-		../../pytorchTest/libtorch/include/torch/csrc/autograd/python_variable.h \
-		../../pytorchTest/libtorch/include/torch/csrc/THP_export.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/python_tuples.h \
-		../../pytorchTest/libtorch/include/torch/csrc/Exceptions.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/auto_gil.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/object_ptr.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/python_numbers.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/tensor_numpy.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o actorcritic.o ../project/Agents/actorcritic.cpp
-
 modela2cgw.o: ../project/GridWorld/modela2cgw.cpp ../project/GridWorld/modela2cgw.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/all.h \
@@ -1669,6 +1326,358 @@ modela2cgw.o: ../project/GridWorld/modela2cgw.cpp ../project/GridWorld/modela2cg
 		../../pytorchTest/libtorch/include/torch/csrc/utils/python_numbers.h \
 		../../pytorchTest/libtorch/include/torch/csrc/utils/tensor_numpy.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o modela2cgw.o ../project/GridWorld/modela2cgw.cpp
+
+actorcritic.o: ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/actorcritic.h \
+		../project/agent.h \
+		../project/GridWorld/controllergw.h \
+		../project/controller.h \
+		../project/state.h \
+		../project/action.h \
+		../project/actionspace.h \
+		../project/continuousaction.h \
+		../project/discreteaction.h \
+		../project/GridWorld/mapgw.h \
+		../project/Starship/controllerss.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h \
+		../project/Agents/A2C/parametersa2c.h \
+		../project/GridWorld/modela2cgw.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/all.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/cuda.h \
+		../../pytorchTest/libtorch/include/torch/csrc/WindowsTorchApiMacro.h \
+		../../pytorchTest/libtorch/include/c10/macros/Export.h \
+		../../pytorchTest/libtorch/include/c10/macros/cmake_macros.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/stateful.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/base.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader_options.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/arg.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/types.h \
+		../../pytorchTest/libtorch/include/ATen/ATen.h \
+		../../pytorchTest/libtorch/include/c10/core/Allocator.h \
+		../../pytorchTest/libtorch/include/c10/core/Device.h \
+		../../pytorchTest/libtorch/include/c10/core/DeviceType.h \
+		../../pytorchTest/libtorch/include/c10/macros/Macros.h \
+		../../pytorchTest/libtorch/include/c10/util/Exception.h \
+		../../pytorchTest/libtorch/include/c10/util/StringUtil.h \
+		../../pytorchTest/libtorch/include/c10/util/string_utils.h \
+		../../pytorchTest/libtorch/include/c10/util/Deprecated.h \
+		../../pytorchTest/libtorch/include/c10/util/UniqueVoidPtr.h \
+		../../pytorchTest/libtorch/include/ATen/core/ATenGeneral.h \
+		../../pytorchTest/libtorch/include/ATen/Context.h \
+		../../pytorchTest/libtorch/include/ATen/Tensor.h \
+		../../pytorchTest/libtorch/include/ATen/core/TensorBody.h \
+		../../pytorchTest/libtorch/include/c10/core/Layout.h \
+		../../pytorchTest/libtorch/include/c10/core/Backend.h \
+		../../pytorchTest/libtorch/include/c10/core/TensorTypeId.h \
+		../../pytorchTest/libtorch/include/c10/core/MemoryFormat.h \
+		../../pytorchTest/libtorch/include/c10/util/ArrayRef.h \
+		../../pytorchTest/libtorch/include/c10/util/SmallVector.h \
+		../../pytorchTest/libtorch/include/c10/util/AlignOf.h \
+		../../pytorchTest/libtorch/include/c10/util/C++17.h \
+		../../pytorchTest/libtorch/include/c10/core/QScheme.h \
+		../../pytorchTest/libtorch/include/c10/core/Scalar.h \
+		../../pytorchTest/libtorch/include/c10/core/ScalarType.h \
+		../../pytorchTest/libtorch/include/c10/util/Half.h \
+		../../pytorchTest/libtorch/include/c10/util/Half-inl.h \
+		../../pytorchTest/libtorch/include/c10/util/Optional.h \
+		../../pytorchTest/libtorch/include/c10/util/in_place.h \
+		../../pytorchTest/libtorch/include/c10/util/typeid.h \
+		../../pytorchTest/libtorch/include/c10/util/Backtrace.h \
+		../../pytorchTest/libtorch/include/c10/util/IdWrapper.h \
+		../../pytorchTest/libtorch/include/c10/util/Type.h \
+		../../pytorchTest/libtorch/include/c10/util/TypeIndex.h \
+		../../pytorchTest/libtorch/include/c10/util/ConstexprCrc.h \
+		../../pytorchTest/libtorch/include/c10/util/qint32.h \
+		../../pytorchTest/libtorch/include/c10/util/qint8.h \
+		../../pytorchTest/libtorch/include/c10/util/quint8.h \
+		../../pytorchTest/libtorch/include/c10/util/BFloat16.h \
+		../../pytorchTest/libtorch/include/c10/util/BFloat16-inl.h \
+		../../pytorchTest/libtorch/include/c10/util/flat_hash_map.h \
+		../../pytorchTest/libtorch/include/c10/core/Storage.h \
+		../../pytorchTest/libtorch/include/c10/core/StorageImpl.h \
+		../../pytorchTest/libtorch/include/c10/util/intrusive_ptr.h \
+		../../pytorchTest/libtorch/include/ATen/core/TensorAccessor.h \
+		../../pytorchTest/libtorch/include/c10/core/TensorImpl.h \
+		../../pytorchTest/libtorch/include/c10/core/TensorOptions.h \
+		../../pytorchTest/libtorch/include/c10/core/DefaultDtype.h \
+		../../pytorchTest/libtorch/include/c10/core/TensorTypeSet.h \
+		../../pytorchTest/libtorch/include/c10/util/llvmMathExtras.h \
+		../../pytorchTest/libtorch/include/c10/core/impl/LocalTensorTypeSet.h \
+		../../pytorchTest/libtorch/include/c10/core/CopyBytes.h \
+		../../pytorchTest/libtorch/include/c10/util/Flags.h \
+		../../pytorchTest/libtorch/include/c10/util/Registry.h \
+		../../pytorchTest/libtorch/include/c10/util/Logging.h \
+		../../pytorchTest/libtorch/include/c10/util/logging_is_google_glog.h \
+		../../pytorchTest/libtorch/include/c10/util/logging_is_not_google_glog.h \
+		../../pytorchTest/libtorch/include/c10/util/python_stub.h \
+		../../pytorchTest/libtorch/include/c10/core/UndefinedTensorImpl.h \
+		../../pytorchTest/libtorch/include/ATen/core/DeprecatedTypePropertiesRegistry.h \
+		../../pytorchTest/libtorch/include/ATen/core/DeprecatedTypeProperties.h \
+		../../pytorchTest/libtorch/include/ATen/core/Generator.h \
+		../../pytorchTest/libtorch/include/ATen/core/EnableNamedTensor.h \
+		../../pytorchTest/libtorch/include/ATen/core/NamedTensor.h \
+		../../pytorchTest/libtorch/include/ATen/core/Dimname.h \
+		../../pytorchTest/libtorch/include/ATen/core/interned_strings.h \
+		../../pytorchTest/libtorch/include/ATen/core/aten_interned_strings.h \
+		../../pytorchTest/libtorch/include/ATen/core/TensorMethods.h \
+		../../pytorchTest/libtorch/include/ATen/core/ATenDispatch.h \
+		../../pytorchTest/libtorch/include/ATen/core/OpsAlreadyMovedToC10.h \
+		../../pytorchTest/libtorch/include/ATen/core/Variadic.h \
+		../../pytorchTest/libtorch/include/ATen/core/stack.h \
+		../../pytorchTest/libtorch/include/ATen/core/ivalue.h \
+		../../pytorchTest/libtorch/include/ATen/core/blob.h \
+		../../pytorchTest/libtorch/include/ATen/core/ivalue_inl.h \
+		../../pytorchTest/libtorch/include/ATen/core/functional.h \
+		../../pytorchTest/libtorch/include/ATen/core/Dict.h \
+		../../pytorchTest/libtorch/include/c10/util/TypeTraits.h \
+		../../pytorchTest/libtorch/include/c10/util/TypeList.h \
+		../../pytorchTest/libtorch/include/c10/util/order_preserving_flat_hash_map.h \
+		../../pytorchTest/libtorch/include/ATen/core/Dict_inl.h \
+		../../pytorchTest/libtorch/include/ATen/core/jit_type.h \
+		../../pytorchTest/libtorch/include/ATen/core/qualified_name.h \
+		../../pytorchTest/libtorch/include/ATen/core/List.h \
+		../../pytorchTest/libtorch/include/ATen/core/List_inl.h \
+		../../pytorchTest/libtorch/include/ATen/core/dispatch/Dispatcher.h \
+		../../pytorchTest/libtorch/include/ATen/core/dispatch/OperatorEntry.h \
+		../../pytorchTest/libtorch/include/ATen/core/dispatch/DispatchTable.h \
+		../../pytorchTest/libtorch/include/ATen/core/function_schema.h \
+		../../pytorchTest/libtorch/include/ATen/core/alias_info.h \
+		../../pytorchTest/libtorch/include/ATen/core/operator_name.h \
+		../../pytorchTest/libtorch/include/ATen/core/function_schema_inl.h \
+		../../pytorchTest/libtorch/include/c10/util/LeftRight.h \
+		../../pytorchTest/libtorch/include/c10/util/Metaprogramming.h \
+		../../pytorchTest/libtorch/include/c10/util/Array.h \
+		../../pytorchTest/libtorch/include/c10/util/either.h \
+		../../pytorchTest/libtorch/include/ATen/core/boxing/KernelFunction.h \
+		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_functor.h \
+		../../pytorchTest/libtorch/include/ATen/core/op_registration/infer_schema.h \
+		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_function.h \
+		../../pytorchTest/libtorch/include/ATen/core/boxing/kernel_lambda.h \
+		../../pytorchTest/libtorch/include/ATen/core/dispatch/OperatorOptions.h \
+		../../pytorchTest/libtorch/include/ATen/core/dispatch/RegistrationHandleRAII.h \
+		../../pytorchTest/libtorch/include/ATen/TypeDefault.h \
+		../../pytorchTest/libtorch/include/ATen/Dimname.h \
+		../../pytorchTest/libtorch/include/ATen/CPUType.h \
+		../../pytorchTest/libtorch/include/ATen/QuantizedCPUType.h \
+		../../pytorchTest/libtorch/include/ATen/SparseCPUType.h \
+		../../pytorchTest/libtorch/include/ATen/Utils.h \
+		../../pytorchTest/libtorch/include/ATen/Formatting.h \
+		../../pytorchTest/libtorch/include/ATen/core/Formatting.h \
+		../../pytorchTest/libtorch/include/ATen/core/Tensor.h \
+		../../pytorchTest/libtorch/include/ATen/CPUGenerator.h \
+		../../pytorchTest/libtorch/include/ATen/core/MT19937RNGEngine.h \
+		../../pytorchTest/libtorch/include/ATen/core/PhiloxRNGEngine.h \
+		../../pytorchTest/libtorch/include/ATen/core/Array.h \
+		../../pytorchTest/libtorch/include/ATen/core/LegacyTypeDispatch.h \
+		../../pytorchTest/libtorch/include/ATen/core/LegacyDeviceTypeInit.h \
+		../../pytorchTest/libtorch/include/ATen/core/ScalarType.h \
+		../../pytorchTest/libtorch/include/ATen/detail/CUDAHooksInterface.h \
+		../../pytorchTest/libtorch/include/ATen/detail/HIPHooksInterface.h \
+		../../pytorchTest/libtorch/include/c10/core/impl/DeviceGuardImplInterface.h \
+		../../pytorchTest/libtorch/include/c10/core/Stream.h \
+		../../pytorchTest/libtorch/include/c10/core/QEngine.h \
+		../../pytorchTest/libtorch/include/ATen/Device.h \
+		../../pytorchTest/libtorch/include/ATen/DeviceGuard.h \
+		../../pytorchTest/libtorch/include/c10/core/DeviceGuard.h \
+		../../pytorchTest/libtorch/include/c10/core/impl/InlineDeviceGuard.h \
+		../../pytorchTest/libtorch/include/c10/core/impl/VirtualGuardImpl.h \
+		../../pytorchTest/libtorch/include/ATen/DimVector.h \
+		../../pytorchTest/libtorch/include/ATen/core/DimVector.h \
+		../../pytorchTest/libtorch/include/ATen/Dispatch.h \
+		../../pytorchTest/libtorch/include/ATen/DynamicLibrary.h \
+		../../pytorchTest/libtorch/include/ATen/Functions.h \
+		../../pytorchTest/libtorch/include/ATen/NativeFunctions.h \
+		../../pytorchTest/libtorch/include/ATen/core/Reduction.h \
+		../../pytorchTest/libtorch/include/ATen/TensorUtils.h \
+		../../pytorchTest/libtorch/include/ATen/TensorGeometry.h \
+		../../pytorchTest/libtorch/include/ATen/WrapDimUtils.h \
+		../../pytorchTest/libtorch/include/c10/core/WrapDimMinimal.h \
+		../../pytorchTest/libtorch/include/ATen/NamedTensor.h \
+		../../pytorchTest/libtorch/include/ATen/ScalarOps.h \
+		../../pytorchTest/libtorch/include/ATen/TensorOperators.h \
+		../../pytorchTest/libtorch/include/ATen/Version.h \
+		../../pytorchTest/libtorch/include/ATen/core/Scalar.h \
+		../../pytorchTest/libtorch/include/ATen/core/UnsafeFromTH.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/generated/variable_factories.h \
+		../../pytorchTest/libtorch/include/ATen/core/grad_mode.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/variable.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/python_stub.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/edge.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/hash.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/function_hook.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/cpp_hook.h \
+		../../pytorchTest/libtorch/include/ATen/NamedTensorUtils.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/tracer.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/variadic.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/ir.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/attributes.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/graph_node_list.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/named_value.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/constants.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/scope.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/source_range.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/operator.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/script/function_schema_parser.h \
+		../../pytorchTest/libtorch/include/ATen/core/Macros.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/operator_options.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/disallow_copy.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/data_shuttle.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/queue.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/detail/sequencers.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/iterator.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/random.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/base.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/worker_exception.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/memory.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/dataloader/stateless.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/base.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/example.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/chunk.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/stateful.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/custom_batch_request.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/distributed.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/sequential.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/serialize.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/archive.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/input-archive.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/script/module.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/argument_spec.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/graph_executor.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/interpreter.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/variable_tensor_list.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/update_graph_executor_opt.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/passes/shape_analysis.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/ordered_dict.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/script/compilation_unit.h \
+		../../pytorchTest/libtorch/include/torch/csrc/jit/function.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/output-archive.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/samplers/stream.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/serialize/tensor.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/map.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/mnist.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/shared.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/datasets/tensor.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/base.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/collate.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/lambda.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/stack.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/data/transforms/tensor.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/enum.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/jit.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/cloneable.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/module.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/pimpl.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/detail/static.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/pimpl-inl.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/utils.h \
+		../../pytorchTest/libtorch/include/ATen/Parallel.h \
+		../../pytorchTest/libtorch/include/ATen/ParallelOpenMP.h \
+		../../pytorchTest/libtorch/include/ATen/ParallelNative.h \
+		../../pytorchTest/libtorch/include/ATen/ParallelNativeTBB.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/grad_mode.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/distance.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/distance.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/embedding.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/fold.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/fold.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/expanding_array.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/loss.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/loss.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/normalization.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/normalization.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/pooling.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/pooling.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/vision.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/init.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/any.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/functional.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/modulelist.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/named_any.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/container/sequential.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/batchnorm.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/batchnorm.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/conv.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/conv.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/dropout.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/dropout.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/distance.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/embedding.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/fold.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/linear.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/linear.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/linear.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/loss.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/pooling.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/rnn.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/rnn.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/modules/activation.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options/activation.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/functional/activation.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/options.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/utils.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/nn/utils/clip_grad.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/adagrad.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/optimizer.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/serialize.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/adam.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/lbfgs.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/rmsprop.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/optim/sgd.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/autograd.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/autograd.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/custom_function.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/function.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/anomaly_mode.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/profiler.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/record_function.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/saved_variable.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/input_metadata.h \
+		../../pytorchTest/libtorch/include/torch/extension.h \
+		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/python.h \
+		../../pytorchTest/libtorch/include/torch/csrc/Device.h \
+		../../pytorchTest/libtorch/include/torch/csrc/python_headers.h \
+		../../pytorchTest/libtorch/include/torch/csrc/Dtype.h \
+		../../pytorchTest/libtorch/include/torch/csrc/DynamicTypes.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/pybind.h \
+		../../pytorchTest/libtorch/include/pybind11/pybind11.h \
+		../../pytorchTest/libtorch/include/pybind11/attr.h \
+		../../pytorchTest/libtorch/include/pybind11/cast.h \
+		../../pytorchTest/libtorch/include/pybind11/pytypes.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/common.h \
+		../../pytorchTest/libtorch/include/pybind11/buffer_info.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/typeid.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/descr.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/internals.h \
+		../../pytorchTest/libtorch/include/pybind11/options.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/class.h \
+		../../pytorchTest/libtorch/include/pybind11/detail/init.h \
+		../../pytorchTest/libtorch/include/pybind11/stl.h \
+		../../pytorchTest/libtorch/include/torch/csrc/autograd/python_variable.h \
+		../../pytorchTest/libtorch/include/torch/csrc/THP_export.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/python_tuples.h \
+		../../pytorchTest/libtorch/include/torch/csrc/Exceptions.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/auto_gil.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/object_ptr.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/python_numbers.h \
+		../../pytorchTest/libtorch/include/torch/csrc/utils/tensor_numpy.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o actorcritic.o ../project/Agents/A2C/actorcritic.cpp
+
+parametersa2c.o: ../project/Agents/A2C/parametersa2c.cpp ../project/Agents/A2C/parametersa2c.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o parametersa2c.o ../project/Agents/A2C/parametersa2c.cpp
 
 moc_episodeplayergw.o: moc_episodeplayergw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayergw.o moc_episodeplayergw.cpp

@@ -66,7 +66,7 @@ HEADERS += \
     Agents/A2C/parametersa2c.h
 
 
-QMAKE_CXXFLAGS += -isystem -D_GLIBCXX_USE_CXX11_ABI=0
+QMAKE_CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=0
 INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include
 INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include
 LIBS += -L/home/jack/Documents/pytorchTest/libtorch/lib

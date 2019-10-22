@@ -6,7 +6,7 @@ Agent<C>::Agent()
 }
 
 template <class C>
-Agent<C>::Agent(C Controller):
+Agent<C>::Agent(C controller):
     controller(controller), episodeNumber(0)
 {
     this->controller.generateStates();

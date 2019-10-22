@@ -8,11 +8,11 @@ ActorCritic<C,M>::ActorCritic():
 }
 
 template <class C,class M>
-ActorCritic<C,M>::ActorCritic(C controller, M model,float gamma, float learningRate, int nEpisodes, int batchSize):
-    Agent<C>(controller,0),model(model),
-    optimizer(torch::optim::Adam(model.parameters(),learningRate)),gamma(gamma),learningRate(learningRate),
-    nEpisodes(nEpisodes),batchSize(batchSize)
-{    
+ActorCritic<C,M>::ActorCritic(C controller, ParametersA2C param):
+    Agent<C>(controller), optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
+    learningRate(param.learningRate), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
+{
+    model = ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2]);
 }
 
 template <class C,class M>
@@ -42,7 +42,7 @@ void ActorCritic<C,M>::updatePolicy()
     torch::Tensor entropy = (actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss - actionGain - 0.01*entropy;
+    torch::Tensor totalLoss = valueLoss - actionGain - entropyMultiplier*entropy;
 
     //Displaying a progression bar in the terminal
 
