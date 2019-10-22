@@ -9,8 +9,8 @@ template <class C>
 QLearning<C>::QLearning(C controller, float epsilon, float gamma):
     Agent<C>(controller, epsilon), gamma(gamma)
 {
-    Agent<C>::generateNameTag(vector<float>({gamma}), vector<string>({"G"}));
-
+    Agent<C>::generateNameTag(vector<float>({epsilon,gamma}), vector<string>({"E","G"}));
+    this->nameTag = "QL_"+this->nameTag;
     //Initialising the Q fonction to 0 for each state action pair
 
     for (int i=0;i<controller.spaceStateSize();i++)

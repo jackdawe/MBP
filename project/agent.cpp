@@ -5,6 +5,13 @@ Agent<C>::Agent()
 {
 }
 
+template <class C>
+Agent<C>::Agent(C Controller):
+    controller(controller), episodeNumber(0)
+{
+    this->controller.generateStates();
+}
+
 template<class C>
 Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon), episodeNumber(0)
 {
@@ -78,9 +85,6 @@ void Agent<C>::generateNameTag(vector<float> parameters, vector<string> paramete
     {
         cout << "an error has occured while trying to read the idCount file" << endl;
     }
-    tag+="E";
-    string eps = to_string(epsilon);
-    tag+=eps[0],tag+=eps[2],tag+=eps[3];
     for (unsigned int i=0;i<parameters.size();i++)
     {
         tag+=parametersName[i];

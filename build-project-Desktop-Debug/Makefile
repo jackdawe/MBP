@@ -14,7 +14,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -isystem -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I../project -I. -I../../pytorchTest/libtorch/include -I../../pytorchTest/libtorch/include/torch/csrc/api/include -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
@@ -443,7 +443,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
-	g++ -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
+	g++ -pipe -isystem -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_episodeplayergw.cpp moc_episodeplayerss.cpp
 compiler_moc_header_clean:
@@ -478,17 +478,15 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 
 ####### Compile
 
-main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
+main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
+		../project/controller.h \
 		../project/state.h \
 		../project/action.h \
-		../project/GridWorld/mapgw.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
-		../project/agenttrainer.h \
-		../project/Agents/qlearning.h \
+		../project/GridWorld/mapgw.h \
+		../project/Agents/actorcritic.h \
 		../project/agent.h \
 		../project/Starship/controllerss.h \
 		../project/Starship/mapss.h \
@@ -496,9 +494,7 @@ main.o: ../project/main.cpp ../project/GridWorld/stategw.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
-		../project/Agents/randomagent.h \
-		../project/GridWorld/episodeplayergw.h \
-		../project/Starship/episodeplayerss.h \
+		../project/GridWorld/modela2cgw.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/all.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/cuda.h \
