@@ -13,6 +13,7 @@ ActorCritic<C,M>::ActorCritic(C controller, ParametersA2C param):
     optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
     learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
 {
+    this->generateNameTag("A2C_MLP");
 }
 
 template <class C,class M>

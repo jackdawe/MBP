@@ -72,10 +72,9 @@ void Agent<C>:: loadPolicy(string tag)
 }
 
 template <class C>
-void Agent<C>::generateNameTag(vector<float> parameters, vector<string> parametersName)
+void Agent<C>::generateNameTag(string prefix)
 {
     string id;
-    string tag = "";
     ifstream fr("../idCount");
     if (fr)
     {
@@ -85,13 +84,7 @@ void Agent<C>::generateNameTag(vector<float> parameters, vector<string> paramete
     {
         cout << "an error has occured while trying to read the idCount file" << endl;
     }
-    for (unsigned int i=0;i<parameters.size();i++)
-    {
-        tag+=parametersName[i];
-        string param = to_string(parameters[i]);
-        tag+=param[0],tag+=param[2],tag+=param[3];
-    }
-    nameTag = tag+"_"+id;
+    nameTag = prefix +"_"+id;
     ofstream fw("../idCount");
     if (fw)
     {

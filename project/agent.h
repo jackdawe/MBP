@@ -21,7 +21,7 @@ public:
     virtual void finaliseEpisode();
     virtual void savePolicy();
     virtual void loadPolicy(string tag);
-    void generateNameTag(vector<float> parameters, vector<string> parametersName);
+    void generateNameTag(string prefix);
     void resetController();
     void incrementEpisode();
     void saveRewardHistory();
