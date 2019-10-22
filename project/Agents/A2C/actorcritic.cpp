@@ -10,7 +10,7 @@ ActorCritic<C,M>::ActorCritic():
 template <class C,class M>
 ActorCritic<C,M>::ActorCritic(C controller, ParametersA2C param):
     Agent<C>(controller), optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
-    learningRate(param.learningRate), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
+    learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
 {
     model = ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2]);
 }
