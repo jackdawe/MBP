@@ -9,36 +9,36 @@ AgentTrainer<A>::AgentTrainer()
 template <class A>
 void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int savingSequenceMode)
 {
-    float e = agent->epsilon;
-    for (int k=0;k<numberOfEpisodes;k++)
-    {
-        agent->epsilon = e*exp(-k*5./numberOfEpisodes);
+//    float e = agent->epsilon;
+//    for (int k=0;k<numberOfEpisodes;k++)
+//    {
+//        agent->epsilon = e*exp(-k*5./numberOfEpisodes);
 
-        //Displaying a progression bar in the terminal
+//        //Displaying a progression bar in the terminal
 
-        if (numberOfEpisodes > 100 && k%(5*numberOfEpisodes/100) == 0)
-        {
-            cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
-        }
-        agent->initialiseEpisode();
-        bool terminal = false;
-        while(!terminal)
-        {
-            agent->epsilonGreedyPolicy();
-            terminal = agent->getController().isTerminal(agent->currentState());
-            if (trainMode)
-            {
-                agent->updatePolicy();
-            }
-        }
-        agent->finaliseEpisode();
-        if (savingSequenceMode)
-        {
-            agent->saveLastEpisode();
-        }
-        agent->incrementEpisode();
-        agent->resetController();
-    }
+//        if (numberOfEpisodes > 100 && k%(5*numberOfEpisodes/100) == 0)
+//        {
+//            cout << "Training in progress... " + to_string(k/(numberOfEpisodes/100)) + "%" << endl;
+//        }
+//        agent->initialiseEpisode();
+//        bool terminal = false;
+//        while(!terminal)
+//        {
+//            agent->epsilonGreedyPolicy();
+//            terminal = agent->getController().isTerminal(agent->currentState());
+//            if (trainMode)
+//            {
+//                agent->updatePolicy();
+//            }
+//        }
+//        agent->finaliseEpisode();
+//        if (savingSequenceMode)
+//        {
+//            agent->saveLastEpisode();
+//        }
+//        agent->incrementEpisode();
+//        agent->resetController();
+//    }
 }
 
 //template <class A>
@@ -100,4 +100,3 @@ void AgentTrainer<A>::train(A *agent,int numberOfEpisodes, int trainMode, int sa
 //}
 
 template class AgentTrainer<QLearning<ControllerGW>>;
-template class AgentTrainer<RandomAgent<ControllerSS>>;

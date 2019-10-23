@@ -1,7 +1,6 @@
 #ifndef AGENTTRAINER_H
 #define AGENTTRAINER_H
 #include "Agents/qlearning.h"
-#include "Agents/randomagent.h"
 #include "GridWorld/episodeplayergw.h"
 #include <iostream>
 

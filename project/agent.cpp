@@ -19,72 +19,6 @@ Agent<C>::Agent(C controller):
     }
 }
 
-template<class C>
-Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon), episodeNumber(0)
-{
-    if(this->controller.getImageMode())
-    {
-        this->controller.generateImageStates();
-    }
-    else
-    {
-       this->controller.generateVectorStates();
-    }
-}
-
-template <class C>
-void Agent<C>::epsilonGreedyPolicy()
-{
-    default_random_engine generator = default_random_engine(random_device{}());
-    uniform_real_distribution<float> dist(0,1);
-    if (dist(generator) < epsilon)
-    {
-        for (int i=0;i<daSize();i++)
-        {
-            controller.updateTakenAction(i,discreteActions()[i].pick());
-        }
-        for (int i=0;i<caSize();i++)
-        {
-            controller.updateTakenAction(i+daSize(),continuousActions()[i].pick());
-        }
-    }
-    else
-    {
-        greedyPolicy();
-    }
-    controller.setTakenReward(controller.transition());
-}
-
-template <class C>
-void Agent<C>::initialiseEpisode()
-{
-}
-
-template <class C>
-void Agent<C>::greedyPolicy()
-{
-}
-
-template <class C>
-void Agent<C>::updatePolicy()
-{
-}
-
-template <class C>
-void Agent<C>::finaliseEpisode()
-{
-}
-
-template <class C>
-void Agent<C>::savePolicy()
-{
-}
-
-template <class C>
-void Agent<C>:: loadPolicy(string tag)
-{
-}
-
 template <class C>
 void Agent<C>::generateNameTag(string prefix)
 {
@@ -109,12 +43,6 @@ void Agent<C>::generateNameTag(string prefix)
         cout << "an error has occured while trying to update the idCount file" << endl;
     }
     cout << "Files saved during training under the name: " + nameTag << endl;
-}
-
-template<class C>
-void Agent<C>::resetController()
-{
-    controller.reset();
 }
 
 template<class C>

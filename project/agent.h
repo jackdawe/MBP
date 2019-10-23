@@ -13,16 +13,7 @@ class Agent
 public:
     Agent();
     Agent(C Controller);
-    Agent(C controller, float epsilon);
-    virtual void initialiseEpisode();
-    void epsilonGreedyPolicy();
-    virtual void greedyPolicy();
-    virtual void updatePolicy();
-    virtual void finaliseEpisode();
-    virtual void savePolicy();
-    virtual void loadPolicy(string tag);
     void generateNameTag(string prefix);
-    void resetController();
     void incrementEpisode();
     void saveRewardHistory();
     void saveLastEpisode();
@@ -40,7 +31,6 @@ public:
     C getController() const;
 
     void setController(const C &value);
-    float epsilon;
 
     string getNameTag() const;
 

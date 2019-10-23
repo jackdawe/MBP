@@ -6,8 +6,8 @@ QLearning<C>::QLearning()
 }
 
 template <class C>
-QLearning<C>::QLearning(C controller, float epsilon, float gamma):
-    Agent<C>(controller, epsilon), gamma(gamma)
+QLearning<C>::QLearning(C controller,int nEpisodes, float epsilon, float gamma):
+    Agent<C>(controller), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
 {
     Agent<C>::generateNameTag("QL");
     //Initialising the Q fonction to 0 for each state action pair
@@ -19,34 +19,48 @@ QLearning<C>::QLearning(C controller, float epsilon, float gamma):
 }
 
 template <class C>
-void QLearning<C>::greedyPolicy()
+void QLearning<C>::epsilonGreedyPolicy()
 {
-    vector<float> possibleQValues;
 
-    for (int i=0;i<Agent<C>::actions().cardinal();i++)
+    default_random_engine generator = default_random_engine(random_device{}());
+    uniform_real_distribution<float> dist(0,1);
+    if (dist(generator) < epsilon)
     {
-        possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())][i]);
-    }
-    float maxQValue = *max_element(possibleQValues.begin(),possibleQValues.end());
-
-    //If several qvalues are equal to the max, pick one of them randomly
-
-    vector<int> indexOfMax;
-    for (unsigned int i=0;i<possibleQValues.size();i++)
-    {
-        if (possibleQValues[i]==maxQValue)
+        for (int i=0;i<this->daSize();i++)
         {
-            indexOfMax.push_back(i);
+            this->controller.updateTakenAction(i,this->discreteActions()[i].pick());
         }
     }
-    default_random_engine generator(random_device{}());
-    uniform_int_distribution<int> dist(0,indexOfMax.size()-1);
-    int actionId = indexOfMax[dist(generator)];
-    this->controller.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
+    else
+    {
+        vector<float> possibleQValues;
+
+        for (int i=0;i<Agent<C>::actions().cardinal();i++)
+        {
+            possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())][i]);
+        }
+        float maxQValue = *max_element(possibleQValues.begin(),possibleQValues.end());
+
+        //If several qvalues are equal to the max, pick one of them randomly
+
+        vector<int> indexOfMax;
+        for (unsigned int i=0;i<possibleQValues.size();i++)
+        {
+            if (possibleQValues[i]==maxQValue)
+            {
+                indexOfMax.push_back(i);
+            }
+        }
+        default_random_engine generator(random_device{}());
+        uniform_int_distribution<int> dist(0,indexOfMax.size()-1);
+        int actionId = indexOfMax[dist(generator)];
+        this->controller.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
+    }
+    this->controller.setTakenReward(this->controller.transition());
 }
 
 template <class C>
-void QLearning<C>::updatePolicy()
+void QLearning<C>::updateQValues()
 {
     int psIndex = this->controller.stateId(this->previousState());
     int csIndex = this->controller.stateId(this->currentState());
@@ -71,14 +85,47 @@ void QLearning<C>::updatePolicy()
 }
 
 template <class C>
-void QLearning<C>::finaliseEpisode()
+void QLearning<C>::train()
 {
-   this->controller.transition();
-   updatePolicy();
+    float e = epsilon;
+    for (int k=0;k<nEpisodes;k++)
+    {
+        epsilon = e*exp(-k*5./nEpisodes);
+
+        //Displaying a progression bar in the terminal
+
+        if (nEpisodes > 100 && k%(5*nEpisodes/100) == 0)
+        {
+            cout << "Training in progress... " + to_string(k/(nEpisodes/100)) + "%" << endl;
+        }
+        bool terminal = false;
+        while(!terminal)
+        {
+            epsilonGreedyPolicy();
+            terminal = this->controller.isTerminal(this->currentState());
+            updateQValues();
+        }
+        this->controller.transition();
+        updateQValues();
+        this->episodeNumber++;
+        this->controller.reset();
+    }
+}
+
+template<class C>
+void QLearning<C>::playOne()
+{
+    bool terminal = false;
+    while(!terminal)
+    {
+        epsilonGreedyPolicy();
+        terminal = this->controller.isTerminal(this->currentState());
+    }
+    this->saveLastEpisode();
 }
 
 template <class C>
-void QLearning<C>::savePolicy()
+void QLearning<C>::saveQValues()
 {
     ofstream f(this->controller.getPath()+"Policies/"+this->nameTag);
     if (f)
@@ -101,7 +148,7 @@ void QLearning<C>::savePolicy()
 }
 
 template <class C>
-void QLearning<C>::loadPolicy(string tag)
+void QLearning<C>::loadQValues(string tag)
 {
     this->nameTag = tag;
     ifstream f(this->controller.getPath()+"Policies/"+tag);
@@ -113,11 +160,11 @@ void QLearning<C>::loadPolicy(string tag)
         getline(f,line);
         gamma = stof(line);
         Agent<C>::generateNameTag("QL");
-        for (int i=0;i<qvalues.size();i++)
+        for (unsigned int i=0;i<qvalues.size();i++)
         {
             getline(f,line);            
             int k=0;
-            for (int j=0;j<qvalues[0].size();j++)
+            for (unsigned int j=0;j<qvalues[0].size();j++)
             {
                 string num;
                 while(line[k]!=' ')

@@ -43,7 +43,6 @@ SOURCES += main.cpp \
     Starship/controllerss.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
-    Agents/randomagent.cpp \
     GridWorld/modela2cgw.cpp \
     Agents/A2C/actorcritic.cpp \
     Agents/A2C/parametersa2c.cpp
@@ -68,7 +67,6 @@ HEADERS += \
     Starship/controllerss.h \
     Starship/episodeplayerss.h \
     Starship/mapss.h \
-    Agents/randomagent.h \
     GridWorld/modela2cgw.h \
     Agents/A2C/actorcritic.h \
     Agents/A2C/parametersa2c.h

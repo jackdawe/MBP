@@ -122,7 +122,7 @@ void ControllerGW::generateVectorStates()
 
 void ControllerGW::generateImageStates()
 {
-    vector<vector<vector<int>>>
+
 }
 
 int ControllerGW::stateId(State s)

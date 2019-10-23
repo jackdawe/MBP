@@ -7,15 +7,18 @@ class QLearning: public Agent<C>
 {
 public:
     QLearning();
-    QLearning(C controller, float epsilon, float gamma);
-    void greedyPolicy();
-    void updatePolicy();
-    void finaliseEpisode();
-    void savePolicy();
-    void loadPolicy(string tag);
+    QLearning(C controller,int nEpisodes, float epsilon, float gamma);
+    void epsilonGreedyPolicy();
+    void updateQValues();
+    void train();
+    void playOne();
+    void saveQValues();
+    void loadQValues(string tag);
     void saveTrainingData();
 
 private:
+    int nEpisodes;
+    float epsilon;
     float gamma;
     vector<vector<float>> qvalues;
 };

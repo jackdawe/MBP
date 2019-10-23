@@ -15,7 +15,6 @@ public:
 
 private:
     vector<float> stateVector;
-
 };
 
 #endif // STATE_H
