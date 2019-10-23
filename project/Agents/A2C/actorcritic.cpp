@@ -34,16 +34,25 @@ void ActorCritic<C,M>::updatePolicy()
     }
 
 
-    torch::Tensor actionProbs = model.actorOutput(states);
+    torch::Tensor actionProbs = model.actorOutput(states);    
     torch::Tensor valuesEstimate = model.criticOutput(states);
     torch::Tensor actionLogProbs = actionProbs.log();
+    cout<<actionProbs<<endl;
+    cout<<actionLogProbs<<endl;
+    cout<<valuesEstimate<<endl;
+    cout<<runValues<<endl;
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions.to(torch::kLong)).to(torch::kFloat32);
-
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = advantages.pow(2).mean();
     torch::Tensor totalLoss = valueLoss - actionGain + entropyMultiplier*entropy;
+
+//    if (this->episodeNumber > nEpisodes-10)
+//    {
+//        cout<<runValues<<endl;
+//        cout<<valuesEstimate<<endl;
+//    }
 
     actionGainHistory.push_back(*actionGain.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
@@ -70,7 +79,7 @@ void ActorCritic<C,M>::train()
         {
             torch::Tensor s = torch::tensor(this->previousState().getStateVector());
             torch::Tensor actionProbabilities = model.actorOutput(s.reshape({1,s.size(0)}));
-            torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
+            torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);            
             vector<float> a(action.data<float>(),action.data<float>()+action.numel());
 
             this->controller.setTakenAction(a);
@@ -120,21 +129,8 @@ template <class C,class M>
 void ActorCritic<C,M>::evaluateRunValues()
 {            
     float nextReturn = 0;
-    if (runAreTerminal.back())
-    {
-        nextReturn = runRewards.back();
-    }
-    else
-    {
-        //Go through the Critic layer to evaluate the value of the current state
-        torch::Tensor s = torch::tensor(this->previousState().getStateVector());
-        torch::Tensor co = model.criticOutput(s.reshape({1,s.size(0)}));
-        nextReturn = *co.data<float>();
-    }
-    runValues.push_back(nextReturn);
-    //GO backwards to evaluate the value of previous states using the estimated values of the future states
     float thisReturn = 0;
-    for (int i=batchSize-2;i>=0;i--)
+    for (int i=batchSize-1;i>=0;i--)
     {
         if (runAreTerminal[i])
         {
