@@ -7,7 +7,7 @@ class Controller
 {
 public:
     Controller();
-
+    Controller(bool imageMode);
     /**
      * @brief transition
      * This method uses the value of takenAction to update the currentState using the laws of the world.
@@ -30,8 +30,13 @@ public:
      * Generates the state vectors for previous state and current state condensing the controller's vision of
      * the world into a generic representation
      */
-    virtual void generateStates();
+    virtual void generateVectorStates();
 
+    /**
+     * @brief generateImageStates
+     * Generating a 3 channel RGB image for currentState and previousState
+     */
+    virtual void generateImageStates();
     /**
      * @brief stateId
      * Attributes an Id to a state by defining an order between states
@@ -91,7 +96,10 @@ public:
 
     vector<vector<float> > getActionSequence() const;
 
+    bool getImageMode() const;
+
 protected:
+    bool imageMode;
     string path;
 
     ActionSpace actions;

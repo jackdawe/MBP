@@ -1,8 +1,8 @@
 #include "controller.h"
 
-Controller::Controller()
-{
-}
+Controller::Controller(){}
+
+Controller::Controller(bool imageMode): imageMode(imageMode) {}
 
 float Controller::transition()
 {
@@ -14,9 +14,9 @@ bool Controller::isTerminal(State s)
     return false;
 }
 
-void Controller::generateStates()
-{
-}
+void Controller::generateVectorStates() {}
+
+void Controller::generateImageStates() {}
 
 int Controller::stateId(State s)
 {
@@ -230,5 +230,10 @@ vector<vector<float> > Controller::getStateSequence() const
 vector<vector<float> > Controller::getActionSequence() const
 {
     return actionSequence;
+}
+
+bool Controller::getImageMode() const
+{
+    return imageMode;
 }
 

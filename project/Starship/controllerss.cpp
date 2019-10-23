@@ -114,7 +114,7 @@ bool ControllerSS::isTerminal(State s)
     return false;
 }
 
-void ControllerSS::generateStates()
+void ControllerSS::generateVectorStates()
 {
     vector<float> stateVector = {ship.getP().getX(),ship.getP().getY(),ship.getV().getX(),
                                  ship.getV().getY(),ship.getWidth()};

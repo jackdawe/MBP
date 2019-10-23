@@ -2,6 +2,7 @@
 #define CONTROLLERGW_H
 #include "controller.h"
 #include "mapgw.h"
+#include <opencv2/opencv.hpp>
 
 #define WIN_REWARD 1
 #define LOSE_REWARD -1
@@ -11,13 +12,13 @@ class ControllerGW: public Controller
 {
 public:
     ControllerGW();
-    ControllerGW(string mapTag);
-    ControllerGW(string mapTag, float agentXInit, float agentYInit);
+    ControllerGW(string mapTag, bool getImageMode = false);
+    ControllerGW(string mapTag, float agentXInit, float agentYInit, bool getImageMode = false);
     void init(string mapTag);
     float transition();
     bool isTerminal(State s);
-    void generateStates();
-    void generateImage();
+    void generateVectorStates();
+    void generateImageStates();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);

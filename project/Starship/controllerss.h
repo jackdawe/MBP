@@ -25,7 +25,7 @@ public:
 
     float transition();
     bool isTerminal(State s);
-    void generateStates();
+    void generateVectorStates();
     void reset();
 
     int size;

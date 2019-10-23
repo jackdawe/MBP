@@ -1,10 +1,10 @@
 #include "controllergw.h"
 
-ControllerGW::ControllerGW()
+ControllerGW::ControllerGW(): Controller(imageMode)
 {
 }
 
-ControllerGW::ControllerGW(string mapTag)
+ControllerGW::ControllerGW(string mapTag, bool imageMode): Controller(imageMode)
 {
     randomStart = true;
     init(mapTag);
@@ -17,8 +17,8 @@ ControllerGW::ControllerGW(string mapTag)
     }
 }
 
-ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit):
-    initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
+ControllerGW::ControllerGW(string mapTag, float agentXInit, float agentYInit, bool imageMode):
+    Controller(imageMode),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
 {
     randomStart=false;
     init(mapTag);
@@ -105,7 +105,7 @@ bool ControllerGW::isTerminal(State s)
     return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
 }
 
-void ControllerGW::generateStates()
+void ControllerGW::generateVectorStates()
 {
     currentState.add(agentX),currentState.add(agentY),
             currentState.add(goalX), currentState.add(goalY);
@@ -120,9 +120,9 @@ void ControllerGW::generateStates()
     stateSequence.push_back(currentState.getStateVector());
 }
 
-void ControllerGW::generateImage()
+void ControllerGW::generateImageStates()
 {
-
+    vector<vector<vector<int>>>
 }
 
 int ControllerGW::stateId(State s)

@@ -9,13 +9,27 @@ template <class C>
 Agent<C>::Agent(C controller):
     controller(controller), episodeNumber(0)
 {
-    this->controller.generateStates();
+    if(this->controller.getImageMode())
+    {
+        this->controller.generateImageStates();
+    }
+    else
+    {
+       this->controller.generateVectorStates();
+    }
 }
 
 template<class C>
 Agent<C>::Agent(C controller, float epsilon): controller(controller), epsilon(epsilon), episodeNumber(0)
 {
-    this->controller.generateStates();
+    if(this->controller.getImageMode())
+    {
+        this->controller.generateImageStates();
+    }
+    else
+    {
+       this->controller.generateVectorStates();
+    }
 }
 
 template <class C>

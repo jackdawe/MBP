@@ -15,7 +15,7 @@ CXX           = g++
 DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I../project -I. -I../../pytorchTest/libtorch/include -I../../pytorchTest/libtorch/include/torch/csrc/api/include -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I../project -I. -I../../pytorchTest/libtorch/include -I../../pytorchTest/libtorch/include/torch/csrc/api/include -I/home/opencv/include -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -38,7 +38,7 @@ DISTNAME      = project1.0.0
 DISTDIR = /home/jack/Documents/joliRL/build-project-Desktop-Debug/.tmp/project1.0.0
 LINK          = g++
 LFLAGS        = 
-LIBS          = $(SUBLIBS) -L/home/jack/Documents/pytorchTest/libtorch/lib -ltorch -lc10 -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/home/jack/Documents/pytorchTest/libtorch/lib -ltorch -lc10 -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -456,7 +456,7 @@ moc_episodeplayergw.cpp: ../project/GridWorld/mapgw.h \
 		../project/GridWorld/episodeplayergw.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/home/jack/Documents/pytorchTest/libtorch/include -I/home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/GridWorld/episodeplayergw.h -o moc_episodeplayergw.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/home/jack/Documents/pytorchTest/libtorch/include -I/home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include -I/home/opencv/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/GridWorld/episodeplayergw.h -o moc_episodeplayergw.cpp
 
 moc_episodeplayerss.cpp: ../project/Starship/mapss.h \
 		../project/Starship/planet.h \
@@ -466,7 +466,7 @@ moc_episodeplayerss.cpp: ../project/Starship/mapss.h \
 		../project/Starship/episodeplayerss.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/home/jack/Documents/pytorchTest/libtorch/include -I/home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/Starship/episodeplayerss.h -o moc_episodeplayerss.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/jack/Documents/joliRL/project -I/home/jack/Documents/pytorchTest/libtorch/include -I/home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include -I/home/opencv/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../project/Starship/episodeplayerss.h -o moc_episodeplayerss.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -828,7 +828,8 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../../pytorchTest/libtorch/include/torch/csrc/utils/auto_gil.h \
 		../../pytorchTest/libtorch/include/torch/csrc/utils/object_ptr.h \
 		../../pytorchTest/libtorch/include/torch/csrc/utils/python_numbers.h \
-		../../pytorchTest/libtorch/include/torch/csrc/utils/tensor_numpy.h
+		../../pytorchTest/libtorch/include/torch/csrc/utils/tensor_numpy.h \
+		../project/GridWorld/episodeplayergw.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../project/main.cpp
 
 action.o: ../project/action.cpp ../project/action.h
