@@ -90,11 +90,11 @@ public:
 
     vector<vector<float> > getActionSequence() const;
 
-    bool getImageMode() const;
+    int getSize() const;
 
 protected:
     string path;
-
+    int size;
     ActionSpace actions;
 
     State previousState;

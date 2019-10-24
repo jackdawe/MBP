@@ -19,19 +19,15 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateVectorStates();
-    cv::Mat toRGBMat(State s);
-    torch::Tensor toRGBTensor(State s);
-    vector<vector<vector<int>>> toRGBVec(State s);
+    cv::Mat toRGBMat(vector<float> stateVector);
+    torch::Tensor toRGBTensor(vector<float> stateVector);
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
 
-    int getSize() const;
-
 private:
     bool imageMode;
-    int size;
     bool randomStart;
     vector<vector<float>> obstacles;
     float initX;

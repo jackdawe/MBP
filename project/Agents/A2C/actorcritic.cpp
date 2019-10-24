@@ -1,17 +1,14 @@
 #include "actorcritic.h"
 
 template <class W, class M>
-ActorCritic<W,M>::ActorCritic():
-    optimizer(torch::optim::Adam(model.parameters(),learningRate))
-
+ActorCritic<W,M>::ActorCritic()
 {
 }
 
 template <class W,class M>
-ActorCritic<W,M>::ActorCritic(W controller, ParametersA2C param,bool usesCNN):
-    Agent<W>(controller),model(ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2])),
-    optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
-    learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
+ActorCritic<W,M>::ActorCritic(W controller,M model, ParametersA2C param,bool usesCNN):
+    Agent<W>(controller), model(model), gamma(param.gamma), learningRate(param.learningRate),
+    entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
 {
     if (usesCNN)
     {
@@ -43,27 +40,13 @@ void ActorCritic<W,M>::evaluateRunValues()
 }
 
 template <class W,class M>
-void ActorCritic<W,M>::backPropagate()
+void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 {
-    evaluateRunValues();
-    torch::Tensor states = torch::zeros({runStates.size(),runStates[0].size()});
-
-    for (unsigned int i=0;i<runStates.size();i++)
-    {
-        states[i] = torch::tensor(runStates[i]);
-    }
-    torch::Tensor actions = torch::zeros({runActions.size(),runActions[0].size()});
-
-    for (unsigned int i=0;i<runActions.size();i++)
-    {
-        actions[i] = torch::tensor(runActions[i]);
-    }
-
-
-    torch::Tensor actionProbs = model.actorOutput(states);    
-    torch::Tensor valuesEstimate = model.criticOutput(states);
+    evaluateRunValues();    
+    torch::Tensor actionProbs = model.actorOutput(runStates);
+    torch::Tensor valuesEstimate = model.criticOutput(runStates);
     torch::Tensor actionLogProbs = actionProbs.log();
-    torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions.to(torch::kLong)).to(torch::kFloat32);
+    torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
@@ -75,11 +58,11 @@ void ActorCritic<W,M>::backPropagate()
     entropyHistory.push_back(*entropy.data<float>());
     lossHistory.push_back(*totalLoss.data<float>());
 
-    optimizer.zero_grad();
+    opti->zero_grad();
     totalLoss.backward();
     vector<torch::Tensor> param = model.parameters();
     torch::nn::utils::clip_grad_norm_(param,0.5);
-    optimizer.step();
+    opti->step();
 }
 
 
@@ -87,22 +70,29 @@ template <class W,class M>
 void ActorCritic<W,M>::train()
 {
     this->episodeNumber = 0;
+    torch::optim::Adam optimizer(model.parameters(),learningRate);
     while (this->episodeNumber<nEpisodes)
     {
-        runStates = {}, runActions = {}, runRewards = {}, runAreTerminal = {}, runValues = {};
-
+        runStates = torch::zeros(0), runActions = torch::zeros(0), runRewards = {}, runAreTerminal = {}, runValues = {};
         for (int i=0;i<batchSize;i++)
         {
-            torch::Tensor s = torch::tensor(this->previousState().getStateVector());
-            torch::Tensor actionProbabilities = model.actorOutput(s.reshape({1,s.size(0)}));
+            torch::Tensor s;
+            if(usesCNN)
+            {
+                s = this->controller.toRGBTensor(this->previousState().getStateVector());
+            }
+            else
+            {
+                s = torch::tensor(this->previousState().getStateVector());
+                s = s.reshape({1,s.size(0)});
+            }
+            torch::Tensor actionProbabilities = model.actorOutput(s);
             torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);            
-            vector<float> a(action.data<float>(),action.data<float>()+action.numel());
-
-            this->controller.setTakenAction(a);
+            this->controller.setTakenAction({*action.data<float>()});
             this->controller.setTakenReward(this->controller.transition());
-            runStates.push_back(this->previousState().getStateVector());
+            runStates = torch::cat({runStates,s});
             runRewards.push_back(this->takenReward());
-            runActions.push_back(this->takenAction());
+            runActions = torch::cat({runActions,action});
             runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
 
             if (runAreTerminal.back())
@@ -118,7 +108,7 @@ void ActorCritic<W,M>::train()
                 }
             }
         }
-        backPropagate();
+        backPropagate(&optimizer);
     }
     saveTrainingData();
     this->controller.saveRewardHistory("A2C");
@@ -129,7 +119,15 @@ void ActorCritic<W,M>::playOne()
 {
     while(!this->controller.isTerminal(this->currentState()))
     {
-        torch::Tensor s = torch::tensor(this->previousState().getStateVector());
+        torch::Tensor s;
+        if(usesCNN)
+        {
+            s = this->controller.toRGBTensor(this->previousState().getStateVector());
+        }
+        else
+        {
+            s = torch::tensor(this->previousState().getStateVector());
+        }
         torch::Tensor actionProbabilities = model.actorOutput(s.reshape({1,s.size(0)}));
         torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
         vector<float> a(action.data<float>(),action.data<float>()+action.numel());
@@ -166,3 +164,4 @@ M ActorCritic<W,M>::getModel() const
 }
 
 template class ActorCritic<GridWorld,ModelA2CGW>;
+template class ActorCritic<GridWorld,ConvNetGW>;

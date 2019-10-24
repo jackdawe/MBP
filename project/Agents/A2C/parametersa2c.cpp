@@ -2,8 +2,8 @@
 
 ParametersA2C::ParametersA2C(){}
 
-ParametersA2C::ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes, vector<int> mlpLayers):
+ParametersA2C::ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes):
     gamma(gamma), learningRate(learningRate),entropyMultiplier(entropyMultiplier), batchSize(batchSize),
-    nEpisodes(nEpisodes),mlpHiddenLayers(mlpLayers),
-    names({"GAMMA","LEARNING RATE", "ENTROPY MULTIPLIER", "BATCH SIZE","NUMBER OF TRAINING EPISODES","NUMBER OF HIDDEN UNITS IN EACH FC LAYERS"})
+    nEpisodes(nEpisodes),
+    names({"GAMMA","LEARNING RATE", "ENTROPY MULTIPLIER", "BATCH SIZE","NUMBER OF TRAINING EPISODES"})
 {}

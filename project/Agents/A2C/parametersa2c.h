@@ -8,14 +8,12 @@ class ParametersA2C
 {
 public:
     ParametersA2C();
-    ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes,
-                  vector<int> mlpHiddenLayers);
+    ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes);
     float gamma;
     float learningRate;
     float entropyMultiplier;
     int batchSize;
     int nEpisodes;
-    vector<int> mlpHiddenLayers;
     vector<string> names;
 };
 

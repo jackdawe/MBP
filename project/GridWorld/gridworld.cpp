@@ -32,7 +32,7 @@ void GridWorld::init(string mapTag)
     actions = ActionSpace(dactions, vector<ContinuousAction>());
     rewardHistory.push_back(0);
     takenAction = vector<float>(1,0);
-    size = map.getSize();
+    this->size = map.getSize();
     path = "../GridWorld/Map"+mapTag+"/";
     for (int i=0;i<size;i++)
     {
@@ -120,9 +120,8 @@ void GridWorld::generateVectorStates()
     stateSequence.push_back(currentState.getStateVector());
 }
 
-cv::Mat GridWorld::toRGBMat(State s)
+cv::Mat GridWorld::toRGBMat(vector<float> stateVector)
 {
-    vector<float> stateVector = s.getStateVector();
     cv::Mat rgbState(size,size,CV_8UC3);
     for (int i=0;i<size;i++)
     {
@@ -152,9 +151,9 @@ cv::Mat GridWorld::toRGBMat(State s)
     return rgbState;
 }
 
-torch::Tensor GridWorld::toRGBTensor(State s)
+torch::Tensor GridWorld::toRGBTensor(vector<float> stateVector)
 {
-    cv::Mat m = toRGBMat(s);
+    cv::Mat m = toRGBMat(stateVector);
     m.convertTo(m,CV_32FC3,1.0f/255.0f);
     torch::Tensor tensorS = torch::from_blob(m.data,{1,m.rows,m.cols,3});
     return tensorS.permute({0,3,1,2});
@@ -202,7 +201,3 @@ int GridWorld::spaceStateSize()
     return size*size;
 }
 
-int GridWorld::getSize() const
-{
-    return size;
-}

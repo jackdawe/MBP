@@ -228,3 +228,8 @@ vector<vector<float> > World::getActionSequence() const
     return actionSequence;
 }
 
+int World::getSize() const
+{
+    return size;
+}
+

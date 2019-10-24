@@ -2,17 +2,17 @@
 #define ACTORCRITIC_H
 #include "agent.h"
 #include "parametersa2c.h"
-#include "../../GridWorld/modela2cgw.h"
-#include "../../GridWorld/convnetgw.h"
+#include "../../GridWorld/Models/modela2cgw.h"
+#include "../../GridWorld/Models/convnetgw.h"
 
 template <class W, class M>
 class ActorCritic: public Agent<W>
 {
 public:
     ActorCritic();
-    ActorCritic(W World, ParametersA2C param, bool usesCNN = false);
+    ActorCritic(W World, M model, ParametersA2C param, bool usesCNN = false);
     void evaluateRunValues();
-    void backPropagate();
+    void backPropagate(torch::optim::Adam *opti);
     void train();
     void playOne();    
     void saveTrainingData();
@@ -25,13 +25,12 @@ private:
     float entropyMultiplier;
     int nEpisodes;
     int batchSize;    
-    vector<vector<float>> runStates;
-    vector<vector<float>> runActions;
+    torch::Tensor runStates;
+    torch::Tensor runActions;
     vector<float> runRewards;
     vector<bool> runAreTerminal;
     vector<float> runValues;
     M model;
-    torch::optim::Adam optimizer;
 
     vector<float> actionGainHistory;
     vector<float> valueLossHistory;

@@ -2,7 +2,7 @@
 #define CONVNETGW_H
 #include <torch/torch.h>
 
-class ConvNetGW: torch::nn::Module
+class ConvNetGW: public torch::nn::Module
 {
 public:
     ConvNetGW();

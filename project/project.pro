@@ -39,13 +39,13 @@ SOURCES += main.cpp \
     Starship/vect2d.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
-    GridWorld/modela2cgw.cpp \
     Agents/A2C/actorcritic.cpp \
     Agents/A2C/parametersa2c.cpp \
     world.cpp \
     GridWorld/gridworld.cpp \
     Starship/spaceworld.cpp \
-    GridWorld/convnetgw.cpp
+    GridWorld/Models/convnetgw.cpp \
+    GridWorld/Models/modela2cgw.cpp
 
 HEADERS += \
     action.h \
@@ -63,13 +63,13 @@ HEADERS += \
     Starship/vect2d.h \
     Starship/episodeplayerss.h \
     Starship/mapss.h \
-    GridWorld/modela2cgw.h \
     Agents/A2C/actorcritic.h \
     Agents/A2C/parametersa2c.h \
     world.h \
     GridWorld/gridworld.h \
     Starship/spaceworld.h \
-    GridWorld/convnetgw.h
+    GridWorld/Models/convnetgw.h \
+    GridWorld/Models/modela2cgw.h
 
 
 
