@@ -8,12 +8,19 @@ ActorCritic<W,M>::ActorCritic():
 }
 
 template <class W,class M>
-ActorCritic<W,M>::ActorCritic(W controller, ParametersA2C param):
+ActorCritic<W,M>::ActorCritic(W controller, ParametersA2C param,bool usesCNN):
     Agent<W>(controller),model(ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2])),
     optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
-    learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
+    learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
 {
-    this->generateNameTag("A2C_MLP");
+    if (usesCNN)
+    {
+        this->generateNameTag("A2C_CNN");
+    }
+    else
+    {
+        this->generateNameTag("A2C_MLP");
+    }
 }
 
 template <class W,class M>

@@ -44,7 +44,8 @@ SOURCES += main.cpp \
     Agents/A2C/parametersa2c.cpp \
     world.cpp \
     GridWorld/gridworld.cpp \
-    Starship/spaceworld.cpp
+    Starship/spaceworld.cpp \
+    GridWorld/convnetgw.cpp
 
 HEADERS += \
     action.h \
@@ -67,7 +68,8 @@ HEADERS += \
     Agents/A2C/parametersa2c.h \
     world.h \
     GridWorld/gridworld.h \
-    Starship/spaceworld.h
+    Starship/spaceworld.h \
+    GridWorld/convnetgw.h
 
 
 

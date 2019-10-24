@@ -9,7 +9,7 @@ class ActorCritic: public Agent<W>
 {
 public:
     ActorCritic();
-    ActorCritic(W World, ParametersA2C param);
+    ActorCritic(W World, ParametersA2C param, bool usesCNN = false);
     void evaluateRunValues();
     void backPropagate();
     void train();
@@ -18,6 +18,7 @@ public:
     M getModel() const;
 
 private:
+    bool usesCNN;
     float gamma;
     float learningRate;
     float entropyMultiplier;
