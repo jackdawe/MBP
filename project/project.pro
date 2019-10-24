@@ -21,7 +21,7 @@ INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/
 LIBS += -L/home/jack/Documents/pytorchTest/libtorch/lib
 LIBS += -ltorch -lc10
 INCLUDEPATH += /home/opencv/include
-LIBS += -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui
+LIBS += -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
 
 SOURCES += main.cpp \
     action.cpp \

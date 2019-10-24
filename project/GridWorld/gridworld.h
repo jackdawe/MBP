@@ -18,6 +18,7 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateVectorStates();
+    cv::Mat toRGB(State s);
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
