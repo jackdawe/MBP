@@ -3,6 +3,7 @@
 #include "world.h"
 #include "mapgw.h"
 #include <opencv2/opencv.hpp>
+#include <torch/torch.h>
 
 #define WIN_REWARD 1
 #define LOSE_REWARD -1
@@ -18,7 +19,9 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateVectorStates();
-    cv::Mat toRGB(State s);
+    cv::Mat toRGBMat(State s);
+    torch::Tensor toRGBTensor(State s);
+    vector<vector<vector<int>>> toRGBVec(State s);
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);

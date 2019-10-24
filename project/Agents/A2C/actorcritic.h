@@ -3,6 +3,7 @@
 #include "agent.h"
 #include "parametersa2c.h"
 #include "../../GridWorld/modela2cgw.h"
+#include "../../GridWorld/convnetgw.h"
 
 template <class W, class M>
 class ActorCritic: public Agent<W>

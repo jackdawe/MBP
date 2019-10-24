@@ -120,7 +120,7 @@ void GridWorld::generateVectorStates()
     stateSequence.push_back(currentState.getStateVector());
 }
 
-cv::Mat GridWorld::toRGB(State s)
+cv::Mat GridWorld::toRGBMat(State s)
 {
     vector<float> stateVector = s.getStateVector();
     cv::Mat rgbState(size,size,CV_8UC3);
@@ -150,6 +150,14 @@ cv::Mat GridWorld::toRGB(State s)
     rgbState.at<cv::Vec3b>(stateVector[2],stateVector[3]) += cv::Vec3b(0,255,0);
 
     return rgbState;
+}
+
+torch::Tensor GridWorld::toRGBTensor(State s)
+{
+    cv::Mat m = toRGBMat(s);
+    m.convertTo(m,CV_32FC3,1.0f/255.0f);
+    torch::Tensor tensorS = torch::from_blob(m.data,{1,m.rows,m.cols,3});
+    return tensorS.permute({0,3,1,2});
 }
 
 int GridWorld::stateId(State s)

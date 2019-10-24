@@ -2,28 +2,25 @@
 #define CONVNETGW_H
 #include <torch/torch.h>
 
-using namespace torch;
-using namespace torch::nn ;
-
-class ConvNetGW: Module
+class ConvNetGW: torch::nn::Module
 {
 public:
     ConvNetGW();
-    ConvNetGW(int nInputs, int nConv1, int nConv2, int nfc);
-    Tensor forward(Tensor x);
-    Tensor actorOutput(Tensor x);
-    Tensor criticOutput(Tensor x);
+    ConvNetGW(int size, int nConv1, int nConv2, int nfc);
+    torch::Tensor forward(torch::Tensor x);
+    torch::Tensor actorOutput(torch::Tensor x);
+    torch::Tensor criticOutput(torch::Tensor x);
 
 private:
-    int nInputs;
+    int size;
     int nConv1;
     int nConv2;
     int nfc;
-    std::shared_ptr<Conv2d> conv1;
-    std::shared_ptr<Conv2d> conv2;
-    std::shared_ptr<LinearImpl> fc;
-    std::shared_ptr<LinearImpl> actor;
-    std::shared_ptr<LinearImpl> critic;
+    std::shared_ptr<torch::nn::Conv2dImpl> conv1;
+    std::shared_ptr<torch::nn::Conv2dImpl> conv2;
+    std::shared_ptr<torch::nn::LinearImpl> fc;
+    std::shared_ptr<torch::nn::LinearImpl> actor;
+    std::shared_ptr<torch::nn::LinearImpl> critic;
 };
 
 #endif // CONVNETGW_H

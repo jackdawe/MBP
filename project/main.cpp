@@ -7,16 +7,13 @@ int main(int argc, char *argv[])
 {
 //    QApplication a(argc, argv);
 
-//    GridWorld gw("2_16",1,14);
-//    gw.generateVectorStates();
-//    cv::Mat rgbState = gw.toRGB(gw.getCurrentState());
-//    cv::Mat dst;
-//    cv::resize(rgbState,dst,cv::Size(800,800));
-//    string WindowName = "hey";
-//    cv::namedWindow(WindowName);
-//    cv::imshow(WindowName,dst);
-//    cv::waitKey(0);
-//    cv::destroyWindow(WindowName);
+
+    GridWorld gw("2_8");
+    ConvNetGW net(8,16,32,8*8*2);
+    gw.generateVectorStates();
+    torch::Tensor s = gw.toRGBTensor(gw.getCurrentState());
+    torch::Tensor x = net.actorOutput(s);
+    cout << x << endl;
 //    a.exec();
 }
 
