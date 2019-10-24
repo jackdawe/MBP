@@ -1,18 +1,18 @@
 #ifndef AGENT_H
 #define AGENT_H
-#include "GridWorld/controllergw.h"
-#include "Starship/controllerss.h"
+#include "GridWorld/gridworld.h"
+#include "Starship/spaceworld.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 
-template <class C>
+template <class W>
 class Agent
 {
 public:
     Agent();
-    Agent(C Controller);
+    Agent(W World);
     void generateNameTag(string prefix);
     void incrementEpisode();
     void saveRewardHistory();
@@ -28,15 +28,15 @@ public:
     vector<float> takenAction();
     float takenReward();
     State currentState();
-    C getController() const;
+    W getController() const;
 
-    void setController(const C &value);
+    void setController(const W &value);
 
     string getNameTag() const;
 
 protected:
     int episodeNumber;
-    C controller;
+    W controller;
     string nameTag;
 
 };

@@ -4,12 +4,12 @@
 #include "parametersa2c.h"
 #include "../../GridWorld/modela2cgw.h"
 
-template <class C, class M>
-class ActorCritic: public Agent<C>
+template <class W, class M>
+class ActorCritic: public Agent<W>
 {
 public:
     ActorCritic();
-    ActorCritic(C Controller, ParametersA2C param);
+    ActorCritic(W World, ParametersA2C param);
     void evaluateRunValues();
     void backPropagate();
     void train();

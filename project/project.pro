@@ -31,20 +31,20 @@ SOURCES += main.cpp \
     agent.cpp \
     GridWorld/mapgw.cpp \
     actionspace.cpp \
-    controller.cpp \
-    GridWorld/controllergw.cpp \
     Agents/qlearning.cpp \
     GridWorld/episodeplayergw.cpp \
     Starship/planet.cpp \
     Starship/waypoint.cpp \
     Starship/ship.cpp \
     Starship/vect2d.cpp \
-    Starship/controllerss.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
     GridWorld/modela2cgw.cpp \
     Agents/A2C/actorcritic.cpp \
-    Agents/A2C/parametersa2c.cpp
+    Agents/A2C/parametersa2c.cpp \
+    world.cpp \
+    GridWorld/gridworld.cpp \
+    Starship/spaceworld.cpp
 
 HEADERS += \
     action.h \
@@ -54,20 +54,20 @@ HEADERS += \
     agent.h \
     GridWorld/mapgw.h \
     actionspace.h \
-    controller.h \
-    GridWorld/controllergw.h \
     Agents/qlearning.h \
     GridWorld/episodeplayergw.h \
     Starship/planet.h \
     Starship/waypoint.h \
     Starship/ship.h \
     Starship/vect2d.h \
-    Starship/controllerss.h \
     Starship/episodeplayerss.h \
     Starship/mapss.h \
     GridWorld/modela2cgw.h \
     Agents/A2C/actorcritic.h \
-    Agents/A2C/parametersa2c.h
+    Agents/A2C/parametersa2c.h \
+    world.h \
+    GridWorld/gridworld.h \
+    Starship/spaceworld.h
 
 
 

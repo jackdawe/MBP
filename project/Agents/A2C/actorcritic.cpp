@@ -1,23 +1,23 @@
 #include "actorcritic.h"
 
-template <class C, class M>
-ActorCritic<C,M>::ActorCritic():
+template <class W, class M>
+ActorCritic<W,M>::ActorCritic():
     optimizer(torch::optim::Adam(model.parameters(),learningRate))
 
 {
 }
 
-template <class C,class M>
-ActorCritic<C,M>::ActorCritic(C controller, ParametersA2C param):
-    Agent<C>(controller),model(ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2])),
+template <class W,class M>
+ActorCritic<W,M>::ActorCritic(W controller, ParametersA2C param):
+    Agent<W>(controller),model(ModelA2CGW(this->controller.getCurrentState().getStateVector().size(),param.mlpHiddenLayers[0],param.mlpHiddenLayers[1],param.mlpHiddenLayers[2])),
     optimizer(torch::optim::Adam(model.parameters(),param.learningRate)),gamma(param.gamma),
     learningRate(param.learningRate),entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize)
 {
     this->generateNameTag("A2C_MLP");
 }
 
-template <class C,class M>
-void ActorCritic<C,M>::evaluateRunValues()
+template <class W,class M>
+void ActorCritic<W,M>::evaluateRunValues()
 {
     float nextReturn = 0;
     float thisReturn = 0;
@@ -35,8 +35,8 @@ void ActorCritic<C,M>::evaluateRunValues()
     reverse(runValues.begin(),runValues.end());
 }
 
-template <class C,class M>
-void ActorCritic<C,M>::backPropagate()
+template <class W,class M>
+void ActorCritic<W,M>::backPropagate()
 {
     evaluateRunValues();
     torch::Tensor states = torch::zeros({runStates.size(),runStates[0].size()});
@@ -76,8 +76,8 @@ void ActorCritic<C,M>::backPropagate()
 }
 
 
-template <class C,class M>
-void ActorCritic<C,M>::train()
+template <class W,class M>
+void ActorCritic<W,M>::train()
 {
     this->episodeNumber = 0;
     while (this->episodeNumber<nEpisodes)
@@ -117,8 +117,8 @@ void ActorCritic<C,M>::train()
     this->controller.saveRewardHistory("A2C");
 }
 
-template <class C, class M>
-void ActorCritic<C,M>::playOne()
+template <class W, class M>
+void ActorCritic<W,M>::playOne()
 {
     while(!this->controller.isTerminal(this->currentState()))
     {
@@ -132,8 +132,8 @@ void ActorCritic<C,M>::playOne()
     this->saveLastEpisode();
 }
 
-template <class C,class M>
-void ActorCritic<C,M>::saveTrainingData()
+template <class W,class M>
+void ActorCritic<W,M>::saveTrainingData()
 {
     ofstream ag("../ActionGain");
     ofstream vl("../ValueLoss");
@@ -152,10 +152,10 @@ void ActorCritic<C,M>::saveTrainingData()
     }
 }
 
-template <class C,class M>
-M ActorCritic<C,M>::getModel() const
+template <class W,class M>
+M ActorCritic<W,M>::getModel() const
 {
     return model;
 }
 
-template class ActorCritic<ControllerGW,ModelA2CGW>;
+template class ActorCritic<GridWorld,ModelA2CGW>;

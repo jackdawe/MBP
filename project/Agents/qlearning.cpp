@@ -5,11 +5,11 @@ QLearning<C>::QLearning()
 {
 }
 
-template <class C>
-QLearning<C>::QLearning(C controller,int nEpisodes, float epsilon, float gamma):
-    Agent<C>(controller), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
+template <class W>
+QLearning<W>::QLearning(W controller,int nEpisodes, float epsilon, float gamma):
+    Agent<W>(controller), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
 {
-    Agent<C>::generateNameTag("QL");
+    this->generateNameTag("QL");
     //Initialising the Q fonction to 0 for each state action pair
 
     for (int i=0;i<controller.spaceStateSize();i++)
@@ -18,8 +18,8 @@ QLearning<C>::QLearning(C controller,int nEpisodes, float epsilon, float gamma):
     }
 }
 
-template <class C>
-void QLearning<C>::epsilonGreedyPolicy()
+template <class W>
+void QLearning<W>::epsilonGreedyPolicy()
 {
 
     default_random_engine generator = default_random_engine(random_device{}());
@@ -35,7 +35,7 @@ void QLearning<C>::epsilonGreedyPolicy()
     {
         vector<float> possibleQValues;
 
-        for (int i=0;i<Agent<C>::actions().cardinal();i++)
+        for (int i=0;i<this->actions().cardinal();i++)
         {
             possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())][i]);
         }
@@ -59,8 +59,8 @@ void QLearning<C>::epsilonGreedyPolicy()
     this->controller.setTakenReward(this->controller.transition());
 }
 
-template <class C>
-void QLearning<C>::updateQValues()
+template <class W>
+void QLearning<W>::updateQValues()
 {
     int psIndex = this->controller.stateId(this->previousState());
     int csIndex = this->controller.stateId(this->currentState());
@@ -84,8 +84,8 @@ void QLearning<C>::updateQValues()
     }
 }
 
-template <class C>
-void QLearning<C>::train()
+template <class W>
+void QLearning<W>::train()
 {
     float e = epsilon;
     for (int k=0;k<nEpisodes;k++)
@@ -112,8 +112,8 @@ void QLearning<C>::train()
     }
 }
 
-template<class C>
-void QLearning<C>::playOne()
+template<class W>
+void QLearning<W>::playOne()
 {
     bool terminal = false;
     while(!terminal)
@@ -124,8 +124,8 @@ void QLearning<C>::playOne()
     this->saveLastEpisode();
 }
 
-template <class C>
-void QLearning<C>::saveQValues()
+template <class W>
+void QLearning<W>::saveQValues()
 {
     ofstream f(this->controller.getPath()+"Policies/"+this->nameTag);
     if (f)
@@ -147,8 +147,8 @@ void QLearning<C>::saveQValues()
     }
 }
 
-template <class C>
-void QLearning<C>::loadQValues(string tag)
+template <class W>
+void QLearning<W>::loadQValues(string tag)
 {
     this->nameTag = tag;
     ifstream f(this->controller.getPath()+"Policies/"+tag);
@@ -159,7 +159,7 @@ void QLearning<C>::loadQValues(string tag)
         this->epsilon = stof(line);
         getline(f,line);
         gamma = stof(line);
-        Agent<C>::generateNameTag("QL");
+        this->generateNameTag("QL");
         for (unsigned int i=0;i<qvalues.size();i++)
         {
             getline(f,line);            
@@ -184,10 +184,10 @@ void QLearning<C>::loadQValues(string tag)
 }
 
 
-template <class C>
-void QLearning<C>::saveTrainingData()
+template <class W>
+void QLearning<W>::saveTrainingData()
 {
 
 }
 
-template class QLearning<ControllerGW>;
+template class QLearning<GridWorld>;

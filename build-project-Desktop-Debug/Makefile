@@ -58,20 +58,20 @@ SOURCES       = ../project/main.cpp \
 		../project/agent.cpp \
 		../project/GridWorld/mapgw.cpp \
 		../project/actionspace.cpp \
-		../project/controller.cpp \
-		../project/GridWorld/controllergw.cpp \
 		../project/Agents/qlearning.cpp \
 		../project/GridWorld/episodeplayergw.cpp \
 		../project/Starship/planet.cpp \
 		../project/Starship/waypoint.cpp \
 		../project/Starship/ship.cpp \
 		../project/Starship/vect2d.cpp \
-		../project/Starship/controllerss.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
 		../project/GridWorld/modela2cgw.cpp \
 		../project/Agents/A2C/actorcritic.cpp \
-		../project/Agents/A2C/parametersa2c.cpp moc_episodeplayergw.cpp \
+		../project/Agents/A2C/parametersa2c.cpp \
+		../project/world.cpp \
+		../project/GridWorld/gridworld.cpp \
+		../project/Starship/spaceworld.cpp moc_episodeplayergw.cpp \
 		moc_episodeplayerss.cpp
 OBJECTS       = main.o \
 		action.o \
@@ -81,20 +81,20 @@ OBJECTS       = main.o \
 		agent.o \
 		mapgw.o \
 		actionspace.o \
-		controller.o \
-		controllergw.o \
 		qlearning.o \
 		episodeplayergw.o \
 		planet.o \
 		waypoint.o \
 		ship.o \
 		vect2d.o \
-		controllerss.o \
 		episodeplayerss.o \
 		mapss.o \
 		modela2cgw.o \
 		actorcritic.o \
 		parametersa2c.o \
+		world.o \
+		gridworld.o \
+		spaceworld.o \
 		moc_episodeplayergw.o \
 		moc_episodeplayerss.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -182,20 +182,20 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/agent.h \
 		../project/GridWorld/mapgw.h \
 		../project/actionspace.h \
-		../project/controller.h \
-		../project/GridWorld/controllergw.h \
 		../project/Agents/qlearning.h \
 		../project/GridWorld/episodeplayergw.h \
 		../project/Starship/planet.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
 		../project/Starship/vect2d.h \
-		../project/Starship/controllerss.h \
 		../project/Starship/episodeplayerss.h \
 		../project/Starship/mapss.h \
 		../project/GridWorld/modela2cgw.h \
 		../project/Agents/A2C/actorcritic.h \
-		../project/Agents/A2C/parametersa2c.h ../project/main.cpp \
+		../project/Agents/A2C/parametersa2c.h \
+		../project/world.h \
+		../project/GridWorld/gridworld.h \
+		../project/Starship/spaceworld.h ../project/main.cpp \
 		../project/action.cpp \
 		../project/discreteaction.cpp \
 		../project/continuousaction.cpp \
@@ -203,20 +203,20 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/agent.cpp \
 		../project/GridWorld/mapgw.cpp \
 		../project/actionspace.cpp \
-		../project/controller.cpp \
-		../project/GridWorld/controllergw.cpp \
 		../project/Agents/qlearning.cpp \
 		../project/GridWorld/episodeplayergw.cpp \
 		../project/Starship/planet.cpp \
 		../project/Starship/waypoint.cpp \
 		../project/Starship/ship.cpp \
 		../project/Starship/vect2d.cpp \
-		../project/Starship/controllerss.cpp \
 		../project/Starship/episodeplayerss.cpp \
 		../project/Starship/mapss.cpp \
 		../project/GridWorld/modela2cgw.cpp \
 		../project/Agents/A2C/actorcritic.cpp \
-		../project/Agents/A2C/parametersa2c.cpp
+		../project/Agents/A2C/parametersa2c.cpp \
+		../project/world.cpp \
+		../project/GridWorld/gridworld.cpp \
+		../project/Starship/spaceworld.cpp
 QMAKE_TARGET  = project
 DESTDIR       = 
 TARGET        = project
@@ -408,8 +408,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/GridWorld/modela2cgw.h ../project/Agents/A2C/actorcritic.h ../project/Agents/A2C/parametersa2c.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/GridWorld/modela2cgw.cpp ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/parametersa2c.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/GridWorld/modela2cgw.h ../project/Agents/A2C/actorcritic.h ../project/Agents/A2C/parametersa2c.h ../project/world.h ../project/GridWorld/gridworld.h ../project/Starship/spaceworld.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/GridWorld/modela2cgw.cpp ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/parametersa2c.cpp ../project/world.cpp ../project/GridWorld/gridworld.cpp ../project/Starship/spaceworld.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -474,8 +474,8 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 
 ####### Compile
 
-main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
-		../project/controller.h \
+main.o: ../project/main.cpp ../project/GridWorld/gridworld.h \
+		../project/world.h \
 		../project/state.h \
 		../project/action.h \
 		../project/actionspace.h \
@@ -484,7 +484,7 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../project/GridWorld/mapgw.h \
 		../project/Agents/qlearning.h \
 		../project/agent.h \
-		../project/Starship/controllerss.h \
+		../project/Starship/spaceworld.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
@@ -841,15 +841,15 @@ state.o: ../project/state.cpp ../project/state.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o state.o ../project/state.cpp
 
 agent.o: ../project/agent.cpp ../project/agent.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
+		../project/GridWorld/gridworld.h \
+		../project/world.h \
 		../project/state.h \
 		../project/action.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Starship/controllerss.h \
+		../project/Starship/spaceworld.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
@@ -866,35 +866,17 @@ actionspace.o: ../project/actionspace.cpp ../project/actionspace.h \
 		../project/discreteaction.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o actionspace.o ../project/actionspace.cpp
 
-controller.o: ../project/controller.cpp ../project/controller.h \
-		../project/state.h \
-		../project/action.h \
-		../project/actionspace.h \
-		../project/continuousaction.h \
-		../project/discreteaction.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o controller.o ../project/controller.cpp
-
-controllergw.o: ../project/GridWorld/controllergw.cpp ../project/GridWorld/controllergw.h \
-		../project/controller.h \
-		../project/state.h \
-		../project/action.h \
-		../project/actionspace.h \
-		../project/continuousaction.h \
-		../project/discreteaction.h \
-		../project/GridWorld/mapgw.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o controllergw.o ../project/GridWorld/controllergw.cpp
-
 qlearning.o: ../project/Agents/qlearning.cpp ../project/Agents/qlearning.h \
 		../project/agent.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
+		../project/GridWorld/gridworld.h \
+		../project/world.h \
 		../project/state.h \
 		../project/action.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Starship/controllerss.h \
+		../project/Starship/spaceworld.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
@@ -920,20 +902,6 @@ ship.o: ../project/Starship/ship.cpp ../project/Starship/ship.h \
 
 vect2d.o: ../project/Starship/vect2d.cpp ../project/Starship/vect2d.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o vect2d.o ../project/Starship/vect2d.cpp
-
-controllerss.o: ../project/Starship/controllerss.cpp ../project/Starship/controllerss.h \
-		../project/controller.h \
-		../project/state.h \
-		../project/action.h \
-		../project/actionspace.h \
-		../project/continuousaction.h \
-		../project/discreteaction.h \
-		../project/Starship/mapss.h \
-		../project/Starship/planet.h \
-		../project/Starship/vect2d.h \
-		../project/Starship/waypoint.h \
-		../project/Starship/ship.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o controllerss.o ../project/Starship/controllerss.cpp
 
 episodeplayerss.o: ../project/Starship/episodeplayerss.cpp ../project/Starship/episodeplayerss.h \
 		../project/Starship/mapss.h \
@@ -1284,15 +1252,15 @@ modela2cgw.o: ../project/GridWorld/modela2cgw.cpp ../project/GridWorld/modela2cg
 
 actorcritic.o: ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/actorcritic.h \
 		../project/agent.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
+		../project/GridWorld/gridworld.h \
+		../project/world.h \
 		../project/state.h \
 		../project/action.h \
 		../project/actionspace.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Starship/controllerss.h \
+		../project/Starship/spaceworld.h \
 		../project/Starship/mapss.h \
 		../project/Starship/planet.h \
 		../project/Starship/vect2d.h \
@@ -1633,6 +1601,38 @@ actorcritic.o: ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/actor
 
 parametersa2c.o: ../project/Agents/A2C/parametersa2c.cpp ../project/Agents/A2C/parametersa2c.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o parametersa2c.o ../project/Agents/A2C/parametersa2c.cpp
+
+world.o: ../project/world.cpp ../project/world.h \
+		../project/state.h \
+		../project/action.h \
+		../project/actionspace.h \
+		../project/continuousaction.h \
+		../project/discreteaction.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o world.o ../project/world.cpp
+
+gridworld.o: ../project/GridWorld/gridworld.cpp ../project/GridWorld/gridworld.h \
+		../project/world.h \
+		../project/state.h \
+		../project/action.h \
+		../project/actionspace.h \
+		../project/continuousaction.h \
+		../project/discreteaction.h \
+		../project/GridWorld/mapgw.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gridworld.o ../project/GridWorld/gridworld.cpp
+
+spaceworld.o: ../project/Starship/spaceworld.cpp ../project/Starship/spaceworld.h \
+		../project/world.h \
+		../project/state.h \
+		../project/action.h \
+		../project/actionspace.h \
+		../project/continuousaction.h \
+		../project/discreteaction.h \
+		../project/Starship/mapss.h \
+		../project/Starship/planet.h \
+		../project/Starship/vect2d.h \
+		../project/Starship/waypoint.h \
+		../project/Starship/ship.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o spaceworld.o ../project/Starship/spaceworld.cpp
 
 moc_episodeplayergw.o: moc_episodeplayergw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_episodeplayergw.o moc_episodeplayergw.cpp

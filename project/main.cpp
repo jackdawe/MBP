@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "GridWorld/controllergw.h"
+#include "GridWorld/gridworld.h"
 #include "Agents/qlearning.h"
 #include "Agents/A2C/actorcritic.h"
 #include "GridWorld/episodeplayergw.h"

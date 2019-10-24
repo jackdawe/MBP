@@ -2,12 +2,12 @@
 #define QLEARNING_H
 #include "agent.h"
 
-template <class C>
-class QLearning: public Agent<C>
+template <class W>
+class QLearning: public Agent<W>
 {
 public:
     QLearning();
-    QLearning(C controller,int nEpisodes, float epsilon, float gamma);
+    QLearning(W controller,int nEpisodes, float epsilon, float gamma);
     void epsilonGreedyPolicy();
     void updateQValues();
     void train();
