@@ -29,7 +29,6 @@ SOURCES += main.cpp \
     continuousaction.cpp \
     state.cpp \
     agent.cpp \
-    agenttrainer.cpp \
     GridWorld/mapgw.cpp \
     actionspace.cpp \
     controller.cpp \
@@ -53,7 +52,6 @@ HEADERS += \
     continuousaction.h \
     state.h \
     agent.h \
-    agenttrainer.h \
     GridWorld/mapgw.h \
     actionspace.h \
     controller.h \

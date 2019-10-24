@@ -56,7 +56,6 @@ SOURCES       = ../project/main.cpp \
 		../project/continuousaction.cpp \
 		../project/state.cpp \
 		../project/agent.cpp \
-		../project/agenttrainer.cpp \
 		../project/GridWorld/mapgw.cpp \
 		../project/actionspace.cpp \
 		../project/controller.cpp \
@@ -80,7 +79,6 @@ OBJECTS       = main.o \
 		continuousaction.o \
 		state.o \
 		agent.o \
-		agenttrainer.o \
 		mapgw.o \
 		actionspace.o \
 		controller.o \
@@ -182,7 +180,6 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/continuousaction.h \
 		../project/state.h \
 		../project/agent.h \
-		../project/agenttrainer.h \
 		../project/GridWorld/mapgw.h \
 		../project/actionspace.h \
 		../project/controller.h \
@@ -204,7 +201,6 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../project/continuousaction.cpp \
 		../project/state.cpp \
 		../project/agent.cpp \
-		../project/agenttrainer.cpp \
 		../project/GridWorld/mapgw.cpp \
 		../project/actionspace.cpp \
 		../project/controller.cpp \
@@ -412,8 +408,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/agenttrainer.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/GridWorld/modela2cgw.h ../project/Agents/A2C/actorcritic.h ../project/Agents/A2C/parametersa2c.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/agenttrainer.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/GridWorld/modela2cgw.cpp ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/parametersa2c.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/action.h ../project/discreteaction.h ../project/continuousaction.h ../project/state.h ../project/agent.h ../project/GridWorld/mapgw.h ../project/actionspace.h ../project/controller.h ../project/GridWorld/controllergw.h ../project/Agents/qlearning.h ../project/GridWorld/episodeplayergw.h ../project/Starship/planet.h ../project/Starship/waypoint.h ../project/Starship/ship.h ../project/Starship/vect2d.h ../project/Starship/controllerss.h ../project/Starship/episodeplayerss.h ../project/Starship/mapss.h ../project/GridWorld/modela2cgw.h ../project/Agents/A2C/actorcritic.h ../project/Agents/A2C/parametersa2c.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../project/main.cpp ../project/action.cpp ../project/discreteaction.cpp ../project/continuousaction.cpp ../project/state.cpp ../project/agent.cpp ../project/GridWorld/mapgw.cpp ../project/actionspace.cpp ../project/controller.cpp ../project/GridWorld/controllergw.cpp ../project/Agents/qlearning.cpp ../project/GridWorld/episodeplayergw.cpp ../project/Starship/planet.cpp ../project/Starship/waypoint.cpp ../project/Starship/ship.cpp ../project/Starship/vect2d.cpp ../project/Starship/controllerss.cpp ../project/Starship/episodeplayerss.cpp ../project/Starship/mapss.cpp ../project/GridWorld/modela2cgw.cpp ../project/Agents/A2C/actorcritic.cpp ../project/Agents/A2C/parametersa2c.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -486,7 +482,7 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../project/continuousaction.h \
 		../project/discreteaction.h \
 		../project/GridWorld/mapgw.h \
-		../project/Agents/A2C/actorcritic.h \
+		../project/Agents/qlearning.h \
 		../project/agent.h \
 		../project/Starship/controllerss.h \
 		../project/Starship/mapss.h \
@@ -494,6 +490,7 @@ main.o: ../project/main.cpp ../project/GridWorld/controllergw.h \
 		../project/Starship/vect2d.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h \
+		../project/Agents/A2C/actorcritic.h \
 		../project/Agents/A2C/parametersa2c.h \
 		../project/GridWorld/modela2cgw.h \
 		../../pytorchTest/libtorch/include/torch/csrc/api/include/torch/torch.h \
@@ -859,26 +856,6 @@ agent.o: ../project/agent.cpp ../project/agent.h \
 		../project/Starship/waypoint.h \
 		../project/Starship/ship.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o agent.o ../project/agent.cpp
-
-agenttrainer.o: ../project/agenttrainer.cpp ../project/agenttrainer.h \
-		../project/Agents/qlearning.h \
-		../project/agent.h \
-		../project/GridWorld/controllergw.h \
-		../project/controller.h \
-		../project/state.h \
-		../project/action.h \
-		../project/actionspace.h \
-		../project/continuousaction.h \
-		../project/discreteaction.h \
-		../project/GridWorld/mapgw.h \
-		../project/Starship/controllerss.h \
-		../project/Starship/mapss.h \
-		../project/Starship/planet.h \
-		../project/Starship/vect2d.h \
-		../project/Starship/waypoint.h \
-		../project/Starship/ship.h \
-		../project/GridWorld/episodeplayergw.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o agenttrainer.o ../project/agenttrainer.cpp
 
 mapgw.o: ../project/GridWorld/mapgw.cpp ../project/GridWorld/mapgw.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mapgw.o ../project/GridWorld/mapgw.cpp

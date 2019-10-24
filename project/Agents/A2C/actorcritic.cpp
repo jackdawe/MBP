@@ -17,7 +17,26 @@ ActorCritic<C,M>::ActorCritic(C controller, ParametersA2C param):
 }
 
 template <class C,class M>
-void ActorCritic<C,M>::updatePolicy()
+void ActorCritic<C,M>::evaluateRunValues()
+{
+    float nextReturn = 0;
+    float thisReturn = 0;
+    for (int i=batchSize-1;i>=0;i--)
+    {
+        if (runAreTerminal[i])
+        {
+            nextReturn=0;
+        }
+        thisReturn=runRewards[i] + gamma*nextReturn;
+
+        runValues.push_back(thisReturn);
+        nextReturn = thisReturn;
+    }
+    reverse(runValues.begin(),runValues.end());
+}
+
+template <class C,class M>
+void ActorCritic<C,M>::backPropagate()
 {
     evaluateRunValues();
     torch::Tensor states = torch::zeros({runStates.size(),runStates[0].size()});
@@ -37,22 +56,12 @@ void ActorCritic<C,M>::updatePolicy()
     torch::Tensor actionProbs = model.actorOutput(states);    
     torch::Tensor valuesEstimate = model.criticOutput(states);
     torch::Tensor actionLogProbs = actionProbs.log();
-    cout<<actionProbs<<endl;
-    cout<<actionLogProbs<<endl;
-    cout<<valuesEstimate<<endl;
-    cout<<runValues<<endl;
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,actions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = advantages.pow(2).mean();
     torch::Tensor totalLoss = valueLoss - actionGain + entropyMultiplier*entropy;
-
-//    if (this->episodeNumber > nEpisodes-10)
-//    {
-//        cout<<runValues<<endl;
-//        cout<<valuesEstimate<<endl;
-//    }
 
     actionGainHistory.push_back(*actionGain.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
@@ -102,7 +111,7 @@ void ActorCritic<C,M>::train()
                 }
             }
         }
-        updatePolicy();        
+        backPropagate();
     }
     saveTrainingData();
     this->controller.saveRewardHistory("A2C");
@@ -121,27 +130,6 @@ void ActorCritic<C,M>::playOne()
         this->controller.setTakenReward(this->controller.transition());
     }
     this->saveLastEpisode();
-}
-
-
-
-template <class C,class M>
-void ActorCritic<C,M>::evaluateRunValues()
-{            
-    float nextReturn = 0;
-    float thisReturn = 0;
-    for (int i=batchSize-1;i>=0;i--)
-    {
-        if (runAreTerminal[i])
-        {
-            nextReturn=0;
-        }
-        thisReturn=runRewards[i] + gamma*nextReturn;
-
-        runValues.push_back(thisReturn);
-        nextReturn = thisReturn;
-    }
-    reverse(runValues.begin(),runValues.end());
 }
 
 template <class C,class M>

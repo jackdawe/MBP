@@ -10,10 +10,10 @@ class ActorCritic: public Agent<C>
 public:
     ActorCritic();
     ActorCritic(C Controller, ParametersA2C param);
-    void updatePolicy();
-    void train();
-    void playOne();
     void evaluateRunValues();
+    void backPropagate();
+    void train();
+    void playOne();    
     void saveTrainingData();
     M getModel() const;
 
