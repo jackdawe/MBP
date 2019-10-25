@@ -22,7 +22,8 @@ private:
     bool usesCNN;
     float gamma;
     float learningRate;
-    float entropyMultiplier;
+    float beta;
+    float zeta;
     int nEpisodes;
     int batchSize;    
     torch::Tensor runStates;

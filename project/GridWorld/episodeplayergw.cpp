@@ -61,22 +61,16 @@ void EpisodePlayerGW::showMap()
     gwView.show();
 }
 
-void EpisodePlayerGW::showScores(vector<vector<float>> scores)
+void EpisodePlayerGW::displayOnGrid(vector<vector<string>> texts)
 {
-    for (unsigned int i=0;i<scores.size();i++)
+    for (unsigned int i=0;i<texts.size();i++)
     {
-        for (unsigned int j=0;j<scores.size();j++)
+        for (unsigned int j=0;j<texts.size();j++)
         {
-            QGraphicsTextItem *score = new QGraphicsTextItem;
-            score->setPos(SQUARE_SIZE*(j),SQUARE_SIZE*(i+0.25));
-            string test = to_string(scores[i][j]);
-            string test2;
-            test2+=test[0];
-            test2+=test[1];
-            test2+=test[2];
-            test2+=test[3];
-            score->setPlainText(QString::fromStdString(test2));
-            gwScene.addItem(score);
+            QGraphicsTextItem *text= new QGraphicsTextItem;
+            text->setPos(SQUARE_SIZE*(j),SQUARE_SIZE*(i+0.25));
+            text->setPlainText(QString::fromStdString(texts[i][j]));
+            gwScene.addItem(text);
         }
     }
     showMap();

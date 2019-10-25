@@ -5,27 +5,115 @@
 #include "GridWorld/episodeplayergw.h"
 int main(int argc, char *argv[])
 {
-//    QApplication a(argc, argv);
+    QApplication a(argc, argv);
 
-    string mapTag = "2_8";
-    GridWorld gw(mapTag);
+    string mapTag = "Test";
+    GridWorld gw(mapTag);    
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
 //    float gamma = stof(argv[1]);
 //    float learningRate = stof(argv[2]);
 //    float entropyMul = stof(argv[3]);
 //    int batchSize = stoi(argv[4]);
-//    int nEpisodes = stoi(argv[5]);
-    float gamma = 0.95;
-    float learningRate = 0.003;
-    float entropyMul = 0.05;
+//    int nEpisodes = stoi(argv[5]);    
+    float gamma = 0.99;
+    float learningRate = 0.0003;
+    float beta = 0.1;
+    float zeta = 0.05;
     int batchSize = 10;
-    int nEpisodes = 2000;
-    ParametersA2C params(gamma,learningRate,entropyMul,batchSize,nEpisodes);
+    int nEpisodes = 100;
+    ParametersA2C params(gamma,learningRate,beta,zeta,batchSize,nEpisodes);
     ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
     agent.train();
     agent.saveTrainingData();
-//    a.exec();
+
+
+    vector<vector<string>> texts;
+    for (int i=0;i<size;i++)
+    {
+        vector<string> textsL(size,"");
+        for (int j=0;j<size;j++)
+        {
+            GridWorld gw2(mapTag,i,j);
+            gw2.generateVectorStates();
+            torch::Tensor output = agent.getModel().actorOutput(gw2.toRGBTensor(gw2.getCurrentState().getStateVector()));
+            float max = 0;
+            int dir;
+            string sdir;
+            for (int k=0;k<4;k++)
+            {
+                cout<< output << endl;
+                if (*output[0][k].data<float>()>max)
+                {
+                    max = *output[0][k].data<float>();
+                    dir = k;
+                }
+            }
+            switch (dir)
+            {
+            case 0:
+                sdir = "UP";
+                break;
+            case 1:
+                sdir = "RIGHT";
+                break;
+            case 2:
+                sdir = "DOWN";
+                break;
+            case 3:
+                sdir = "LEFT";
+                break;
+            }
+            textsL[j] = sdir;
+        }
+        texts.push_back(textsL);
+    }
+    EpisodePlayerGW ep(mapTag);
+    ep.displayOnGrid(texts);
+    a.exec();
 }
 
 
+//vector<torch::Tensor> batches;
+//torch::Tensor batch;
+//default_random_engine gen(random_device{}());
+//uniform_int_distribution<int> dist(1,7);
+//vector<torch::Tensor> lBatches;
+//torch::Tensor lBatch;
+//torch::optim::Adam optimizer(net.parameters(),0.003);
+//for (int i=0;i<101;i++)
+//{
+//    batch = torch::zeros({50,3,8,8});
+//    lBatch = torch::zeros({50,4});
+//    for (int j=0;j<50;j++)
+//    {
+//        int x = dist(gen);
+//        int y = dist(gen);
+//        if (x == 1)
+//        {
+//            lBatch[j][3] = 1;
+//        }
+//        else
+//        {
+//            lBatch[j][0] = 1;
+//        }
+//        GridWorld gw2(mapTag,x,y);
+//        gw2.generateVectorStates();
+//        batch[j] = gw2.toRGBTensor(gw2.getCurrentState().getStateVector()).reshape({3,8,8});
+//    }
+//    batches.push_back(batch);
+//    lBatches.push_back(lBatch);
+//}
+
+//for (int i=0;i<100;i++)
+//{
+//    torch::Tensor output = net.actorOutput(batches[i]);
+//    torch::Tensor loss = torch::binary_cross_entropy(output,lBatches[i]);
+//    optimizer.zero_grad();
+//    loss.backward();
+//    optimizer.step();
+//}
+
+//torch::Tensor output = net.actorOutput(batches[100]);
+//cout<<lBatches[100]<<endl;
+//cout<<output<<endl;

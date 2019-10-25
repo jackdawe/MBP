@@ -2,8 +2,8 @@
 
 ParametersA2C::ParametersA2C(){}
 
-ParametersA2C::ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes):
-    gamma(gamma), learningRate(learningRate),entropyMultiplier(entropyMultiplier), batchSize(batchSize),
+ParametersA2C::ParametersA2C(float gamma, float learningRate, float beta,float zeta, int batchSize, int nEpisodes):
+    gamma(gamma), learningRate(learningRate),beta(beta),zeta(zeta), batchSize(batchSize),
     nEpisodes(nEpisodes),
-    names({"GAMMA","LEARNING RATE", "ENTROPY MULTIPLIER", "BATCH SIZE","NUMBER OF TRAINING EPISODES"})
+    names({"GAMMA","LEARNING RATE", "BETA","ZETA", "BATCH SIZE","NUMBER OF TRAINING EPISODES"})
 {}

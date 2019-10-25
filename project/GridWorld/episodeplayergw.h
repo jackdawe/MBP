@@ -18,7 +18,7 @@ public:
     EpisodePlayerGW(string mapTag,vector<vector<float>> sequence);
     void initMap();
     void showMap();
-    void showScores(vector<vector<float>> scores);
+    void displayOnGrid(vector<vector<string>> texts);
     void playEpisode();
     MapGW getMap();
     vector<vector<float>> getSequence();

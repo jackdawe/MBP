@@ -8,7 +8,7 @@ ActorCritic<W,M>::ActorCritic()
 template <class W,class M>
 ActorCritic<W,M>::ActorCritic(W controller,M model, ParametersA2C param,bool usesCNN):
     Agent<W>(controller), model(model), gamma(param.gamma), learningRate(param.learningRate),
-    entropyMultiplier(param.entropyMultiplier), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
+    beta(param.beta),zeta(param.zeta), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
 {
     if (usesCNN)
     {
@@ -49,19 +49,20 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
-    torch::Tensor actionGain = (chosenActionLogProbs*advantages).mean();
-    torch::Tensor valueLoss = advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss - actionGain + entropyMultiplier*entropy;
+    torch::Tensor entropyLoss = beta*entropy;
+    torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
+    torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
+    torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
 
-    actionGainHistory.push_back(*actionGain.data<float>());
+    actionGainHistory.push_back(*policyLoss.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
-    entropyHistory.push_back(*entropy.data<float>());
+    entropyHistory.push_back(*entropyLoss.data<float>());
     lossHistory.push_back(*totalLoss.data<float>());
 
     opti->zero_grad();
     totalLoss.backward();
-    vector<torch::Tensor> param = model.parameters();
-    torch::nn::utils::clip_grad_norm_(param,0.5);
+//    vector<torch::Tensor> param = model.parameters();
+//    torch::nn::utils::clip_grad_norm_(param,0.5);
     opti->step();
 }
 

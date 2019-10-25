@@ -8,10 +8,11 @@ class ParametersA2C
 {
 public:
     ParametersA2C();
-    ParametersA2C(float gamma, float learningRate, float entropyMultiplier, int batchSize, int nEpisodes);
+    ParametersA2C(float gamma, float learningRate, float beta,float zeta, int batchSize, int nEpisodes);
     float gamma;
     float learningRate;
-    float entropyMultiplier;
+    float beta;
+    float zeta;
     int batchSize;
     int nEpisodes;
     vector<string> names;
