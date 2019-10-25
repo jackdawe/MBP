@@ -5,7 +5,7 @@ MapGW::MapGW()
 {
 }
 
-MapGW::MapGW(int size, string mapTag): size(size), mapTag(mapTag)
+MapGW::MapGW(int size): size(size)
 {
     //Initialising the map matrix with empty spaces
 
@@ -52,9 +52,9 @@ void MapGW::generate(int obstacleMaxNumber)
     }
 }
 
-void MapGW::save()
+void MapGW::save(string filename)
 {
-    ofstream f("../GridWorld/Map" + mapTag + "/map");
+    ofstream f(filename);
     if (f)
     {
         f << size << endl;
@@ -75,10 +75,9 @@ void MapGW::save()
 
 }
 
-void MapGW::load(string mapTag)
+void MapGW::load(string filename)
 {
-    this->mapTag=mapTag;
-    ifstream f("../GridWorld/Map" + mapTag + "/map");
+    ifstream f(filename);
     string line;
     int i=0;
     getline(f,line);
@@ -102,12 +101,8 @@ int MapGW::getSize() const
     return size;
 }
 
-string MapGW::getMapTag() const
-{
-    return mapTag;
-}
-
 vector<vector<int> > MapGW::getMap() const
 {
     return map;
 }
+

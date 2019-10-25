@@ -5,23 +5,24 @@
 #include "GridWorld/episodeplayergw.h"
 int main(int argc, char *argv[])
 {
+    //    float gamma = stof(argv[1]);
+    //    float learningRate = stof(argv[2]);
+    //    float entropyMul = stof(argv[3]);
+    //    int batchSize = stoi(argv[4]);
+    //    int nEpisodes = stoi(argv[5]);
     QApplication a(argc, argv);
 
-    string mapTag = "2_8";
-    GridWorld gw(mapTag);    
+    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map1";
+    GridWorld gw(mapTag);
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
-//    float gamma = stof(argv[1]);
-//    float learningRate = stof(argv[2]);
-//    float entropyMul = stof(argv[3]);
-//    int batchSize = stoi(argv[4]);
-//    int nEpisodes = stoi(argv[5]);    
+
     float gamma = 0.99;
     float learningRate = 0.003;
     float beta = 0.01;
-    float zeta = 5;
-    int batchSize = 20;
-    int nEpisodes = 10000;
+    float zeta = 1;
+    int batchSize = 100;
+    int nEpisodes = 25000;
     ParametersA2C params(gamma,learningRate,beta,zeta,batchSize,nEpisodes);
     ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
     agent.train();
@@ -69,8 +70,20 @@ int main(int argc, char *argv[])
     }
     EpisodePlayerGW ep(mapTag);
     ep.displayOnGrid(texts);
+
     a.exec();
 }
+
+//    int nMaps = 10;
+//    default_random_engine g(random_device{}());
+//    uniform_int_distribution<int> dist(1,3);
+//    for (int i=0;i<nMaps;i++)
+//    {
+//        string filename = "../GridWorld/MapPools/8x8/Easy/Train/map"+to_string(i);
+//        MapGW map(8);
+//        map.generate(dist(g));
+//        map.save(filename);
+//    }
 
 
 //vector<torch::Tensor> batches;

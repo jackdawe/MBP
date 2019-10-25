@@ -13,8 +13,8 @@ class GridWorld: public World
 {
 public:
     GridWorld();
-    GridWorld(string mapTag, bool getImageMode = false);
-    GridWorld(string mapTag, float agentXInit, float agentYInit, bool getImageMode = false);
+    GridWorld(string filename, bool getImageMode = false);
+    GridWorld(string filename, float agentXInit, float agentYInit, bool getImageMode = false);
     void init(string mapTag);
     float transition();
     bool isTerminal(State s);

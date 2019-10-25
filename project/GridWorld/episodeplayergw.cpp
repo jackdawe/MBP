@@ -5,16 +5,16 @@ EpisodePlayerGW::EpisodePlayerGW()
 
 }
 
-EpisodePlayerGW::EpisodePlayerGW(string mapTag)
+EpisodePlayerGW::EpisodePlayerGW(string filename)
 {
-    map.load(mapTag);
+    map.load(filename);
     initMap();
     agentShape->hide();
 }
 
-EpisodePlayerGW::EpisodePlayerGW(string mapTag, vector<vector<float>> sequence): sequence(sequence)
+EpisodePlayerGW::EpisodePlayerGW(string filename, vector<vector<float>> sequence): sequence(sequence)
 {
-    map.load(mapTag);
+    map.load(filename);
     initMap();
     agentShape->setPos((sequence[0][1]+0.1)*SQUARE_SIZE,(sequence[0][0]+0.1)*SQUARE_SIZE);
     startShape->setPos(sequence[0][1]*SQUARE_SIZE,sequence[0][0]*SQUARE_SIZE);

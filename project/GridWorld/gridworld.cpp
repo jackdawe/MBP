@@ -4,10 +4,10 @@ GridWorld::GridWorld(): imageMode(imageMode)
 {
 }
 
-GridWorld::GridWorld(string mapTag, bool imageMode): imageMode(imageMode)
+GridWorld::GridWorld(string filename, bool imageMode): imageMode(imageMode)
 {
     randomStart = true;
-    init(mapTag);
+    init(filename);
     default_random_engine generator(std::random_device{}());
     uniform_int_distribution<int> dist(1,size-1);
     agentX = dist(generator), agentY = dist(generator);
@@ -17,23 +17,22 @@ GridWorld::GridWorld(string mapTag, bool imageMode): imageMode(imageMode)
     }
 }
 
-GridWorld::GridWorld(string mapTag, float agentXInit, float agentYInit, bool imageMode):
+GridWorld::GridWorld(string filename, float agentXInit, float agentYInit, bool imageMode):
     imageMode(imageMode),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
 {
     randomStart=false;
-    init(mapTag);
+    init(filename);
 }
 
-void GridWorld::init(string mapTag)
+void GridWorld::init(string filename)
 {
     MapGW map;
-    map.load(mapTag);
+    map.load(filename);
     vector<DiscreteAction> dactions = {DiscreteAction(4)};
     actions = ActionSpace(dactions, vector<ContinuousAction>());
     rewardHistory.push_back(0);
     takenAction = vector<float>(1,0);
     this->size = map.getSize();
-    path = "../GridWorld/Map"+mapTag+"/";
     for (int i=0;i<size;i++)
     {
         obstacles.push_back(vector<float>(map.getSize(),0));

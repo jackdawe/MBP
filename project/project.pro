@@ -1,6 +1,7 @@
 QT -= gui
 QT += widgets
 
+QMAKE_CXX = ccache g++
 CONFIG += c++11 console
 CONFIG -= app_bundle
 

@@ -51,7 +51,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor entropyLoss = beta*entropy;
     torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
+    torch::Tensor totalLoss = valueLoss + policyLoss + entropyLoss;
 
     actionGainHistory.push_back(*policyLoss.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
@@ -60,8 +60,8 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 
     opti->zero_grad();
     totalLoss.backward();
-//    vector<torch::Tensor> param = model.parameters();
-//    torch::nn::utils::clip_grad_norm_(param,0.5);
+    vector<torch::Tensor> param = model.parameters();
+    torch::nn::utils::clip_grad_norm_(param,0.5);
     opti->step();
 }
 
@@ -104,7 +104,7 @@ void ActorCritic<W,M>::train()
                 if (nEpisodes > 100 && this->episodeNumber%(5*nEpisodes/100) == 0)
                 {
                     cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
-                         + "  Current entropy: " + to_string(entropyHistory.back())<< endl;
+                         + "  Current entropy: " + to_string(entropyHistory.back()/beta)<< endl;
                 }
             }
         }

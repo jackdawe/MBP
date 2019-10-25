@@ -37,7 +37,7 @@ int World::spaceStateSize()
 void World::saveRewardHistory(string nameTag)
 {
     {
-        ofstream f(getPath() +"Rewards/"+nameTag);
+        ofstream f("../Reward");
         if (f)
         {
             for (unsigned int i=0;i<rewardHistory.size();i++)

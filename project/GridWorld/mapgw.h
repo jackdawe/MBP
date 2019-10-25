@@ -12,20 +12,16 @@ class MapGW
 
 public:
     MapGW();
-    MapGW(int size, string mapTag);
+    MapGW(int size);
     void generate(int obstacleMaxNumber);
-    void save();
-    void load(string mapTag);
+    void save(string filename);
+    void load(string filename);
     int getSize() const;
-
-    string getMapTag() const;
-
     vector<vector<int> > getMap() const;
 
 private:
     int size;
     vector<vector<int>> map;
-    string mapTag;
 
 };
 

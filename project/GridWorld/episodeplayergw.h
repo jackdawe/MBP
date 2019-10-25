@@ -14,8 +14,8 @@ class EpisodePlayerGW: public QWidget
     Q_OBJECT
 public:
     EpisodePlayerGW();
-    EpisodePlayerGW(string mapTag);
-    EpisodePlayerGW(string mapTag,vector<vector<float>> sequence);
+    EpisodePlayerGW(string filename);
+    EpisodePlayerGW(string filename,vector<vector<float>> sequence);
     void initMap();
     void showMap();
     void displayOnGrid(vector<vector<string>> texts);
