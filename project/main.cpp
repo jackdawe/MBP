@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    string mapTag = "Test";
+    string mapTag = "2_8";
     GridWorld gw(mapTag);    
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
@@ -17,11 +17,11 @@ int main(int argc, char *argv[])
 //    int batchSize = stoi(argv[4]);
 //    int nEpisodes = stoi(argv[5]);    
     float gamma = 0.99;
-    float learningRate = 0.0003;
-    float beta = 0.1;
-    float zeta = 0.05;
-    int batchSize = 10;
-    int nEpisodes = 100;
+    float learningRate = 0.003;
+    float beta = 0.01;
+    float zeta = 5;
+    int batchSize = 20;
+    int nEpisodes = 10000;
     ParametersA2C params(gamma,learningRate,beta,zeta,batchSize,nEpisodes);
     ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
     agent.train();
@@ -42,7 +42,6 @@ int main(int argc, char *argv[])
             string sdir;
             for (int k=0;k<4;k++)
             {
-                cout<< output << endl;
                 if (*output[0][k].data<float>()>max)
                 {
                     max = *output[0][k].data<float>();

@@ -30,7 +30,7 @@ private:
     torch::Tensor runActions;
     vector<float> runRewards;
     vector<bool> runAreTerminal;
-    vector<float> runValues;
+    torch::Tensor runValues;
     M model;
 
     vector<float> actionGainHistory;

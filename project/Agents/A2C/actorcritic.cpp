@@ -33,10 +33,9 @@ void ActorCritic<W,M>::evaluateRunValues()
         }
         thisReturn=runRewards[i] + gamma*nextReturn;
 
-        runValues.push_back(thisReturn);
+        runValues[i][0] = thisReturn;
         nextReturn = thisReturn;
     }
-    reverse(runValues.begin(),runValues.end());
 }
 
 template <class W,class M>
@@ -47,7 +46,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor valuesEstimate = model.criticOutput(runStates);
     torch::Tensor actionLogProbs = actionProbs.log();
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
-    torch::Tensor advantages = torch::tensor(runValues) - valuesEstimate; //TD Error
+    torch::Tensor advantages = runValues - valuesEstimate; //TD Error
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor entropyLoss = beta*entropy;
     torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
@@ -74,7 +73,7 @@ void ActorCritic<W,M>::train()
     torch::optim::Adam optimizer(model.parameters(),learningRate);
     while (this->episodeNumber<nEpisodes)
     {
-        runStates = torch::zeros(0), runActions = torch::zeros(0), runRewards = {}, runAreTerminal = {}, runValues = {};
+        runStates = torch::zeros(0), runActions = torch::zeros(0), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1});
         for (int i=0;i<batchSize;i++)
         {
             torch::Tensor s;
