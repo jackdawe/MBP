@@ -5,29 +5,33 @@
 #include "GridWorld/episodeplayergw.h"
 int main(int argc, char *argv[])
 {
-    //    float gamma = stof(argv[1]);
-    //    float learningRate = stof(argv[2]);
-    //    float entropyMul = stof(argv[3]);
-    //    int batchSize = stoi(argv[4]);
-    //    int nEpisodes = stoi(argv[5]);
+        float gamma = stof(argv[1]);
+        float learningRate = stof(argv[2]);
+        float beta = stof(argv[3]);
+        float zeta = stof(argv[4]);
+        int batchSize = stoi(argv[5]);
+        int nEpisodes = stoi(argv[6]);
     QApplication a(argc, argv);
+    int b;
+    //LOADING MAP AND TRAINING AGENT
 
     string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map1";
-    GridWorld gw(mapTag);
+    GridWorld gw(mapTag,true);
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
 
-    float gamma = 0.99;
-    float learningRate = 0.003;
-    float beta = 0.01;
-    float zeta = 1;
-    int batchSize = 100;
-    int nEpisodes = 25000;
+//    float gamma = 0.90;
+//    float learningRate = 0.003;
+//    float beta = 0.01;
+//    float zeta = 0.5;
+//    int batchSize = 100;
+//    int nEpisodes = 20000;
     ParametersA2C params(gamma,learningRate,beta,zeta,batchSize,nEpisodes);
     ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
     agent.train();
     agent.saveTrainingData();
 
+    //SHOWING THE POLICY
 
     vector<vector<string>> texts;
     for (int i=0;i<size;i++)

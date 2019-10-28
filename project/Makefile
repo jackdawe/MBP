@@ -11,7 +11,7 @@ MAKEFILE      = Makefile
 ####### Compiler, tools and options
 
 CC            = gcc
-CXX           = g++
+CXX           = ccache g++
 DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
@@ -37,8 +37,8 @@ COMPRESS      = gzip -9f
 DISTNAME      = project1.0.0
 DISTDIR = /home/jack/Documents/joliRL/project/.tmp/project1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) -L/home/jack/Documents/pytorchTest/libtorch/lib -ltorch -lc10 -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
+LFLAGS        = -Wl,-rpath,'$$ORIGIN' -Wl,-O1
+LIBS          = $(SUBLIBS) -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -L/home/jack/Documents/pytorchTest/libtorch/lib -ltorch -lc10 -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -439,7 +439,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
-	g++ -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
+	ccache g++ -pipe -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_episodeplayergw.cpp moc_episodeplayerss.cpp
 compiler_moc_header_clean:

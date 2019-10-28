@@ -14,7 +14,6 @@ ConvNetGW::ConvNetGW(int size, int nConv1, int nConv2, int nfc):
 
 torch::Tensor ConvNetGW::forward(torch::Tensor x)
 {
-
     x = torch::relu(torch::max_pool2d(conv1->forward(x),2));
     x = torch::relu(torch::max_pool2d(conv2->forward(x),2));
     x = x.view({-1,nConv2*size*size/16});

@@ -23,9 +23,20 @@ ActorCritic<W,M>::ActorCritic(W controller,M model, ParametersA2C param,bool use
 template <class W,class M>
 void ActorCritic<W,M>::evaluateRunValues()
 {
-    float nextReturn = 0;
-    float thisReturn = 0;
-    for (int i=batchSize-1;i>=0;i--)
+    float nextReturn;
+    float thisReturn;
+    if (runAreTerminal[batchSize-1])
+    {
+        nextReturn = runRewards[batchSize-1];
+    }
+    else
+    {
+        torch::Tensor prediction = model.criticOutput(runStates[batchSize-1]
+                .reshape({1,3,this->controller.getSize(),this->controller.getSize()}));
+        nextReturn = *prediction.data<float>();
+    }
+    runValues[batchSize-1] = nextReturn;
+    for (int i=batchSize-2;i>=0;i--)
     {
         if (runAreTerminal[i])
         {
@@ -47,11 +58,16 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor actionLogProbs = actionProbs.log();
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = runValues - valuesEstimate; //TD Error
+    if (this->episodeNumber > 500)
+    {
+//        cout << runValues << endl;
+//        cout << valuesEstimate << endl;
+    }
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor entropyLoss = beta*entropy;
     torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss + policyLoss + entropyLoss;
+    torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
 
     actionGainHistory.push_back(*policyLoss.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
