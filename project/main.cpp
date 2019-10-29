@@ -5,17 +5,16 @@
 #include "GridWorld/episodeplayergw.h"
 int main(int argc, char *argv[])
 {
-        float gamma = stof(argv[1]);
-        float learningRate = stof(argv[2]);
-        float beta = stof(argv[3]);
-        float zeta = stof(argv[4]);
-        int batchSize = stoi(argv[5]);
-        int nEpisodes = stoi(argv[6]);
+    float gamma = stof(argv[1]);
+    float learningRate = stof(argv[2]);
+    float beta = stof(argv[3]);
+    float zeta = stof(argv[4]);
+    int batchSize = stoi(argv[5]);
+    int nEpisodes = stoi(argv[6]);
     QApplication a(argc, argv);
-    int b;
     //LOADING MAP AND TRAINING AGENT
 
-    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map1";
+    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map3";
     GridWorld gw(mapTag,true);
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
