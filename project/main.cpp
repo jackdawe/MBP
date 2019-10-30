@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     //LOADING MAP AND TRAINING AGENT
 
-    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map3";
+    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map6";
     GridWorld gw(mapTag,true);
     int size = gw.getSize();
     ConvNetGW net(size,16,32,size*size*2);
