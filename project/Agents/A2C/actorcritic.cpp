@@ -59,7 +59,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = runValues - valuesEstimate; //TD Error
 
-    GridWorld gw("../GridWorld/MapPools/8x8/Easy/Train/map3",2,3);
+    GridWorld gw("../GridWorld/MapPools/8x8/Easy/Train/map3",1,0);
     gw.generateVectorStates();
     torch::Tensor value = model.criticOutput(gw.toRGBTensor(gw.getCurrentState().getStateVector()));
 
