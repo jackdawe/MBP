@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     int nEpisodes = stoi(argv[6]);
     QApplication a(argc, argv);
     //LOADING MAP AND TRAINING AGENT
-
+    int b;
     string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map6";
     GridWorld gw(mapTag,true);
     int size = gw.getSize();
