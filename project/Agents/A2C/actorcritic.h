@@ -37,6 +37,7 @@ private:
     vector<float> valueLossHistory;
     vector<float> entropyHistory;
     vector<float> lossHistory;
+    vector<float> vHistory;
 };
 
 #endif // ACTORCRITIC_H

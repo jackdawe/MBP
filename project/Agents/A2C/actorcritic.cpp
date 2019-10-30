@@ -58,17 +58,18 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor actionLogProbs = actionProbs.log();
     torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
     torch::Tensor advantages = runValues - valuesEstimate; //TD Error
-    if (this->episodeNumber > 500)
-    {
-//        cout << runValues << endl;
-//        cout << valuesEstimate << endl;
-    }
+
+    GridWorld gw("../GridWorld/MapPools/8x8/Easy/Train/map3",2,3);
+    gw.generateVectorStates();
+    torch::Tensor value = model.criticOutput(gw.toRGBTensor(gw.getCurrentState().getStateVector()));
+
     torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
     torch::Tensor entropyLoss = beta*entropy;
     torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
     torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
     torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
 
+    vHistory.push_back(*value.data<float>());
     actionGainHistory.push_back(*policyLoss.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
     entropyHistory.push_back(*entropyLoss.data<float>());
@@ -160,6 +161,7 @@ void ActorCritic<W,M>::saveTrainingData()
     ofstream vl("../ValueLoss");
     ofstream e("../Entropy");
     ofstream tl("../TotalLoss");
+    ofstream v("../Values");
     if(!ag)
     {
         cout<<"oups"<<endl;
@@ -170,6 +172,7 @@ void ActorCritic<W,M>::saveTrainingData()
         vl<<to_string(valueLossHistory[i]) <<endl;
         e<<to_string(entropyHistory[i])<<endl;
         tl<<to_string(lossHistory[i])<<endl;
+        v<<to_string(vHistory[i])<<endl;
     }
 }
 
