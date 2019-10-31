@@ -70,7 +70,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
     torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
 
     vHistory.push_back(*value.data<float>());
-    actionGainHistory.push_back(*policyLoss.data<float>());
+    policyLossHistory.push_back(*policyLoss.data<float>());
     valueLossHistory.push_back(*valueLoss.data<float>());
     entropyHistory.push_back(*entropyLoss.data<float>());
     lossHistory.push_back(*totalLoss.data<float>());
@@ -157,7 +157,7 @@ void ActorCritic<W,M>::playOne()
 template <class W,class M>
 void ActorCritic<W,M>::saveTrainingData()
 {
-    ofstream ag("../ActionGain");
+    ofstream ag("../PolicyLoss");
     ofstream vl("../ValueLoss");
     ofstream e("../Entropy");
     ofstream tl("../TotalLoss");
@@ -166,9 +166,9 @@ void ActorCritic<W,M>::saveTrainingData()
     {
         cout<<"oups"<<endl;
     }
-    for (unsigned int i=0;i<actionGainHistory.size();i++)
+    for (unsigned int i=0;i<policyLossHistory.size();i++)
     {
-        ag<<to_string(actionGainHistory[i])<<endl;
+        ag<<to_string(policyLossHistory[i])<<endl;
         vl<<to_string(valueLossHistory[i]) <<endl;
         e<<to_string(entropyHistory[i])<<endl;
         tl<<to_string(lossHistory[i])<<endl;

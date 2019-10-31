@@ -33,7 +33,7 @@ private:
     torch::Tensor runValues;
     M model;
 
-    vector<float> actionGainHistory;
+    vector<float> policyLossHistory;
     vector<float> valueLossHistory;
     vector<float> entropyHistory;
     vector<float> lossHistory;
