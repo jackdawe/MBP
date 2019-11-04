@@ -38,14 +38,18 @@ void ActorCritic<W,M>::evaluateRunValues()
     runValues[batchSize-1] = nextReturn;
     for (int i=batchSize-2;i>=0;i--)
     {
+//        if (*runStates[i][1][3][3].data<float>() == 1)
+//        {
+//            cout << i << endl;
+//        }
+//        cout << runStates[batchSize-2-i][0] << endl;
         if (runAreTerminal[i])
         {
             nextReturn=0;
         }
         thisReturn=runRewards[i] + gamma*nextReturn;
-
         runValues[i][0] = thisReturn;
-        nextReturn = thisReturn;
+        nextReturn = thisReturn;        
     }
 }
 
@@ -96,11 +100,11 @@ void ActorCritic<W,M>::train()
             torch::Tensor s;
             if(usesCNN)
             {
-                s = this->controller.toRGBTensor(this->previousState().getStateVector());
+                s = this->controller.toRGBTensor(this->currentState().getStateVector());
             }
             else
             {
-                s = torch::tensor(this->previousState().getStateVector());
+                s = torch::tensor(this->currentState().getStateVector());
                 s = s.reshape({1,s.size(0)});
             }
             torch::Tensor actionProbabilities = model.actorOutput(s);
@@ -114,17 +118,19 @@ void ActorCritic<W,M>::train()
 
             if (runAreTerminal.back())
             {
+
                 this->controller.reset();
                 this->episodeNumber++;
                 //Displaying a progression bar in the terminal
 
-                if (nEpisodes > 100 && this->episodeNumber%(5*nEpisodes/100) == 0)
+                if (nEpisodes > 100 && lossHistory.size()>0 &&  this->episodeNumber%(nEpisodes/100) == 0)
                 {
                     cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
                          + "  Current entropy: " + to_string(entropyHistory.back()/beta)<< endl;
                 }
             }
         }
+
         backPropagate(&optimizer);
     }
     saveTrainingData();

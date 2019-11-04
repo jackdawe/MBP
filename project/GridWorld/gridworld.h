@@ -7,7 +7,7 @@
 
 #define WIN_REWARD 1
 #define LOSE_REWARD -1
-#define EMPTY_SQUARE_REWARD -0.01
+#define EMPTY_SQUARE_REWARD 0
 
 class GridWorld: public World
 {

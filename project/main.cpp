@@ -13,15 +13,14 @@ int main(int argc, char *argv[])
     int nEpisodes = stoi(argv[6]);
     QApplication a(argc, argv);
     //LOADING MAP AND TRAINING AGENT
-    int b;
-    string mapTag = "../GridWorld/MapPools/8x8/Easy/Train/map6";
+    string mapTag = "../GridWorld/Map1_8/map";
     GridWorld gw(mapTag,true);
     int size = gw.getSize();
-    ConvNetGW net(size,16,32,size*size*2);
+    ConvNetGW net(size,16,16,size*size*2);
 
-//    float gamma = 0.90;
+//    float gamma = 0.99;
 //    float learningRate = 0.003;
-//    float beta = 0.01;
+//    float beta = 0.001;
 //    float zeta = 0.5;
 //    int batchSize = 100;
 //    int nEpisodes = 20000;
@@ -33,14 +32,17 @@ int main(int argc, char *argv[])
     //SHOWING THE POLICY
 
     vector<vector<string>> texts;
+    vector<vector<string>> texts2;
     for (int i=0;i<size;i++)
     {
         vector<string> textsL(size,"");
+        vector<string> textsL2(size,"");
         for (int j=0;j<size;j++)
         {
             GridWorld gw2(mapTag,i,j);
             gw2.generateVectorStates();
             torch::Tensor output = agent.getModel().actorOutput(gw2.toRGBTensor(gw2.getCurrentState().getStateVector()));
+            torch::Tensor output2 = agent.getModel().criticOutput(gw2.toRGBTensor(gw2.getCurrentState().getStateVector()));
             float max = 0;
             int dir;
             string sdir;
@@ -68,8 +70,14 @@ int main(int argc, char *argv[])
                 break;
             }
             textsL[j] = sdir;
+
+            string val = to_string(*output2.data<float>());
+            string val2;
+            val2+=val[0],val2+=val[1],val2+=val[2],val2+=val[3],val2+=val[4];
+            textsL2[j] = val2;
         }
         texts.push_back(textsL);
+        texts2.push_back(textsL2);
     }
     EpisodePlayerGW ep(mapTag);
     ep.displayOnGrid(texts);

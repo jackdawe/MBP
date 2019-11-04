@@ -15,13 +15,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/../..\'"
+QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/../../libtorch/lib/\'"
 QMAKE_CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=0
-INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include
-INCLUDEPATH += /home/jack/Documents/pytorchTest/libtorch/include/torch/csrc/api/include
-INCLUDEPATH += /home/opencv/include
-LIBS += -L/home/opencv/build/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
-LIBS += -L/home/jack/Documents/pytorchTest/libtorch/lib
+INCLUDEPATH += "$$PWD/../../libtorch/include"
+INCLUDEPATH += "$$PWD/../../libtorch/include/torch/csrc/api/include"
+INCLUDEPATH += "$$PWD/../../opencv/include"
+LIBS += -L"$$PWD/../../opencv/build/lib" -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
+LIBS += -L"$$PWD/../../libtorch/lib"
 LIBS += -ltorch -lc10
 
 SOURCES += main.cpp \
