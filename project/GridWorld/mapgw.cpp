@@ -5,18 +5,19 @@ MapGW::MapGW()
 {
 }
 
-MapGW::MapGW(int size): size(size)
+MapGW::MapGW(int size): size(size) {}
+
+void MapGW::generate(int obstacleMaxNumber)
 {
+
     //Initialising the map matrix with empty spaces
+
+    map = vector<vector<int>>();
 
     for (int i=0;i<size;i++)
     {
         map.push_back(vector<int>(size,0));
     }
-}
-
-void MapGW::generate(int obstacleMaxNumber)
-{
 
     default_random_engine generator(random_device{}());
     uniform_int_distribution<int> dist(1,size-2);
@@ -49,6 +50,17 @@ void MapGW::generate(int obstacleMaxNumber)
             j = dist(generator);
         }
         map[i][j] = 1;
+    }
+}
+
+void MapGW::generateMapPool(int obstacleMaxNumber, string path, int nMaps)
+{
+    default_random_engine g(random_device{}());
+    uniform_int_distribution<int> dist(1,obstacleMaxNumber);
+    for (int i=0;i<nMaps;i++)
+    {
+        generate(dist(g));
+        save(path+"map"+to_string(i));
     }
 }
 

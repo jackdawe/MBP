@@ -14,6 +14,7 @@ public:
     MapGW();
     MapGW(int size);
     void generate(int obstacleMaxNumber);
+    void generateMapPool(int obstacleMaxNumber, string path, int nMaps);
     void save(string filename);
     void load(string filename);
     int getSize() const;

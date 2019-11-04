@@ -17,7 +17,7 @@ public:
     EpisodePlayerGW(string filename);
     EpisodePlayerGW(string filename,vector<vector<float>> sequence);
     void initMap();
-    void showMap();
+    void showMap();    
     void displayOnGrid(vector<vector<string>> texts);
     void playEpisode();
     MapGW getMap();

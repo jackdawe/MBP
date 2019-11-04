@@ -20,7 +20,7 @@ QMAKE_CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=0
 INCLUDEPATH += "$$PWD/../../libtorch/include"
 INCLUDEPATH += "$$PWD/../../libtorch/include/torch/csrc/api/include"
 INCLUDEPATH += "$$PWD/../../opencv/include"
-LIBS += -L"$$PWD/../../opencv/build/lib" -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
+LIBS += -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
 LIBS += -L"$$PWD/../../libtorch/lib"
 LIBS += -ltorch -lc10
 
