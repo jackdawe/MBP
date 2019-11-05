@@ -37,7 +37,7 @@ COMPRESS      = gzip -9f
 DISTNAME      = project1.0.0
 DISTDIR = /home/jack/Documents/joliRL/build-project-Desktop-Debug/.tmp/project1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-rpath,'$$ORIGIN/../../libtorch/lib/'
+LFLAGS        = -Wl,-rpath,'$$ORIGIN/libs/'
 LIBS          = $(SUBLIBS) -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -L/home/jack/Documents/joliRL/project/../../libtorch/lib -ltorch -lc10 -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
@@ -2975,9 +2975,18 @@ moc_episodeplayerss.o: moc_episodeplayerss.cpp
 
 ####### Install
 
-install:  FORCE
+install_target: first FORCE
+	@test -d $(INSTALL_ROOT)/home/jack || mkdir -p $(INSTALL_ROOT)/home/jack
+	-$(QINSTALL_PROGRAM) $(QMAKE_TARGET) $(INSTALL_ROOT)/home/jack/$(QMAKE_TARGET)
 
-uninstall:  FORCE
+uninstall_target: FORCE
+	-$(DEL_FILE) $(INSTALL_ROOT)/home/jack/$(QMAKE_TARGET)
+	-$(DEL_DIR) $(INSTALL_ROOT)/home/jack/ 
+
+
+install: install_target  FORCE
+
+uninstall: uninstall_target  FORCE
 
 FORCE:
 
