@@ -33,16 +33,11 @@ void ActorCritic<W,M>::evaluateRunValues()
     {
         torch::Tensor prediction = model.criticOutput(runStates[batchSize-1]
                 .reshape({1,3,this->controller.getSize(),this->controller.getSize()}));
-        nextReturn = *prediction.data<float>();
+        nextReturn = *prediction.to(torch::Device(torch::kCPU)).data<float>();
     }
     runValues[batchSize-1] = nextReturn;
     for (int i=batchSize-2;i>=0;i--)
     {
-//        if (*runStates[i][1][3][3].data<float>() == 1)
-//        {
-//            cout << i << endl;
-//        }
-//        cout << runStates[batchSize-2-i][0] << endl;
         if (runAreTerminal[i])
         {
             nextReturn=0;
@@ -56,29 +51,26 @@ void ActorCritic<W,M>::evaluateRunValues()
 template <class W,class M>
 void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 {
-    evaluateRunValues();    
-    torch::Tensor actionProbs = model.actorOutput(runStates);
-    torch::Tensor valuesEstimate = model.criticOutput(runStates);
-    torch::Tensor actionLogProbs = actionProbs.log();
-    torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
-    torch::Tensor advantages = runValues - valuesEstimate; //TD Error
-
-    torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
-    torch::Tensor entropyLoss = beta*entropy;
-    torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
-    torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
-    torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;
-
-    policyLossHistory.push_back(*policyLoss.data<float>());
-    valueLossHistory.push_back(*valueLoss.data<float>());
-    entropyHistory.push_back(*entropyLoss.data<float>());
-    lossHistory.push_back(*totalLoss.data<float>());
-
-    opti->zero_grad();
-    totalLoss.backward();
-    //vector<torch::Tensor> param = model.parameters();
-    //torch::nn::utils::clip_grad_norm_(param,0.5);
-    opti->step();
+  evaluateRunValues();
+  torch::Tensor actionProbs = model.actorOutput(runStates);
+  torch::Tensor valuesEstimate = model.criticOutput(runStates);
+  torch::Tensor actionLogProbs = actionProbs.log();
+  torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
+  torch::Tensor advantages = runValues - valuesEstimate; //TD Error
+  torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
+  torch::Tensor entropyLoss = beta*entropy;
+  torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
+  torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
+  torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;    
+   policyLossHistory.push_back(*policyLoss.to(torch::Device(torch::kCPU)).data<float>());
+  valueLossHistory.push_back(*valueLoss.to(torch::Device(torch::kCPU)).data<float>());
+  entropyHistory.push_back(*entropyLoss.to(torch::Device(torch::kCPU)).data<float>());
+  lossHistory.push_back(*totalLoss.to(torch::Device(torch::kCPU)).data<float>());
+  opti->zero_grad();
+  totalLoss.backward();
+  //vector<torch::Tensor> param = model.parameters();
+  //torch::nn::utils::clip_grad_norm_(param,0.5);
+  opti->step();
 }
 
 
@@ -89,13 +81,13 @@ void ActorCritic<W,M>::train()
   torch::optim::Adam optimizer(model.parameters(),learningRate);
   while (this->episodeNumber<nEpisodes)
     {
-      runStates = torch::zeros(0), runActions = torch::zeros(0), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1});
+      runStates = torch::zeros(0).to(model.getUsedDevice()), runActions = torch::zeros(0).to(model.getUsedDevice()), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1}).to(model.getUsedDevice());
       for (int i=0;i<batchSize;i++)
         {
 	  torch::Tensor s;
 	  if(usesCNN)
             {
-	      s = this->controller.toRGBTensor(this->currentState().getStateVector());
+	      s = this->controller.toRGBTensor(this->currentState().getStateVector()).to(model.getUsedDevice());	    
             }
 	  else
             {
@@ -103,17 +95,15 @@ void ActorCritic<W,M>::train()
 	      s = s.reshape({1,s.size(0)});
             }
 	  torch::Tensor actionProbabilities = model.actorOutput(s);
-	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);            
-	  this->controller.setTakenAction({*action.data<float>()});
+	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
+	  this->controller.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
 	  this->controller.setTakenReward(this->controller.transition());
 	  runStates = torch::cat({runStates,s});
 	  runRewards.push_back(this->takenReward());
-	  runActions = torch::cat({runActions,action});
+	  runActions = torch::cat({runActions,action.to(model.getUsedDevice())});
 	  runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
-	  
 	  if (runAreTerminal.back())
             {
-	      
 	      this->controller.reset();
 	      this->episodeNumber++;
 	      //Displaying a progression bar in the terminal
@@ -125,7 +115,6 @@ void ActorCritic<W,M>::train()
                 }
             }
         }
-      
       backPropagate(&optimizer);
     }
   saveTrainingData();

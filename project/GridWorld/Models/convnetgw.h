@@ -12,8 +12,10 @@ public:
     torch::Tensor forward(torch::Tensor x);
     torch::Tensor actorOutput(torch::Tensor x);
     torch::Tensor criticOutput(torch::Tensor x);
-
+    torch::Device getUsedDevice();
+    
 private:
+    torch::Device usedDevice; 
     int size;
     int nConv1;
     int nConv2;
