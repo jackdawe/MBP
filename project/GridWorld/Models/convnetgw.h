@@ -1,6 +1,8 @@
 #ifndef CONVNETGW_H
 #define CONVNETGW_H
+#undef slots
 #include <torch/torch.h>
+#define slots Q_SLOTS
 
 class ConvNetGW: public torch::nn::Module
 {
@@ -10,8 +12,10 @@ public:
     torch::Tensor forward(torch::Tensor x);
     torch::Tensor actorOutput(torch::Tensor x);
     torch::Tensor criticOutput(torch::Tensor x);
-
+    torch::Device getUsedDevice();
+    
 private:
+    torch::Device usedDevice; 
     int size;
     int nConv1;
     int nConv2;

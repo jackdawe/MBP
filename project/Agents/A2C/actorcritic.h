@@ -4,6 +4,10 @@
 #include "parametersa2c.h"
 #include "../../GridWorld/Models/modela2cgw.h"
 #include "../../GridWorld/Models/convnetgw.h"
+#undef slots
+#include <torch/torch.h>
+#include <torch/utils.h>
+#define slots Q_SLOTS
 
 template <class W, class M>
 class ActorCritic: public Agent<W>
