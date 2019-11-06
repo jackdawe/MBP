@@ -1,6 +1,8 @@
 #ifndef MODELA2CGW_H
 #define MODELA2CGW_H
+#undef slots
 #include <torch/torch.h>
+#define slots Q_SLOTS
 
 class ModelA2CGW: public torch::nn::Module
 {

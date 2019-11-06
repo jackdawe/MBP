@@ -1,6 +1,8 @@
 #ifndef CONVNETGW_H
 #define CONVNETGW_H
+#undef slots
 #include <torch/torch.h>
+#define slots Q_SLOTS
 
 class ConvNetGW: public torch::nn::Module
 {

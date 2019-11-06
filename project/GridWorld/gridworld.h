@@ -3,7 +3,9 @@
 #include "world.h"
 #include "mapgw.h"
 #include <opencv2/opencv.hpp>
+#undef slots
 #include <torch/torch.h>
+#define slots Q_SLOTS
 
 #define WIN_REWARD 1
 #define LOSE_REWARD -1
