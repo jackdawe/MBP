@@ -3,9 +3,19 @@
 
 MapGW::MapGW()
 {
+  for (int i=0;i<size;i++)
+    {
+      map.push_back(vector<int>(size,0));
+    }
 }
 
-MapGW::MapGW(int size): size(size) {}
+MapGW::MapGW(int size): size(size)
+{
+  for (int i=0;i<size;i++)
+    {
+      map.push_back(vector<int>(size,0));
+    }
+}
 
 void MapGW::generate(int obstacleMaxNumber)
 {
@@ -13,12 +23,6 @@ void MapGW::generate(int obstacleMaxNumber)
     //Initialising the map matrix with empty spaces
 
     map = vector<vector<int>>();
-
-    for (int i=0;i<size;i++)
-    {
-        map.push_back(vector<int>(size,0));
-    }
-
     default_random_engine generator(random_device{}());
     uniform_int_distribution<int> dist(1,size-2);
 
@@ -94,10 +98,6 @@ void MapGW::load(string filename)
     int i=0;
     getline(f,line);
     size = stoi(line);
-    for (int i=0;i<size;i++)
-    {
-        map.push_back(vector<int>(size,0));
-    }
     while (std::getline(f,line))
     {
         for (int j=0;j<size;j++)
