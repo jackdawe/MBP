@@ -46,8 +46,9 @@ SOURCES += main.cpp \
     GridWorld/gridworld.cpp \
     Starship/spaceworld.cpp \
     GridWorld/Models/convnetgw.cpp \
-    GridWorld/Models/modela2cgw.cpp
-
+    GridWorld/Models/modela2cgw.cpp \
+    commands.cpp
+    
 HEADERS += \
     action.h \
     discreteaction.h \
@@ -70,8 +71,9 @@ HEADERS += \
     GridWorld/gridworld.h \
     Starship/spaceworld.h \
     GridWorld/Models/convnetgw.h \
-    GridWorld/Models/modela2cgw.h
-
+    GridWorld/Models/modela2cgw.h \
+    commands.h
+    
 
 
 

@@ -1,11 +1,22 @@
-#include <QApplication>
-#include "GridWorld/gridworld.h"
-#include "Agents/qlearning.h"
-#include "Agents/A2C/actorcritic.h"
-#include "GridWorld/episodeplayergw.h"
+#include "commands.h"
 
 int main(int argc, char *argv[])
 {
+  string command = argv[1];
+  vector<string> parameters(argv+2,argv+argc);
+  Commands c(parameters);
+  if (command == "gwmgen")
+    {
+      c.generateMapGW();
+    }
+  else
+    {
+      cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;
+    }
+  
+  
+  /*
+  
   //MapGW mapgen(8);
   //mapgen.generateMapPool(5,"../GridWorld_Maps/TestEasy8x8/",5);
   //cout<<"hey"<<endl;
@@ -79,4 +90,5 @@ int main(int argc, char *argv[])
   ep.displayOnGrid(texts);
   
   a.exec();
+  */
 }

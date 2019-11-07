@@ -87,8 +87,6 @@ void MapGW::save(string filename)
     {
         cout << "An error has occured while trying to save the map file" << endl;
     }
-
-
 }
 
 void MapGW::load(string filename)
