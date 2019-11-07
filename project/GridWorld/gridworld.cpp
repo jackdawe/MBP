@@ -162,7 +162,7 @@ int GridWorld::stateId(State s)
 }
 
 void GridWorld::reset()
-{
+{  
   rewardHistory.push_back(0);
   if (mapPoolSize != -1)
     {

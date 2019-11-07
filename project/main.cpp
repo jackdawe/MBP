@@ -6,6 +6,9 @@
 
 int main(int argc, char *argv[])
 {
+  //MapGW mapgen(8);
+  //mapgen.generateMapPool(5,"../GridWorld_Maps/TestEasy8x8/",5);
+  //cout<<"hey"<<endl;
   float gamma = stof(argv[1]);
   float learningRate = stof(argv[2]);
   float beta = stof(argv[3]);
@@ -13,8 +16,8 @@ int main(int argc, char *argv[])
   int batchSize = stoi(argv[5]);
   int nEpisodes = stoi(argv[6]);
   //LOADING MAP AND TRAINING AGENT
-  string mapTag = "../GridWorld_Maps/Easy8x8/Train/";
-  GridWorld gw(mapTag,1000);
+  string mapTag = "../GridWorld_Maps/TestEasy8x8/";
+  GridWorld gw(mapTag,5);
   int size = gw.getSize();
   ConvNetGW net(size,16,16,size*size*2);
   ParametersA2C params(gamma,learningRate,beta,zeta,batchSize,nEpisodes);
@@ -24,14 +27,14 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   vector<vector<string>> texts;
   vector<vector<string>> texts2;
-  mapTag = mapTag + "../Test/map0";
+  mapTag = mapTag + "map0";
   for (int i=0;i<size;i++)
     {
       vector<string> textsL(size,"");
       vector<string> textsL2(size,"");
       for (int j=0;j<size;j++)
         {
-	  GridWorld gw2(mapTag,i,j);
+	  GridWorld gw2(mapTag,i,j);	
 	  gw2.generateVectorStates();
 	  torch::Tensor output = agent.getModel().actorOutput(gw2.toRGBTensor(gw2.getCurrentState().getStateVector()).to(agent.getModel().getUsedDevice()));
 	  torch::Tensor output2 = agent.getModel().criticOutput(gw2.toRGBTensor(gw2.getCurrentState().getStateVector()).to(agent.getModel().getUsedDevice()));
@@ -71,6 +74,7 @@ int main(int argc, char *argv[])
         texts.push_back(textsL);
         texts2.push_back(textsL2);
     }
+  cout<<"hey"<<endl;
   EpisodePlayerGW ep(mapTag);
   ep.displayOnGrid(texts);
   

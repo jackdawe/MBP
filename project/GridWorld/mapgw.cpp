@@ -1,13 +1,7 @@
 #include "mapgw.h"
 
 
-MapGW::MapGW()
-{
-  for (int i=0;i<size;i++)
-    {
-      map.push_back(vector<int>(size,0));
-    }
-}
+MapGW::MapGW(){}
 
 MapGW::MapGW(int size): size(size)
 {
@@ -22,38 +16,44 @@ void MapGW::generate(int obstacleMaxNumber)
 
     //Initialising the map matrix with empty spaces
 
-    map = vector<vector<int>>();
-    default_random_engine generator(random_device{}());
-    uniform_int_distribution<int> dist(1,size-2);
-
-    //Setting the walls
-
-    for (int i=0;i<size;i++)
+  for (int i=0;i<size;i++)
     {
-        map[0][i]=1;
-        map[i][0]=1;
-        map[size-1][i]=1;
-        map[i][size-1]=1;
+      for (int j=0;j<size;j++)
+	{
+	  map[i][j]=0;
+	}
     }
-
-    //Setting the agent's objective
-
-    int i = dist(generator);
-    int j = dist(generator);
-    map[i][j] = 2;
-
-    //Setting the obstacles
-
-    for (int k=0;k<obstacleMaxNumber;k++)
+  default_random_engine generator(random_device{}());
+  uniform_int_distribution<int> dist(1,size-2);
+  
+  //Setting the walls
+  
+  for (int i=0;i<size;i++)
     {
-        i = dist(generator);
-        j = dist(generator);
-        while(map[i][j]==3 || map[i][j]==2)
+      map[0][i]=1;
+      map[i][0]=1;
+      map[size-1][i]=1;
+      map[i][size-1]=1;
+    }
+  
+  //Setting the agent's objective
+  
+  int i = dist(generator);
+  int j = dist(generator);
+  map[i][j] = 2;
+  
+  //Setting the obstacles
+  
+  for (int k=0;k<obstacleMaxNumber;k++)
+    {
+      i = dist(generator);
+      j = dist(generator);
+      while(map[i][j]==3 || map[i][j]==2)
         {
-            i = dist(generator);
-            j = dist(generator);
+	  i = dist(generator);
+	  j = dist(generator);
         }
-        map[i][j] = 1;
+      map[i][j] = 1;
     }
 }
 
@@ -98,6 +98,11 @@ void MapGW::load(string filename)
     int i=0;
     getline(f,line);
     size = stoi(line);
+    map = vector<vector<int>>();
+    for (int i=0;i<size;i++)
+      {
+	map.push_back(vector<int>(size,0));
+      }
     while (std::getline(f,line))
     {
         for (int j=0;j<size;j++)

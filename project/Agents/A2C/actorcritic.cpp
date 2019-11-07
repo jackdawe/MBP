@@ -78,6 +78,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 template <class W,class M>
 void ActorCritic<W,M>::train()
 {
+  int nSteps = 0;
   this->episodeNumber = 0;
   torch::optim::Adam optimizer(model.parameters(),learningRate);
   while (this->episodeNumber<nEpisodes)
@@ -85,6 +86,7 @@ void ActorCritic<W,M>::train()
       runStates = torch::zeros(0).to(model.getUsedDevice()), runActions = torch::zeros(0).to(model.getUsedDevice()), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1}).to(model.getUsedDevice());
       for (int i=0;i<batchSize;i++)
         {
+	  nSteps++;
 	  torch::Tensor s;
 	  if(usesCNN)
             {
@@ -105,6 +107,11 @@ void ActorCritic<W,M>::train()
 	  runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
 	  if (runAreTerminal.back())
             {
+	      if (nSteps>30)
+		{
+		  cout <<"this episode was long... " + to_string(nSteps) + " steps."<<endl;
+		}
+	      nSteps = 0;
 	      this->controller.reset();
 	      this->episodeNumber++;
 	      //Displaying a progression bar in the terminal
