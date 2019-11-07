@@ -1,74 +1,48 @@
 #include "gridworld.h"
 
-GridWorld::GridWorld(): imageMode(imageMode)
+GridWorld::GridWorld(){}
+
+GridWorld::GridWorld(string filename):
+  mapTag(filename), randomStart(true), mapPoolSize(-1)
 {
+  init();
 }
 
-GridWorld::GridWorld(string filename, bool imageMode):
-    imageMode(imageMode), randomStart(true), mapPoolSize(-1)
+GridWorld::GridWorld(string filename, float agentXInit, float agentYInit):
+  mapTag(filename), randomStart(false),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit),mapPoolSize(-1)
 {
-    init(filename);
-}
-
-GridWorld::GridWorld(string filename, float agentXInit, float agentYInit, bool imageMode):
-    imageMode(imageMode),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit)
-{
-    randomStart=false;
-    init(filename);
+  init();
 }
 
 GridWorld::GridWorld(string mapPoolPath, int mapPoolSize):
-    imageMode(true), randomStart(true), mapPoolPath(mapPoolPath), mapPoolSize(mapPoolSize)
+  mapTag(mapPoolPath), randomStart(true), mapPoolSize(mapPoolSize)
 {
-    default_random_engine generator(std::random_device{}());
-    uniform_int_distribution<int> dist(0,mapPoolSize-1);
-    int mapId = dist(generator);
-    init(mapPoolPath+"map"+to_string(mapId));
+  init();
 }
 
-void GridWorld::init(string filename)
+void GridWorld::init()
 {
-    MapGW map;
-    map.load(filename);
-    vector<DiscreteAction> dactions = {DiscreteAction(4)};
-    actions = ActionSpace(dactions, vector<ContinuousAction>());
-    rewardHistory.push_back(0);
-    takenAction = vector<float>(1,0);
-    this->size = map.getSize();
-    for (int i=0;i<4+size*size;i++)
+  vector<DiscreteAction> dactions = {DiscreteAction(4)};
+  actions = ActionSpace(dactions, vector<ContinuousAction>());
+  takenAction = vector<float>(1,0);
+  if (mapPoolSize == -1)
     {
-        currentState.add(0);
+      map.load(mapTag);
     }
-    for (int i=0;i<size;i++)
+  else
     {
-        obstacles.push_back(vector<float>(map.getSize(),0));
+      map.load(mapTag+"map0");
     }
-
-    for (int i=0;i<size;i++)
+  size = map.getSize();
+  for (int i=0;i<4+size*size;i++)
     {
-        for (int j=0;j<size;j++)
-        {
-            switch(map.getMap()[i][j])
-            {
-            case 1:
-                obstacles[i][j]=1;
-                break;
-            case 2:
-                goalX=i, goalY=j;
-                break;
-            }
-        }
+      currentState.add(0);
     }
-    if(randomStart)
+  for (int i=0;i<size;i++)
     {
-        default_random_engine generator(std::random_device{}());
-        uniform_int_distribution<int> dist(1,size-1);
-        agentX = dist(generator), agentY = dist(generator);
-        while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
-        {
-            agentX = dist(generator), agentY = dist(generator);
-        }
+      obstacles.push_back(vector<float>(map.getSize(),0));
     }
+  reset();
 }
 
 float GridWorld::transition()
@@ -189,48 +163,52 @@ int GridWorld::stateId(State s)
 
 void GridWorld::reset()
 {
-    rewardHistory.push_back(0);
-    if (randomStart)
+  rewardHistory.push_back(0);
+  if (mapPoolSize != -1)
     {
-        if (mapPoolSize != -1)
-        {
-            default_random_engine generator(std::random_device{}());
-            uniform_int_distribution<int> dist(0,mapPoolSize-1);
-            int mapId = dist(generator);
-            MapGW map;
-            map.load(mapPoolPath+"map"+to_string(mapId));
-            for (int i=0;i<size;i++)
-            {
-                for (int j=0;j<size;j++)
-                {
-                    switch(map.getMap()[i][j])
-                    {
-                    case 1:
-                        obstacles[i][j]=1;
-                        break;
-                    case 2:
-                        goalX=i, goalY=j;
-                        break;
-                    }
-                }
-            }
-            generateVectorStates();
-        }
-        default_random_engine generator(std::random_device{}());
-        uniform_int_distribution<int> dist(1,size-1);
-        agentX = dist(generator), agentY = dist(generator);
-        while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
-        {
-            agentX = dist(generator), agentY = dist(generator);
-        }
+      default_random_engine generator(std::random_device{}());
+      uniform_int_distribution<int> dist(0,mapPoolSize-1);
+      int mapId = dist(generator);
+      map.load(mapTag+"map"+to_string(mapId));
+      size = map.getSize();
     }
-    else
+  if(obstacles[0][0]!=1 || mapPoolSize != -1)
     {
-        agentX = initX; agentY = initY;
+      for (int i=0;i<size;i++)
+	{
+	  for (int j=0;j<size;j++)
+	    {
+	      switch(map.getMap()[i][j])
+		{
+		case 1:
+		  obstacles[i][j]=1;
+		  break;
+		case 2:
+		  goalX=i, goalY=j;
+		  break;
+		default:
+		  obstacles[i][j]=0;
+		}
+	    }
+	}
     }
-    currentState.update(0,agentX), currentState.update(1,agentY);
-    actionSequence = vector<vector<float>>();
-    stateSequence = {currentState.getStateVector()};
+  if(randomStart)
+    {
+      default_random_engine generator(std::random_device{}());
+      uniform_int_distribution<int> dist(1,size-1);
+      agentX = dist(generator), agentY = dist(generator);
+      while ((agentX == goalX && agentY == goalY) || obstacles[agentX][agentY] == 1)
+	{
+	  agentX = dist(generator), agentY = dist(generator);
+	}
+    }
+  else
+    {
+      agentX = initX; agentY = initY;
+    }
+  generateVectorStates();
+  actionSequence = vector<vector<float>>();
+  stateSequence = {currentState.getStateVector()};
 }
 
 vector<int> GridWorld::accessibleStates(State s)

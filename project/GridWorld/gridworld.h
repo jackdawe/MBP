@@ -15,10 +15,10 @@ class GridWorld: public World
 {
 public:
     GridWorld();
-    GridWorld(string filename, bool imageMode = false);
-    GridWorld(string filename, float agentXInit, float agentYInit, bool imageMode = false);
+    GridWorld(string filename);
+    GridWorld(string filename, float agentXInit, float agentYInit);
     GridWorld(string mapPoolPath, int mapPoolSize);
-    void init(string mapTag);
+    void init();
     float transition();
     bool isTerminal(State s);
     void generateVectorStates();
@@ -30,9 +30,9 @@ public:
     int spaceStateSize();
 
 private:
-    bool imageMode;
+    MapGW map;
     bool randomStart;
-    string mapPoolPath;
+    string mapTag;
     int mapPoolSize;
     vector<vector<float>> obstacles;
     float initX;
