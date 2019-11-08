@@ -8,40 +8,41 @@
 #include <torch/torch.h>
 #include <torch/utils.h>
 #define slots Q_SLOTS
+TORCH_MODULE(ConvNetGW);
 
 template <class W, class M>
-class ActorCritic: public Agent<W>
+  class ActorCritic: public Agent<W>
 {
-public:
-    ActorCritic();
-    ActorCritic(W World, M model, ParametersA2C param, bool usesCNN = false);
-    void evaluateRunValues();
-    void backPropagate(torch::optim::Adam *opti);
-    void train();
-    void playOne();    
-    void saveTrainingData();
-    M getModel() const;
+ public:
+  ActorCritic();
+  ActorCritic(W World, M model, ParametersA2C param, bool usesCNN = false);
+  void evaluateRunValues();
+  void backPropagate(torch::optim::Adam *opti);
+  void train();
+  void playOne();    
+  void saveTrainingData();
+  M getModel() const;
 
-private:
-    bool usesCNN;
-    float gamma;
-    float learningRate;
-    float beta;
-    float zeta;
-    int nEpisodes;
-    int batchSize;    
-    torch::Tensor runStates;
-    torch::Tensor runActions;
-    vector<float> runRewards;
-    vector<bool> runAreTerminal;
-    torch::Tensor runValues;
-    M model;
-
-    vector<float> policyLossHistory;
-    vector<float> valueLossHistory;
-    vector<float> entropyHistory;
-    vector<float> lossHistory;
-    vector<float> vHistory;
+ private:
+  bool usesCNN;
+  float gamma;
+  float learningRate;
+  float beta;
+  float zeta;
+  int nEpisodes;
+  int batchSize;    
+  torch::Tensor runStates;
+  torch::Tensor runActions;
+  vector<float> runRewards;
+  vector<bool> runAreTerminal;
+  torch::Tensor runValues;
+  M model;
+  
+  vector<float> policyLossHistory;
+  vector<float> valueLossHistory;
+  vector<float> entropyHistory;
+  vector<float> lossHistory;
+  vector<float> vHistory;
 };
 
 #endif // ACTORCRITIC_H

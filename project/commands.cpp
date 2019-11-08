@@ -81,7 +81,6 @@ bool Commands::trainA2COneMapGW()
   GridWorld gw(parameters[0]); //Path to the map on which to train 
   int size = gw.getSize();
   ConvNetGW net(size,16,16,size*size*2);
-  TORCH_MODULE(net);
   //Discount factor, Learning Rate, EntropyLoss coefficient, ValueLoss coefficient, Batch size, Number of episodes 
   ParametersA2C params(stof(parameters[1]),stof(parameters[2]), stof(parameters[3]),stof(parameters[4]), stoi(parameters[5]), stoi(parameters[6]));
   ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);

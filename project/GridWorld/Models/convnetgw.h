@@ -4,11 +4,11 @@
 #include <torch/torch.h>
 #define slots Q_SLOTS
 
-class ConvNetGW: public torch::nn::Module
+class ConvNetGWImpl: public torch::nn::Module
 {
 public:
-    ConvNetGW();
-    ConvNetGW(int size, int nConv1, int nConv2, int nfc);
+    ConvNetGWImpl();
+    ConvNetGWImpl(int size, int nConv1, int nConv2, int nfc);
     torch::Tensor forward(torch::Tensor x);
     torch::Tensor actorOutput(torch::Tensor x);
     torch::Tensor criticOutput(torch::Tensor x);
