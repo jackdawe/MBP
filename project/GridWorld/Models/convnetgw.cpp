@@ -1,4 +1,7 @@
 #include "convnetgw.h"
+DEFINE_int32(conv1,16,"The number of units in the first convolutionnal layer");
+DEFINE_int32(conv2,16,"The number of units in the second convolutionnal layer");
+DEFINE_int32(fc1,128,"THe number of units in the first fully connected layer");
 
 ConvNetGWImpl::ConvNetGWImpl():
   usedDevice(torch::Device(torch::kCPU)){}

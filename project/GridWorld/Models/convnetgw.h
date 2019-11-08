@@ -3,6 +3,10 @@
 #undef slots
 #include <torch/torch.h>
 #define slots Q_SLOTS
+#include <gflags/gflags.h>
+DECLARE_int32(conv1);
+DECLARE_int32(conv2);
+DECLARE_int32(fc1);
 
 class ConvNetGWImpl: public torch::nn::Module
 {

@@ -36,7 +36,7 @@ DISTNAME      = project1.0.0
 DISTDIR = /home/jack/joliRL/project/.tmp/project1.0.0
 LINK          = g++
 LFLAGS        = -m64 -fopenmp -D_GLIBCXX_USE_CXX11_ABI=1
-LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 `pkg-config --libs opencv` -L/home/jack/joliRL/project/../../libtorch/lib -ltorch -lc10 -lc10_cuda -L/usr/local/cuda-9.2/lib64 -lcudart -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 `pkg-config --libs opencv` -L/home/jack/joliRL/project/../../libtorch/lib -ltorch -lc10 -lc10_cuda -L/usr/local/cuda-9.2/lib64 -lcudart -Lusr/include/ -lgflags -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed

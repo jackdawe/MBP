@@ -1,23 +1,27 @@
 #include "commands.h"
+DEFINE_string(cmd,"help","Command to execute");
 
 int main(int argc, char *argv[])
 {
-  string command = argv[1];
-  vector<string> parameters(argv+2,argv+argc);
-  Commands c(parameters);
-  if (command == "gwmgen")
+  gflags::ParseCommandLineFlags(&argc,&argv,true);
+  Commands c;
+  if (FLAGS_cmd == "help")
+    {
+      cout<<"No help yet... Unlucky !"<<endl;
+    }
+  else if (FLAGS_cmd == "gwmgen")
     {
       c.generateMapGW();
     }
-  else if (command == "gwmpgen")
+  else if (FLAGS_cmd == "gwmpgen")
     {
       c.generateMapPoolGW();
     }
-  else if (command == "gwmshow")
+  else if (FLAGS_cmd == "gwmshow")
     {
       c.showMapGW(argc,argv);
     }
-  else if (command == "a2c1map")
+  else if (FLAGS_cmd == "a2c1map")
     {
       c.trainA2COneMapGW();
     }

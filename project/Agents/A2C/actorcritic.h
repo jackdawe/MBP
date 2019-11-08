@@ -8,6 +8,12 @@
 #include <torch/torch.h>
 #include <torch/utils.h>
 #define slots Q_SLOTS
+DECLARE_double(g);
+DECLARE_double(lr);
+DECLARE_double(beta);
+DECLARE_double(zeta);
+DECLARE_int32(bs);
+DECLARE_int32(n);
 TORCH_MODULE(ConvNetGW);
 
 template <class W, class M>

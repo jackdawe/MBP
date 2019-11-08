@@ -1,5 +1,9 @@
 #include "mapgw.h"
-
+DEFINE_int32(size,8,"The generated maps will be of size sizexsize");
+DEFINE_int32(maxObst,1,"The maps will be generated having a random number of obstacles between 1 and maxObst");
+DEFINE_string(f,"../file","The path to a file");
+DEFINE_string(dir,"../","The path to a directory (must end with a /)");
+DEFINE_int32(nmaps,10,"The number of maps to generate in dir");
 
 MapGW::MapGW(){}
 

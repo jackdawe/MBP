@@ -11,17 +11,13 @@ class Commands
 {
  public:
   Commands();
-  Commands(vector<string> parameters);
-  bool checkArguments(int nbParameters,vector<int> types);
   
   //GridWorld related commands
-  bool generateMapGW();
-  bool generateMapPoolGW();
-  bool showMapGW(int argc, char* argv[]);
-  bool trainA2COneMapGW(); 
-  
- private:
-  vector<string> parameters;
+  void generateMapGW();
+  void generateMapPoolGW();
+  void showMapGW(int argc, char* argv[]);
+  void trainA2COneMapGW(); 
+
 };
 
 #endif // COMMANDS_H

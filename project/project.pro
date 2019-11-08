@@ -23,6 +23,7 @@ INCLUDEPATH += "$$PWD/../../libtorch/include/torch/csrc/api/include"
 LIBS += `pkg-config --libs opencv`
 LIBS += -L"$$PWD/../../libtorch/lib" -ltorch -lc10 -lc10_cuda
 LIBS += -L"/usr/local/cuda-9.2/lib64" -lcudart 
+LIBS += -L"usr/include/" -lgflags
 
 SOURCES += main.cpp \
     action.cpp \

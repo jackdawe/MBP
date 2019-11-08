@@ -4,8 +4,14 @@
 #include <iostream>
 #include <random>
 #include <vector>
-
-using namespace std;
+#include <gflags/gflags.h>
+DECLARE_int32(size);
+DECLARE_int32(maxObst);
+DECLARE_string(f);
+DECLARE_string(dir);
+DECLARE_int32(nmaps);
+ 
+ using namespace std;
 
 class MapGW
 {
