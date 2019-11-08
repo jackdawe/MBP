@@ -4,7 +4,19 @@ DEFINE_int32(conv2,16,"The number of units in the second convolutionnal layer");
 DEFINE_int32(fc1,128,"THe number of units in the first fully connected layer");
 
 ConvNetGWImpl::ConvNetGWImpl():
-  usedDevice(torch::Device(torch::kCPU)){}
+  usedDevice(torch::Device(torch::kCPU))
+{
+      if (torch::cuda::is_available())
+      {
+	std::cout << "Training will be done using CUDA" << std::endl;
+	usedDevice = torch::Device(torch::kCUDA);
+      }
+    else
+      {
+	std::cout <<"Training will be done using CPU"<<std::endl;
+      }
+    this->to(usedDevice);
+}
 
 ConvNetGWImpl::ConvNetGWImpl(int size, int nConv1, int nConv2, int nfc):
   usedDevice(torch::Device(torch::kCPU)),size(size),nConv1(nConv1), nConv2(nConv2), nfc(nfc)

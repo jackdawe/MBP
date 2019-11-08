@@ -17,7 +17,8 @@ class Commands
   void generateMapPoolGW();
   void showMapGW(int argc, char* argv[]);
   void trainA2COneMapGW(); 
-
+  void showCriticOnMapGW(int argc,char* argv[]);
+  void showActorOnMapGW(int argc,char* argv[]);
 };
 
 #endif // COMMANDS_H

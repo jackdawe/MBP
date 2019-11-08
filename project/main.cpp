@@ -21,9 +21,17 @@ int main(int argc, char *argv[])
     {
       c.showMapGW(argc,argv);
     }
-  else if (FLAGS_cmd == "a2c1map")
+  else if (FLAGS_cmd == "gwa2c1map")
     {
       c.trainA2COneMapGW();
+    }
+  else if(FLAGS_cmd == "gwa2cvshow")
+    {
+      c.showCriticOnMapGW(argc,argv);
+    }
+  else if(FLAGS_cmd == "gwa2cpshow")
+    {
+      c.showActorOnMapGW(argc,argv);
     }
   else
     {
