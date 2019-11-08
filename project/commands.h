@@ -16,8 +16,10 @@ class Commands
   
   //GridWorld related commands
   bool generateMapGW();
-  bool generateMapPool();
-
+  bool generateMapPoolGW();
+  bool showMapGW(int argc, char* argv[]);
+  bool trainA2COneMapGW(); 
+  
  private:
   vector<string> parameters;
 };

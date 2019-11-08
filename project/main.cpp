@@ -11,7 +11,15 @@ int main(int argc, char *argv[])
     }
   else if (command == "gwmpgen")
     {
-      c.generateMapPool();
+      c.generateMapPoolGW();
+    }
+  else if (command == "gwmshow")
+    {
+      c.showMapGW(argc,argv);
+    }
+  else if (command == "a2c1map")
+    {
+      c.trainA2COneMapGW();
     }
   else
     {
