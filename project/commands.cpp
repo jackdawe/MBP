@@ -34,6 +34,17 @@ void Commands::trainA2COneMapGW()
   torch::save(agent.getModel(),"../model.pt");
 }
 
+void Commands::trainA2CMapPoolGW()
+{
+  GridWorld gw(FLAGS_dir,FLAGS_nmaps);
+  int size = gw.getSize();
+  ConvNetGW net(size,FLAGS_conv1,FLAGS_conv2,FLAGS_fc1);
+  ParametersA2C params(FLAGS_g, FLAGS_lr, FLAGS_beta, FLAGS_zeta, FLAGS_bs, FLAGS_n);
+  ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
+  agent.train();
+  torch::save(agent.getModel(),"../model.pt");
+}
+
 void Commands::showCriticOnMapGW(int argc, char* argv[])
 {
   QApplication a(argc,argv);
