@@ -9,6 +9,10 @@ int main(int argc, char *argv[])
     {
       c.generateMapGW();
     }
+  else if (command == "gwmpgen")
+    {
+      c.generateMapPool();
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;
