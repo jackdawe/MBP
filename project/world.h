@@ -26,7 +26,7 @@ public:
 
     /**
      * @brief generateStates
-     * Generates the state vectors for previous state and current state condensing the controller's vision of
+     * Generates the state vectors for previous state and current state condensing the world's vision of
      * the world into a generic representation
      */
     virtual void generateVectorStates();
@@ -41,7 +41,7 @@ public:
 
     /**
      * @brief reset
-     * Resets the controller. This method is called each time the trainer changes episode.
+     * Resets the world. This method is called each time the trainer changes episode.
      */
     virtual void reset();
 
@@ -56,7 +56,7 @@ public:
 
     /**
      * @brief spaceStateSize
-     * A quality of life method to access the size of the controller's space state
+     * A quality of life method to access the size of the world's space state
      * @return The cardinal of the space state or -1 if the space state is infinite
      */
     virtual int spaceStateSize();
@@ -110,4 +110,4 @@ protected:
     vector<float> paramValues;
 };
 
-#endif // CONTROLLER_H
+#endif // WORLD_H

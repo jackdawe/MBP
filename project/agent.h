@@ -29,15 +29,15 @@ public:
     float takenReward();
     State currentState();
     vector<float> rewardHistory();
-    W getController() const;
+    W getWorld() const;
 
-    void setController(const W &value);
+    void setWorld(const W &value);
 
     string getNameTag() const;
 
 protected:
     int episodeNumber;
-    W controller;
+    W world;
     string nameTag;
 
 };

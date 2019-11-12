@@ -76,9 +76,9 @@ void Commands::testA2C()
 		}
 	    }
 	}
-      accuracy*=100/emptySpaces;
+      accuracy=accuracy*100./emptySpaces;
       tot+=accuracy;
-      cout << "The model completed a " + to_string(accuracy) + "% accurcy on map" + to_string(i) << endl
+      cout << "The model completed a " + to_string(accuracy) + "% accuracy on map" + to_string(i) << endl
 	;
     }
   cout<<"The overall accuracy on the test set: " + to_string(tot/FLAGS_nmaps) +"%"<<endl;

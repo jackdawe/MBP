@@ -6,10 +6,10 @@ Agent<W>::Agent()
 }
 
 template <class W>
-Agent<W>::Agent(W controller):
-    controller(controller), episodeNumber(0)
+Agent<W>::Agent(W world):
+    world(world), episodeNumber(0)
 {
-    this->controller.generateVectorStates();
+    this->world.generateVectorStates();
 }
 
 template <class W>
@@ -41,19 +41,19 @@ void Agent<W>::generateNameTag(string prefix)
 template<class W>
 void Agent<W>::saveRewardHistory()
 {
-    controller.saveRewardHistory(nameTag);
+    world.saveRewardHistory(nameTag);
 }
 
 template<class W>
 void Agent<W>::saveLastEpisode()
 {
-    controller.saveLastEpisode(nameTag);
+    world.saveLastEpisode(nameTag);
 }
 
 template<class W>
 void Agent<W>::loadEspisode(string nameTag)
 {
-    controller.loadEpisode(nameTag);
+    world.loadEpisode(nameTag);
 }
 
 template<class W>
@@ -71,7 +71,7 @@ int Agent<W>::caSize()
 template<class W>
 ActionSpace Agent<W>::actions()
 {
-    return controller.getActions();
+    return world.getActions();
 }
 
 template<class W>
@@ -89,37 +89,37 @@ vector<ContinuousAction> Agent<W>::continuousActions()
 template<class W>
 State Agent<W>::previousState()
 {
-    return controller.getPreviousState();
+    return world.getPreviousState();
 }
 
 template<class W>
 vector<float> Agent<W>::takenAction()
 {
-    return controller.getTakenAction();
+    return world.getTakenAction();
 }
 
 template<class W>
 float Agent<W>::takenReward()
 {
-    return controller.getTakenReward();
+    return world.getTakenReward();
 }
 
 template<class W>
 State Agent<W>::currentState()
 {
-    return controller.getCurrentState();
+    return world.getCurrentState();
 }
 
 template<class W>
 vector<float> Agent<W>::rewardHistory()
 {
-  return controller.getRewardHistory();
+  return world.getRewardHistory();
 }
 
 template<class W>
-void Agent<W>::setController(const W &value)
+void Agent<W>::setWorld(const W &value)
 {
-    controller = value;
+    world = value;
 }
 
 template<class W>
@@ -129,9 +129,9 @@ string Agent<W>::getNameTag() const
 }
 
 template<class W>
-W Agent<W>::getController() const
+W Agent<W>::getWorld() const
 {
-    return controller;
+    return world;
 }
 
 template class Agent<GridWorld>;

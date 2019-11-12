@@ -17,7 +17,7 @@ template<class W,class M>
 ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
   model(model),usesCNN(usesCNN)
 {
-  this->controller = world;
+  this->world = world;
   if (usesCNN)
     {
       //     this->generateNameTag("A2C_CNN");
@@ -56,7 +56,7 @@ void ActorCritic<W,M>::evaluateRunValues()
     else
     {
         torch::Tensor prediction = model->criticOutput(runStates[batchSize-1]
-                .reshape({1,3,this->controller.getSize(),this->controller.getSize()}));
+                .reshape({1,3,this->world.getSize(),this->world.getSize()}));
         nextReturn = *prediction.to(torch::Device(torch::kCPU)).data<float>();
     }
     runValues[batchSize-1] = nextReturn;
@@ -113,7 +113,7 @@ void ActorCritic<W,M>::train()
 	  torch::Tensor s;
 	  if(usesCNN)
             {
-	      s = this->controller.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
+	      s = this->world.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
             }
 	  else
             {
@@ -122,20 +122,20 @@ void ActorCritic<W,M>::train()
             }
 	  torch::Tensor actionProbabilities = model->actorOutput(s);
 	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
-	  this->controller.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
-	  this->controller.setTakenReward(this->controller.transition());
+	  this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
+	  this->world.setTakenReward(this->world.transition());
 	  runStates = torch::cat({runStates,s});
 	  runRewards.push_back(this->takenReward());
 	  runActions = torch::cat({runActions,action.to(model->getUsedDevice())});
-	  runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
-	  if (runAreTerminal.back() || nSteps==pow(this->controller.getSize(),2)/2)
+	  runAreTerminal.push_back(this->world.isTerminal(this->currentState()));
+	  if (runAreTerminal.back() || nSteps==pow(this->world.getSize(),2)/2)
             {
-	      if (nSteps==pow(this->controller.getSize(),2)/2)
+	      if (nSteps==pow(this->world.getSize(),2)/2)
 		{
 		  cout <<"Episode " + to_string(this->episodeNumber) + " was interrupted because it reached the maximum number of steps"<<endl;
 		}
 	      nSteps = 0;
-	      this->controller.reset();
+	      this->world.reset();
 	      this->episodeNumber++;
 	      //Displaying a progression bar in the terminal
 	      
@@ -149,30 +149,30 @@ void ActorCritic<W,M>::train()
       backPropagate(&optimizer);
     }
   saveTrainingData();
-  this->controller.saveRewardHistory("A2C");
+  this->world.saveRewardHistory("A2C");
 }
 
 template <class W, class M>
 void ActorCritic<W,M>::playOne()
 {
   int count =0;
-  while(count<pow(this->controller.getSize(),2) && !this->controller.isTerminal(this->currentState()))
+  while(count<pow(this->world.getSize(),2) && !this->world.isTerminal(this->currentState()))
     {
       count++;
       torch::Tensor s;
       if(usesCNN)
-            {
-	      s = this->controller.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
+	{
+	      s = this->world.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
             }
 	  else
             {
 	      s = torch::tensor(this->currentState().getStateVector());
 	      s = s.reshape({1,s.size(0)});
             }
-	  torch::Tensor actionProbabilities = model->actorOutput(s);
-	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
-	  this->controller.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
-	  this->controller.setTakenReward(this->controller.transition());
+      torch::Tensor actionProbabilities = model->actorOutput(s);
+      torch::Tensor action = torch::argmax(actionProbabilities).to(torch::kFloat32);
+      this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
+      this->world.setTakenReward(this->world.transition());
     }
 }
 

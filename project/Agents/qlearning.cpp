@@ -6,13 +6,13 @@ QLearning<C>::QLearning()
 }
 
 template <class W>
-QLearning<W>::QLearning(W controller,int nEpisodes, float epsilon, float gamma):
-    Agent<W>(controller), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
+QLearning<W>::QLearning(W world,int nEpisodes, float epsilon, float gamma):
+    Agent<W>(world), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
 {
     this->generateNameTag("QL");
     //Initialising the Q fonction to 0 for each state action pair
 
-    for (int i=0;i<controller.spaceStateSize();i++)
+    for (int i=0;i<world.spaceStateSize();i++)
     {
         qvalues.push_back(vector<float>(this->actions().cardinal(),0));
     }
@@ -28,7 +28,7 @@ void QLearning<W>::epsilonGreedyPolicy()
     {
         for (int i=0;i<this->daSize();i++)
         {
-            this->controller.updateTakenAction(i,this->discreteActions()[i].pick());
+            this->world.updateTakenAction(i,this->discreteActions()[i].pick());
         }
     }
     else
@@ -37,7 +37,7 @@ void QLearning<W>::epsilonGreedyPolicy()
 
         for (int i=0;i<this->actions().cardinal();i++)
         {
-            possibleQValues.push_back(qvalues[this->controller.stateId(this->currentState())][i]);
+            possibleQValues.push_back(qvalues[this->world.stateId(this->currentState())][i]);
         }
         float maxQValue = *max_element(possibleQValues.begin(),possibleQValues.end());
 
@@ -54,18 +54,18 @@ void QLearning<W>::epsilonGreedyPolicy()
         default_random_engine generator(random_device{}());
         uniform_int_distribution<int> dist(0,indexOfMax.size()-1);
         int actionId = indexOfMax[dist(generator)];
-        this->controller.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
+        this->world.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
     }
-    this->controller.setTakenReward(this->controller.transition());
+    this->world.setTakenReward(this->world.transition());
 }
 
 template <class W>
 void QLearning<W>::updateQValues()
 {
-    int psIndex = this->controller.stateId(this->previousState());
-    int csIndex = this->controller.stateId(this->currentState());
+    int psIndex = this->world.stateId(this->previousState());
+    int csIndex = this->world.stateId(this->currentState());
     int actionId = this->actions().idFromAction(this->takenAction());
-    if (this->controller.isTerminal(this->previousState()))
+    if (this->world.isTerminal(this->previousState()))
     {
         for (int i=0;i<this->actions().cardinal();i++)
         {
@@ -102,13 +102,13 @@ void QLearning<W>::train()
         while(!terminal)
         {
             epsilonGreedyPolicy();
-            terminal = this->controller.isTerminal(this->currentState());
+            terminal = this->world.isTerminal(this->currentState());
             updateQValues();
         }
-        this->controller.transition();
+        this->world.transition();
         updateQValues();
         this->episodeNumber++;
-        this->controller.reset();
+        this->world.reset();
     }
 }
 
@@ -119,7 +119,7 @@ void QLearning<W>::playOne()
     while(!terminal)
     {
         epsilonGreedyPolicy();
-        terminal = this->controller.isTerminal(this->currentState());
+        terminal = this->world.isTerminal(this->currentState());
     }
     this->saveLastEpisode();
 }
@@ -127,7 +127,7 @@ void QLearning<W>::playOne()
 template <class W>
 void QLearning<W>::saveQValues()
 {
-    ofstream f(this->controller.getPath()+"Policies/"+this->nameTag);
+    ofstream f(this->world.getPath()+"Policies/"+this->nameTag);
     if (f)
     {
         f << to_string(this->epsilon) << endl;
@@ -151,7 +151,7 @@ template <class W>
 void QLearning<W>::loadQValues(string tag)
 {
     this->nameTag = tag;
-    ifstream f(this->controller.getPath()+"Policies/"+tag);
+    ifstream f(this->world.getPath()+"Policies/"+tag);
     if (f)
     {
         string line;
