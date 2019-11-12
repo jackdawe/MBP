@@ -21,7 +21,8 @@ template <class W, class M>
 {
  public:
   ActorCritic();
-  ActorCritic(W World, M model, ParametersA2C param, bool usesCNN = false);
+  ActorCritic(W world, M model, bool usesCNN = false);
+  ActorCritic(W world, M model, ParametersA2C param, bool usesCNN = false);
   void evaluateRunValues();
   void backPropagate(torch::optim::Adam *opti);
   void train();

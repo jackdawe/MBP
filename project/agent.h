@@ -28,6 +28,7 @@ public:
     vector<float> takenAction();
     float takenReward();
     State currentState();
+    vector<float> rewardHistory();
     W getController() const;
 
     void setController(const W &value);

@@ -111,6 +111,12 @@ State Agent<W>::currentState()
 }
 
 template<class W>
+vector<float> Agent<W>::rewardHistory()
+{
+  return controller.getRewardHistory();
+}
+
+template<class W>
 void Agent<W>::setController(const W &value)
 {
     controller = value;

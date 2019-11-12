@@ -37,6 +37,10 @@ int main(int argc, char *argv[])
     {
       c.showActorOnMapGW(argc,argv);
     }
+  else if(FLAGS_cmd == "gwa2ctest")
+    {
+      c.testA2C();
+    } 
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;

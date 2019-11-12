@@ -13,18 +13,34 @@ ActorCritic<W,M>::ActorCritic()
 {
 }
 
-template <class W,class M>
-ActorCritic<W,M>::ActorCritic(W controller,M model, ParametersA2C param,bool usesCNN):
-    Agent<W>(controller), model(model), gamma(param.gamma), learningRate(param.learningRate),
-    beta(param.beta),zeta(param.zeta), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
+template<class W,class M>
+ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
+  model(model),usesCNN(usesCNN)
 {
-    if (usesCNN)
+  this->controller = world;
+  if (usesCNN)
     {
-        this->generateNameTag("A2C_CNN");
+      //     this->generateNameTag("A2C_CNN");
     }
-    else
+  else
     {
-        this->generateNameTag("A2C_MLP");
+      this->generateNameTag("A2C_MLP");
+    }
+}
+
+
+template <class W,class M>
+ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param,bool usesCNN):
+  Agent<W>(world), model(model), gamma(param.gamma), learningRate(param.learningRate),
+  beta(param.beta),zeta(param.zeta), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
+{
+  if (usesCNN)
+    {
+      this->generateNameTag("A2C_CNN");
+    }
+  else
+    {
+      this->generateNameTag("A2C_MLP");
     }
 }
 
@@ -112,11 +128,11 @@ void ActorCritic<W,M>::train()
 	  runRewards.push_back(this->takenReward());
 	  runActions = torch::cat({runActions,action.to(model->getUsedDevice())});
 	  runAreTerminal.push_back(this->controller.isTerminal(this->currentState()));
-	  if (runAreTerminal.back())
+	  if (runAreTerminal.back() || nSteps==pow(this->controller.getSize(),2)/2)
             {
-	      if (nSteps>30)
+	      if (nSteps==pow(this->controller.getSize(),2)/2)
 		{
-		  cout <<"this episode was long... " + to_string(nSteps) + " steps."<<endl;
+		  cout <<"Episode " + to_string(this->episodeNumber) + " was interrupted because it reached the maximum number of steps"<<endl;
 		}
 	      nSteps = 0;
 	      this->controller.reset();
@@ -139,24 +155,25 @@ void ActorCritic<W,M>::train()
 template <class W, class M>
 void ActorCritic<W,M>::playOne()
 {
-  while(!this->controller.isTerminal(this->currentState()))
+  int count =0;
+  while(count<pow(this->controller.getSize(),2) && !this->controller.isTerminal(this->currentState()))
     {
+      count++;
       torch::Tensor s;
       if(usesCNN)
-        {
-	  s = this->controller.toRGBTensor(this->previousState().getStateVector());
-        }
-      else
-        {
-	  s = torch::tensor(this->previousState().getStateVector());
-        }
-      torch::Tensor actionProbabilities = model->actorOutput(s.reshape({1,s.size(0)}));
-      torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
-      vector<float> a(action.data<float>(),action.data<float>()+action.numel());
-      this->controller.setTakenAction(a);
-      this->controller.setTakenReward(this->controller.transition());
+            {
+	      s = this->controller.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
+            }
+	  else
+            {
+	      s = torch::tensor(this->currentState().getStateVector());
+	      s = s.reshape({1,s.size(0)});
+            }
+	  torch::Tensor actionProbabilities = model->actorOutput(s);
+	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
+	  this->controller.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
+	  this->controller.setTakenReward(this->controller.transition());
     }
-  this->saveLastEpisode();
 }
 
 template <class W,class M>

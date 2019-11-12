@@ -45,6 +45,45 @@ void Commands::trainA2CMapPoolGW()
   torch::save(agent.getModel(),"../model.pt");
 }
 
+void Commands::testA2C()
+{
+  ConvNetGW net(8,16,16,128);
+  torch::load(net,"../model.pt");
+  float tot=0;
+  for (int i=0;i<FLAGS_nmaps;i++)
+    {
+      MapGW map;
+      map.load(FLAGS_dir+"map"+to_string(i));
+      int size = map.getSize();
+      vector<float> mapRewards;
+      int emptySpaces=0;
+      int accuracy = 0;
+      for (int x=0;x<size;x++)
+	{
+	  for (int y=0;y<size;y++)
+	    {
+	      if (map.getMap()[x][y] == 0)
+		{
+		  emptySpaces++;
+		  GridWorld gw(FLAGS_dir+"map"+to_string(i),x,y);
+		  gw.generateVectorStates();
+		  ActorCritic<GridWorld,ConvNetGW> agent(gw,net,true);
+		  agent.playOne();
+		  if (agent.takenReward()>0)
+		    {
+		      accuracy++;
+		    }
+		}
+	    }
+	}
+      accuracy*=100/emptySpaces;
+      tot+=accuracy;
+      cout << "The model completed a " + to_string(accuracy) + "% accurcy on map" + to_string(i) << endl
+	;
+    }
+  cout<<"The overall accuracy on the test set: " + to_string(tot/FLAGS_nmaps) +"%"<<endl;
+}
+	       
 void Commands::showCriticOnMapGW(int argc, char* argv[])
 {
   QApplication a(argc,argv);

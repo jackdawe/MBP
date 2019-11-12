@@ -13,11 +13,13 @@ class Commands
   Commands();
   
   //GridWorld related commands
+  
   void generateMapGW();
   void generateMapPoolGW();
   void showMapGW(int argc, char* argv[]);
   void trainA2COneMapGW();
   void trainA2CMapPoolGW();
+  void testA2C();
   void showCriticOnMapGW(int argc,char* argv[]);
   void showActorOnMapGW(int argc,char* argv[]);
 };

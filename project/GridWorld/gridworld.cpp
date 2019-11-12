@@ -83,7 +83,7 @@ float GridWorld::transition()
     {
         r = EMPTY_SQUARE_REWARD;
     }
-    rewardHistory.back()+= r;//*(actionSequence.size());
+    rewardHistory.back()+= r;
     return r;
 }
 
@@ -168,7 +168,7 @@ void GridWorld::reset()
     {
       default_random_engine generator(std::random_device{}());
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
-      int mapId = dist(generator);
+      int mapId = dist(generator); 
       map.load(mapTag+"map"+to_string(mapId));
       size = map.getSize();
     }
