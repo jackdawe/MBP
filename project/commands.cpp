@@ -1,5 +1,5 @@
 #include "commands.h"
-
+TORCH_MODULE(WorldModelGW);
 Commands::Commands(){}
 
 void Commands::generateMapGW()
@@ -170,4 +170,12 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
   a.exec();
 }
 
-
+void Commands::test()
+{
+  WorldModelGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
+  GridWorld gw("../GridWorld_Maps/Easy8x8/map0",1,1);
+  gw.generateVectorStates();
+  torch::Tensor x = gw.toRGBTensor(gw.getCurrentState().getStateVector());
+  x = test->encoderForward(x);
+  cout<<x<<endl;
+}

@@ -5,6 +5,7 @@
 #include "Agents/qlearning.h"
 #include "Agents/A2C/actorcritic.h"
 #include "GridWorld/episodeplayergw.h"
+#include "GridWorld/Models/worldmodelgw.h"
 #include <stdexcept>
 
 class Commands
@@ -22,6 +23,7 @@ class Commands
   void testA2C();
   void showCriticOnMapGW(int argc,char* argv[]);
   void showActorOnMapGW(int argc,char* argv[]);
+  void test();
 };
 
 #endif // COMMANDS_H

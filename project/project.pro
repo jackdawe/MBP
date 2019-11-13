@@ -48,6 +48,7 @@ SOURCES += main.cpp \
     Starship/spaceworld.cpp \
     GridWorld/Models/convnetgw.cpp \
     GridWorld/Models/modela2cgw.cpp \
+    GridWorld/Models/worldmodelgw.cpp \
     commands.cpp
     
 HEADERS += \
@@ -73,6 +74,7 @@ HEADERS += \
     Starship/spaceworld.h \
     GridWorld/Models/convnetgw.h \
     GridWorld/Models/modela2cgw.h \
+    GridWorld/Models/worldmodel.h \
     commands.h
     
 

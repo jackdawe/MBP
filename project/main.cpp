@@ -40,7 +40,11 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd == "gwa2ctest")
     {
       c.testA2C();
-    } 
+    }
+  else if(FLAGS_cmd == "test")
+    {
+      c.test();
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;
