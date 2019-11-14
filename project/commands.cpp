@@ -172,7 +172,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 
 void Commands::test()
 {
-  WorldModelGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
+  WorldModelGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2, FLAGS_rc1, FLAGS_rfc);
   GridWorld gw("../GridWorld_Maps/Easy16x16/map0",1,1);
   cout<<test<<endl;
   gw.generateVectorStates();
@@ -183,5 +183,6 @@ void Commands::test()
   a = a.reshape({1,64,2,2});
   x = torch::cat({x,a},1);
   x = test->decoderForward(x);
+  x = test->rewardForward(x);
   cout<<x<<endl;
 }
