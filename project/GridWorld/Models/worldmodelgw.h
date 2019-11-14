@@ -36,7 +36,9 @@ class WorldModelGWImpl: public torch::nn::Module
   std::vector<torch::Tensor> outputCopies;
 
   int nUnetLayers;
-  std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers; 
+  std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers1;
+  std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers2;
+  std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateDeconvLayers;
   std::shared_ptr<torch::nn::LinearImpl> actionfc1;
   std::shared_ptr<torch::nn::LinearImpl> actionfc2;
   std::shared_ptr<torch::nn::LinearImpl> actionfc3;  

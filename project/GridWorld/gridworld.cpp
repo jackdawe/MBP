@@ -151,7 +151,7 @@ torch::Tensor GridWorld::toRGBTensor(vector<float> stateVector)
     }
   rgbState[0][stateVector[0]][stateVector[1]] = 1;
   rgbState[1][stateVector[2]][stateVector[3]] = 1;
-  return rgbState.reshape({1,3,8,8});
+  return rgbState.reshape({1,3,size,size});
 }
 
 int GridWorld::stateId(State s)

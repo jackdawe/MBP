@@ -40,16 +40,50 @@ WorldModelGWImpl::WorldModelGWImpl(int size,int nStateConv1, int nActionfc1, int
   this->to(usedDevice);
 
   nUnetLayers = -1+log(size)/log(2); 
-  stateConvLayers.push_back(register_module("stateConv1_"+std::to_string(1),torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nStateConv1,3).stride(1).padding(1))));
-  stateConvLayers.push_back(register_module("stateConv2_"+std::to_string(2),torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1,nStateConv1,3).stride(1).padding(1))));
+
+  //Adding the convolutionnal layers of the encoder 
+
+  stateConvLayers1.push_back(register_module("Encoder Conv1_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nStateConv1,3).stride(1).padding(1))));
+  stateConvLayers1.push_back(register_module("Encoder Conv1_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1,nStateConv1,3).stride(1).padding(1))));
+
   for (int i=1;i<nUnetLayers;i++)
     {
-      stateConvLayers.push_back(register_module("stateConv1_"+std::to_string(2*i+1),torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1*pow(2,i-1),nStateConv1*pow(2,i),3).stride(1).padding(1))));
-      stateConvLayers.push_back(register_module("stateConv2_"+std::to_string(2*i+2),torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1*pow(2,i),nStateConv1*pow(2,i),3).stride(1).padding(1))));
+      stateConvLayers1.push_back(register_module("Encoder Conv"+std::to_string(i+1)+"_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1*pow(2,i-1),nStateConv1*pow(2,i),3).stride(1).padding(1))));
+      stateConvLayers1.push_back(register_module("Encoder Conv"+std::to_string(i+1)+"_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(nStateConv1*pow(2,i),nStateConv1*pow(2,i),3).stride(1).padding(1))));
     }
+
+  //Adding the transposed convolutionnal layers of the decoder
+
+  int fcOutputSize = FLAGS_sc1*pow(2,nUnetLayers+2);
+  int deconvIn = 3.*fcOutputSize/8;
+  stateDeconvLayers.push_back(register_module("Decoder Deconv1",torch::nn::Conv2d(torch::nn::Conv2dOptions(deconvIn,deconvIn/2.,3).stride(2).dilation(1).padding(1).output_padding(1).transposed(true))));
+  deconvIn = (2*deconvIn/3)/2;
+  for (int i=1;i<nUnetLayers;i++)
+    {
+      deconvIn/=2.;
+      stateDeconvLayers.push_back(register_module("Decoder Deconv" + std::to_string(i+1),torch::nn::Conv2d(torch::nn::Conv2dOptions(deconvIn,deconvIn/2,3).stride(2).dilation(1).padding(1).output_padding(1).transposed(true))));
+    }
+  
+  //Adding the convolutionnal layers of the decoder
+  int convIn = fcOutputSize/4.;
+  stateConvLayers2.push_back(register_module("Decoder Conv1_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn,convIn/4.,3).stride(1).padding(1))));
+  convIn/=4.;
+  stateConvLayers2.push_back(register_module("Decoder Conv1_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn,convIn,3).stride(1).padding(1))));
+
+  for (int i=1;i<nUnetLayers-1;i++)
+    {
+      stateConvLayers2.push_back(register_module("Decoder Conv"+std::to_string(i+1)+"_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn,convIn/2,3).stride(1).padding(1))));
+      convIn/=2.;
+      stateConvLayers2.push_back(register_module("Decoder Conv"+std::to_string(i+1)+"_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn,convIn,3).stride(1).padding(1))));
+    }
+
+  stateConvLayers2.push_back(register_module("Decoder Conv Final",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn/2,3,3).stride(1).padding(1))));
+
+  
   actionfc1 = register_module("actionfc1",torch::nn::Linear(4,nActionfc1));
   actionfc2 = register_module("actionfc2",torch::nn::Linear(nActionfc1,nActionfc2));
-  actionfc3 = register_module("actionfc3",torch::nn::Linear(nActionfc2,FLAGS_sc1*pow(2,stateConvLayers.size()+2)));
+  actionfc3 = register_module("actionfc3",torch::nn::Linear(nActionfc2,fcOutputSize));
+
 }
 
 torch::Tensor WorldModelGWImpl::encoderForward(torch::Tensor x)
@@ -57,17 +91,33 @@ torch::Tensor WorldModelGWImpl::encoderForward(torch::Tensor x)
   outputCopies = std::vector<torch::Tensor>();
   for (int i=0;i<nUnetLayers;i++)
     {
-      x = stateConvLayers[2*i]->forward(x);
+      x = stateConvLayers1[2*i]->forward(x);
       x = torch::relu(x);
-      x = stateConvLayers[2*i+1]->forward(x);
+      x = stateConvLayers1[2*i+1]->forward(x);
       x = torch::relu(x);
-      std::cout<<x<<std::endl;
       x = torch::max_pool2d(x,2);
-      std::cout<<x<<std::endl;
       outputCopies.push_back(x); //Making a backup that will be used in the decoder
     }
   return x;
 }
+
+torch::Tensor WorldModelGWImpl::decoderForward(torch::Tensor x)
+{
+  for (int i=0;i<nUnetLayers-1;i++)
+    {
+      x = stateDeconvLayers[i]->forward(x);
+      x = torch::cat({x,outputCopies[nUnetLayers-i-2]},1);
+      x = stateConvLayers2[2*i]->forward(x);
+      x = torch::relu(x);
+      x = stateConvLayers2[2*i+1]->forward(x);
+      x = torch::relu(x);
+    }
+  x = stateDeconvLayers[nUnetLayers-1]->forward(x);
+  x = stateConvLayers2[2*(nUnetLayers-1)]->forward(x);
+  std::cout<<x<<std::endl;
+  x = torch::sigmoid(x);
+  return x;
+} 
 
 torch::Tensor WorldModelGWImpl::actionForward(torch::Tensor x)
 {
