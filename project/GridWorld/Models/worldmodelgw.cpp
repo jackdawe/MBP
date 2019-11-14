@@ -157,5 +157,19 @@ torch::Tensor WorldModelGWImpl::rewardForward(torch::Tensor x)
   x = torch::tanh(x);
   return x;
 }
+
+torch::Tensor WorldModelGWImpl::predictState(torch::Tensor stateBatch, torch::Tensor actionBatch)
+{
+  torch::Tensor encoderOut = this->encoderForward(stateBatch);
+  torch::Tensor actionEmbedding = this->actionForward(actionBatch);
+  actionEmbedding = actionEmbedding.reshape({1,FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
+  torch::Tensor decoderIn = torch::cat({encoderOut,actionEmbedding},1);
+  return this->decoderForward(decoderIn);
+}
+
+torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch)
+{
+  return this->rewardForward(this->predictState(stateBatch,actionBatch));
+}
   
 

@@ -177,12 +177,7 @@ void Commands::test()
   cout<<test<<endl;
   gw.generateVectorStates();
   torch::Tensor x = gw.toRGBTensor(gw.getCurrentState().getStateVector());
-  x = test->encoderForward(x);
   torch::Tensor a = torch::zeros(1,torch::kInt32);
-  a = test->actionForward(a);
-  a = a.reshape({1,64,2,2});
-  x = torch::cat({x,a},1);
-  x = test->decoderForward(x);
-  x = test->rewardForward(x);
+  x = test->predictReward(x,a);
   cout<<x<<endl;
 }

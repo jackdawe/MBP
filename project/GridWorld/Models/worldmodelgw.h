@@ -22,7 +22,9 @@ class WorldModelGWImpl: public torch::nn::Module
   torch::Tensor actionForward(torch::Tensor x);
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
-
+  torch::Tensor predictState(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  torch::Tensor predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  
  private:
   torch::Device usedDevice;
   int size;
