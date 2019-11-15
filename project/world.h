@@ -53,21 +53,22 @@ public:
      * or the vector {-1} there is an infinite amount of accessible states.
      */
     virtual vector<int> accessibleStates(State s);
-
+    
     /**
      * @brief spaceStateSize
      * A quality of life method to access the size of the world's space state
      * @return The cardinal of the space state or -1 if the space state is infinite
      */
     virtual int spaceStateSize();
-
-
+    virtual void generateDataSet();
+    
+    vector<float> randomAction();
     void saveRewardHistory(string nameTag);
     void saveLastEpisode(string nameTag);
     void loadEpisode(string nameTag);
     int actionSpaceSize();
     int saPairSpaceSize();
-
+    
     ActionSpace getActions() const;
     State getPreviousState() const;
     vector<float> getTakenAction() const;
@@ -96,16 +97,16 @@ protected:
     string path;
     int size;
     ActionSpace actions;
-
+    
     State previousState;
     vector<float> takenAction;
     float takenReward;
     State currentState;
-
+    
     vector<vector<float>> stateSequence;
     vector<vector<float>> actionSequence;
     vector<float> rewardHistory;
-
+    
     vector<string> paramLabels;
     vector<float> paramValues;
 };

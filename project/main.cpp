@@ -41,6 +41,10 @@ int main(int argc, char *argv[])
     {
       c.testA2C();
     }
+  else if(FLAGS_cmd == "gwdsgen")
+    {
+      c.generateDataSetGW();
+    }
   else if(FLAGS_cmd == "test")
     {
       c.test();

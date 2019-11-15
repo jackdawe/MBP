@@ -169,7 +169,7 @@ torch::Tensor WorldModelGWImpl::predictState(torch::Tensor stateBatch, torch::Te
 
 torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-  return this->rewardForward(this->predictState(stateBatch,actionBatch));
+  return this->rewardForward(this->predictState(stateBatch,actionBatch)); 
 }
-  
+
 

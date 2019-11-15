@@ -13,16 +13,30 @@ class Commands
  public:
   Commands();
   
-  //GridWorld related commands
+  /////* GridWorld related commands */////
+
+  //Map Generation
   
   void generateMapGW();
   void generateMapPoolGW();
   void showMapGW(int argc, char* argv[]);
+
+  //QLearning
+
+  //Actor Advantage Critic 
+  
   void trainA2COneMapGW();
   void trainA2CMapPoolGW();
   void testA2C();
   void showCriticOnMapGW(int argc,char* argv[]);
   void showActorOnMapGW(int argc,char* argv[]);
+
+  //Model Based Planning
+  
+  void generateDataSetGW();
+  
+  //Other
+  
   void test();
 };
 

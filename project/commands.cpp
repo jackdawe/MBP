@@ -170,6 +170,13 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
   a.exec();
 }
 
+void Commands::generateDataSetGW()
+{
+  GridWorld gw(FLAGS_dir,FLAGS_nmaps);
+  gw.generateVectorStates();
+  gw.generateDataSet(FLAGS_n);
+}
+
 void Commands::test()
 {
   WorldModelGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2, FLAGS_rc1, FLAGS_rfc);

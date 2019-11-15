@@ -7,7 +7,7 @@ QLearning<C>::QLearning()
 
 template <class W>
 QLearning<W>::QLearning(W world,int nEpisodes, float epsilon, float gamma):
-    Agent<W>(world), nEpisodes(nEpisodes),epsilon(epsilon), gamma(gamma)
+  Agent<W>(world, nEpisodes),epsilon(epsilon), gamma(gamma)
 {
     this->generateNameTag("QL");
     //Initialising the Q fonction to 0 for each state action pair
@@ -88,15 +88,15 @@ template <class W>
 void QLearning<W>::train()
 {
     float e = epsilon;
-    for (int k=0;k<nEpisodes;k++)
+    for (int k=0;k<this->nEpisodes;k++)
     {
-        epsilon = e*exp(-k*5./nEpisodes);
+        epsilon = e*exp(-k*5./this->nEpisodes);
 
         //Displaying a progression bar in the terminal
 
-        if (nEpisodes > 100 && k%(5*nEpisodes/100) == 0)
+        if (this->nEpisodes > 100 && k%(5*this->nEpisodes/100) == 0)
         {
-            cout << "Training in progress... " + to_string(k/(nEpisodes/100)) + "%" << endl;
+            cout << "Training in progress... " + to_string(k/(this->nEpisodes/100)) + "%" << endl;
         }
         bool terminal = false;
         while(!terminal)

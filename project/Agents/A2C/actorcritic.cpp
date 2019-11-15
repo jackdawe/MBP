@@ -31,8 +31,8 @@ ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
 
 template <class W,class M>
 ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param,bool usesCNN):
-  Agent<W>(world), model(model), gamma(param.gamma), learningRate(param.learningRate),
-  beta(param.beta),zeta(param.zeta), nEpisodes(param.nEpisodes),batchSize(param.batchSize), usesCNN(usesCNN)
+  Agent<W>(world, param.nEpisodes), model(model), gamma(param.gamma), learningRate(param.learningRate),
+  beta(param.beta),zeta(param.zeta), batchSize(param.batchSize), usesCNN(usesCNN)
 {
   if (usesCNN)
     {
@@ -104,7 +104,7 @@ void ActorCritic<W,M>::train()
   int nSteps = 0;
   this->episodeNumber = 0;
   torch::optim::Adam optimizer(model->parameters(),learningRate);
-  while (this->episodeNumber<nEpisodes)
+  while (this->episodeNumber<this->nEpisodes)
     {
       runStates = torch::zeros(0).to(model->getUsedDevice()), runActions = torch::zeros(0).to(model->getUsedDevice()), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1}).to(model->getUsedDevice());
       for (int i=0;i<batchSize;i++)
@@ -139,9 +139,9 @@ void ActorCritic<W,M>::train()
 	      this->episodeNumber++;
 	      //Displaying a progression bar in the terminal
 	      
-	      if (nEpisodes > 100 && lossHistory.size()>0 &&  this->episodeNumber%(nEpisodes/100) == 0)
+	      if (this->nEpisodes > 100 && lossHistory.size()>0 &&  this->episodeNumber%(this->nEpisodes/100) == 0)
                 {
-		  cout << "Training in progress... " + to_string(this->episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
+		  cout << "Training in progress... " + to_string(this->episodeNumber/(this->nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
 		    + "  Current entropy: " + to_string(entropyHistory.back()/beta)<< endl;
                 }
             }

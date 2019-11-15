@@ -34,6 +34,24 @@ int World::spaceStateSize()
     return -1;
 }
 
+void World::generateDataSet()
+{
+}
+
+vector<float> World::randomAction()
+{
+  vector<float> randAction;
+  for (int i=0;i<actions.getDiscreteActions().size();i++)
+    {
+      randAction.push_back(actions.getDiscreteActions()[i].pick());
+    }
+  for (int i=0;i<actions.getContinuousActions().size();i++)
+    {
+      randAction.push_back(actions.getContinuousActions()[i].pick());
+    }
+  return randAction;
+}
+
 void World::saveRewardHistory(string nameTag)
 {
     {

@@ -6,8 +6,8 @@ Agent<W>::Agent()
 }
 
 template <class W>
-Agent<W>::Agent(W world):
-    world(world), episodeNumber(0)
+Agent<W>::Agent(W world, int nEpisodes):
+  world(world), episodeNumber(0), nEpisodes(nEpisodes)
 {
     this->world.generateVectorStates();
 }

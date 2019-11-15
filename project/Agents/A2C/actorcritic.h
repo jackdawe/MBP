@@ -36,7 +36,6 @@ template <class W, class M>
   float learningRate;
   float beta;
   float zeta;
-  int nEpisodes;
   int batchSize;    
   torch::Tensor runStates;
   torch::Tensor runActions;

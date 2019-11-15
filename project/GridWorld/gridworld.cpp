@@ -213,14 +213,60 @@ void GridWorld::reset()
 
 vector<int> GridWorld::accessibleStates(State s)
 {
-    int ax = s.getStateVector()[0];
-    int ay = s.getStateVector()[1];
-    vector<int> accessibleStates = {(ax-1)*size+ay,ax*size+ay+1,(ax+1)*size+ay,ax*size+ay-1};
-    return accessibleStates;
+  int ax = s.getStateVector()[0];
+  int ay = s.getStateVector()[1];
+  vector<int> accessibleStates = {(ax-1)*size+ay,ax*size+ay+1,(ax+1)*size+ay,ax*size+ay-1};
+  return accessibleStates;
 }
 
 int GridWorld::spaceStateSize()
 {
-    return size*size;
+  return size*size;
 }
 
+void GridWorld::generateDataSet(int n)
+{
+  //Initialising the tensors that will contain the dataset
+  
+  torch::Tensor stateInputs = torch::zeros({n,3,size,size});
+  torch::Tensor actionInputs = torch::zeros({n});
+  torch::Tensor stateLabels = torch::zeros({n,3,size,size});
+  torch::Tensor rewardLabels = torch::zeros({n});
+
+  torch::Tensor shuffledIndexes = torch::randperm(n).to(torch::kInt32);  
+  
+  //Making the agent wander randomly for n episodes 
+  
+  for (int i=0;i<n;i++)
+    {
+      //Displaying a progression bar in the terminal
+      
+      if (n > 100 && i%(5*n/100) == 0)
+	{
+	  cout << "Your agent is working hard... " + to_string(i/(n/100)) + "%" << endl;
+	}
+      
+      while(!isTerminal(currentState))
+	{
+	  int idx = *shuffledIndexes[i].data<int>();
+	  torch::Tensor s = toRGBTensor(currentState.getStateVector()).reshape({3,size,size});
+	  stateInputs[idx] = s; //va surement crier
+	  int action = randomAction()[0]; 
+	  actionInputs[idx] = action;
+	  rewardLabels[idx] = transition();
+	  s = toRGBTensor(currentState.getStateVector()).reshape({3,size,size});
+	  stateLabels[idx] = s;
+	}
+      reset();
+    }
+
+  //Saving the model
+
+  cout<< "Your dataset was successfully generated. Saving them now..." << endl;
+  
+  torch::save(stateInputs,"../stateInputs.pt");
+  torch::save(actionInputs,"../actionInputs.pt");
+  torch::save(rewardLabels,"../rewardLabels.pt");
+  torch::save(stateLabels,"../stateLabelss.pt");
+  
+}

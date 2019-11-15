@@ -17,7 +17,6 @@ public:
     void saveTrainingData();
 
 private:
-    int nEpisodes;
     float epsilon;
     float gamma;
     vector<vector<float>> qvalues;

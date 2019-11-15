@@ -9,7 +9,7 @@
 
 #define WIN_REWARD 1
 #define LOSE_REWARD -1
-#define EMPTY_SQUARE_REWARD -0.03;
+#define EMPTY_SQUARE_REWARD -0.01;
 
 class GridWorld: public World
 {
@@ -28,7 +28,9 @@ public:
     void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
-
+    void generateDataSet(int n);
+    
+    
 private:
     MapGW map;
     bool randomStart;
