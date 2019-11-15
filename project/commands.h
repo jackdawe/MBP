@@ -4,9 +4,8 @@
 #include "GridWorld/gridworld.h"
 #include "Agents/qlearning.h"
 #include "Agents/A2C/actorcritic.h"
+#include "Agents/modelbased.h"
 #include "GridWorld/episodeplayergw.h"
-#include "GridWorld/Models/worldmodelgw.h"
-#include <stdexcept>
 
 class Commands
 {
@@ -34,6 +33,7 @@ class Commands
   //Model Based Planning
   
   void generateDataSetGW();
+  void trainWorldModelGW();
   
   //Other
   

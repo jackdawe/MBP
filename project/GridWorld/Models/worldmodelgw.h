@@ -1,7 +1,8 @@
 #ifndef WORLDMODELGW_H
 #define WORLDMODELGH_H
-
+#undef slots
 #include <torch/torch.h>
+#define slots Q_SLOTS
 #include <gflags/gflags.h>
 #include <math.h>
 DECLARE_int32(sc1);
@@ -24,6 +25,9 @@ class WorldModelGWImpl: public torch::nn::Module
   torch::Tensor rewardForward(torch::Tensor x);
   torch::Tensor predictState(torch::Tensor stateBatch, torch::Tensor actionBatch);
   torch::Tensor predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+
+  torch::Device getUsedDevice();
+  torch::Tensor getStateOutput();
   
  private:
   torch::Device usedDevice;
@@ -47,5 +51,6 @@ class WorldModelGWImpl: public torch::nn::Module
   std::shared_ptr<torch::nn::LinearImpl> rewardfc;
   std::shared_ptr<torch::nn::LinearImpl> rewardOut;
 
+  torch::Tensor stateOutput;
 };
 #endif //WORLDMODELGW_H

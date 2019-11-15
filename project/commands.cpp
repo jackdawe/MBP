@@ -1,5 +1,4 @@
 #include "commands.h"
-TORCH_MODULE(WorldModelGW);
 Commands::Commands(){}
 
 void Commands::generateMapGW()
@@ -175,6 +174,25 @@ void Commands::generateDataSetGW()
   GridWorld gw(FLAGS_dir,FLAGS_nmaps);
   gw.generateVectorStates();
   gw.generateDataSet(FLAGS_n);
+}
+
+void Commands::trainWorldModelGW()
+{
+  GridWorld gw;
+  torch::Tensor states;
+  torch::load(states,FLAGS_dir+"stateInputs.pt");
+  torch::Tensor actions;
+  torch::load(actions,FLAGS_dir+"actionInputs.pt");
+  WorldModelGW model(states.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2,FLAGS_rc1,FLAGS_rfc);
+  model->to(torch::Device(torch::kCUDA));
+  ModelBased<GridWorld,WorldModelGW,PlannerGW> agent(gw,model,PlannerGW());
+  agent.learnWorldModel(FLAGS_dir,FLAGS_bs,FLAGS_lr);
+  //  torch::save(model,'../WorldModelGW.pt');
+  model = agent.getModel();
+  cout<<states[1]<<endl;
+  cout<<actions[1]<<endl;
+  cout<<model->predictState(states[1].to(model->getUsedDevice()).reshape({1,3,8,8}),actions[0].to(model->getUsedDevice()).reshape({1}))<<endl;
+  cout<<model->predictReward(states[1].to(model->getUsedDevice()).reshape({1,3,8,8}),actions[0].to(model->getUsedDevice()).reshape({1}))<<endl;
 }
 
 void Commands::test()

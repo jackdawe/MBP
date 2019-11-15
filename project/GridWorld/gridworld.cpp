@@ -262,11 +262,11 @@ void GridWorld::generateDataSet(int n)
 
   //Saving the model
 
-  cout<< "Your dataset was successfully generated. Saving them now..." << endl;
+  cout<< "Your dataset was successfully generated. Saving it now..." << endl;
   
   torch::save(stateInputs,"../stateInputs.pt");
   torch::save(actionInputs,"../actionInputs.pt");
   torch::save(rewardLabels,"../rewardLabels.pt");
-  torch::save(stateLabels,"../stateLabelss.pt");
+  torch::save(stateLabels,"../stateLabels.pt");
   
 }

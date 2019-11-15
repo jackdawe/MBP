@@ -1,6 +1,4 @@
 #include "actorcritic.h"
-#include <chrono>
-#include <ctime>
 DEFINE_double(g,0.99,"Discount factor");
 DEFINE_double(lr,0.003,"Learning Rate");
 DEFINE_double(beta,0.01,"Coefficient applied to the entropy loss");
@@ -86,7 +84,7 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
   torch::Tensor policyLoss = -(chosenActionLogProbs*advantages).mean();
   torch::Tensor valueLoss = zeta*advantages.pow(2).mean();
   torch::Tensor totalLoss = valueLoss + policyLoss - entropyLoss;    
-   policyLossHistory.push_back(*policyLoss.to(torch::Device(torch::kCPU)).data<float>());
+  policyLossHistory.push_back(*policyLoss.to(torch::Device(torch::kCPU)).data<float>());
   valueLossHistory.push_back(*valueLoss.to(torch::Device(torch::kCPU)).data<float>());
   entropyHistory.push_back(*entropyLoss.to(torch::Device(torch::kCPU)).data<float>());
   lossHistory.push_back(*totalLoss.to(torch::Device(torch::kCPU)).data<float>());

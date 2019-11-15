@@ -43,12 +43,14 @@ SOURCES += main.cpp \
     Starship/mapss.cpp \
     Agents/A2C/actorcritic.cpp \
     Agents/A2C/parametersa2c.cpp \
+    Agents/modelbased.cpp \
     world.cpp \
     GridWorld/gridworld.cpp \
     Starship/spaceworld.cpp \
     GridWorld/Models/convnetgw.cpp \
     GridWorld/Models/modela2cgw.cpp \
     GridWorld/Models/worldmodelgw.cpp \
+    GridWorld/Models/plannergw.cpp \
     commands.cpp
     
 HEADERS += \
@@ -69,12 +71,14 @@ HEADERS += \
     Starship/mapss.h \
     Agents/A2C/actorcritic.h \
     Agents/A2C/parametersa2c.h \
+    Agents/modelbased.h \
     world.h \
     GridWorld/gridworld.h \
     Starship/spaceworld.h \
     GridWorld/Models/convnetgw.h \
     GridWorld/Models/modela2cgw.h \
-    GridWorld/Models/worldmodel.h \
+    GridWorld/Models/worldmodelgw.h \
+    GridWorld/Models/plannergw.h \
     commands.h
     
 

@@ -36,7 +36,6 @@ WorldModelGWImpl::WorldModelGWImpl(int size,int nStateConv1, int nActionfc1, int
       std::cout <<"Training will be done using CPU"<<std::endl;
     }
   this->to(usedDevice);
-
   nUnetLayers = -1+log(size)/log(2); 
 
   //Adding the convolutionnal layers of the encoder 
@@ -112,7 +111,8 @@ torch::Tensor WorldModelGWImpl::encoderForward(torch::Tensor x)
 torch::Tensor WorldModelGWImpl::actionForward(torch::Tensor x)
 {
   //One-Hot encoding the batch of actions
-  torch::Tensor y = torch::zeros({x.size(0),4});
+  torch::Tensor y = torch::zeros({x.size(0),4}).to(usedDevice);
+  x = x.to(torch::kInt32);
   for (int i=0;i<x.size(0);i++)
     {
       y[i][*x[i].to(torch::Device(torch::kCPU)).data<int>()] = 1;
@@ -162,14 +162,26 @@ torch::Tensor WorldModelGWImpl::predictState(torch::Tensor stateBatch, torch::Te
 {
   torch::Tensor encoderOut = this->encoderForward(stateBatch);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
-  actionEmbedding = actionEmbedding.reshape({1,FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
+  actionEmbedding = actionEmbedding.reshape({actionEmbedding.size(0),FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
   torch::Tensor decoderIn = torch::cat({encoderOut,actionEmbedding},1);
   return this->decoderForward(decoderIn);
 }
 
 torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-  return this->rewardForward(this->predictState(stateBatch,actionBatch)); 
+  stateOutput = predictState(stateBatch, actionBatch);
+  return rewardForward(stateOutput);
 }
+
+torch::Device WorldModelGWImpl::getUsedDevice()
+{
+  return usedDevice;
+}
+
+torch::Tensor WorldModelGWImpl::getStateOutput()
+{
+  return stateOutput;
+}
+
 
 

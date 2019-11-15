@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
     {
       c.generateDataSetGW();
     }
+  else if(FLAGS_cmd == "gwwm")
+    {
+      c.trainWorldModelGW();
+    }
   else if(FLAGS_cmd == "test")
     {
       c.test();
