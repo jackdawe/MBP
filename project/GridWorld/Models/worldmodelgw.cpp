@@ -1,5 +1,5 @@
 #include "worldmodelgw.h"
-DEFINE_int32(sc1,8,"'State Conv 1': The number of feature maps in the first layer of the Unet encoder. Layer 2 will have twice as many feature maps and so on.");
+DEFINE_int32(sc1,16,"'State Conv 1': The number of feature maps in the first layer of the Unet encoder. Layer 2 will have twice as many feature maps and so on.");
 DEFINE_int32(afc1,32,"'Action Fully Connected 1': The number of hidden units in the first layer of the MLP that maps action vectors to action vector embeddings");
 DEFINE_int32(afc2,64,"'Action Fully Connected 2': The number of hidden units in the second layer of the MLP that maps action vectors to action vector embeddings");
 DEFINE_int32(rc1,8,"'Reward Conv 1': the number of feature maps in the first layer of the ConvNet that maps predicted states to rewards. The next layer will have twice as many feature maps and so on. THe number of layers depend on the size of the map.");
@@ -139,7 +139,7 @@ torch::Tensor WorldModelGWImpl::decoderForward(torch::Tensor x)
     }
   x = stateDeconvLayers[nUnetLayers-1]->forward(x);
   x = stateConvLayers2[2*(nUnetLayers-1)]->forward(x);
-  x = torch::sigmoid(x);
+  x = torch::softmax(x,1);
   return x;
 } 
 

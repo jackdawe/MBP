@@ -29,7 +29,7 @@ public:
     vector<int> accessibleStates(State s);
     int spaceStateSize();
     void generateDataSet(int n);
-    torch::Tensor predictionToRGBState(torch::Tensor testData, torch::Tensor labels);
+    void  worldModelAccuracy(torch::Tensor testData, torch::Tensor labels);
     
     
 private:

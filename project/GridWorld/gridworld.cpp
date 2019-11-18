@@ -284,7 +284,7 @@ void GridWorld::generateDataSet(int n)
   
 }
 
-torch::Tensor GridWorld::predictionToRGBState(torch::Tensor testData, torch::Tensor labels)
+void GridWorld::worldModelAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
   int n = testData.size(2);
   int m = testData.size(0);
@@ -298,6 +298,11 @@ torch::Tensor GridWorld::predictionToRGBState(torch::Tensor testData, torch::Ten
     }
   for (int s=0;s<m;s++)
     {
+      
+      if (m > 100 && s%(5*m/100) == 0)
+	{
+	  cout << "Testing the world model on some test maps... " + to_string(s/(m/100)) + "%" << endl;
+	}
       for (int i=0;i<n;i++)
 	{
 	  for (int j=0;j<n;j++)
@@ -306,14 +311,12 @@ torch::Tensor GridWorld::predictionToRGBState(torch::Tensor testData, torch::Ten
 		{
 		  float pixelt = *testData[s][c][i][j].data<float>();
 		  float pixell = *labels[s][c][i][j].data<float>();
-		  if (pixelt>0.5 && pixell<1.2)
-		    {
-		      testData[s][c][i][j] = 1;
+		  if (pixelt>0.5 && pixell<1.1)
+		    {		  
 		      pixelt=1;
 		    }
 		  else
 		    {
-		      testData[s][c][i][j] = 0;
 		      pixelt=0;
 		    }
 		  if (pixelt == 1)
@@ -363,5 +366,4 @@ torch::Tensor GridWorld::predictionToRGBState(torch::Tensor testData, torch::Ten
 	  cout<<names2[j] + ": " + to_string(100.*scores[i][j]/(m*n*n)) + "% " + to_string(scores[i][j])+"/"+to_string(truth[i][idx]) << endl;
 	}
     }
-  return testData;
 }

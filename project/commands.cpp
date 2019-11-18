@@ -193,10 +193,7 @@ void Commands::trainWorldModelGW()
 
   //Computing accuracy
   model = agent.getModel();
-  torch::Tensor testTransition = gw.predictionToRGBState(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
-  cout<<  stateInputs[0] << endl;
-  cout<< stateLabels[0] << endl;
-  cout << model->predictState(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels)[0] << endl;
+  gw.worldModelAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
 }
 
 void Commands::test()
