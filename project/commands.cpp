@@ -179,20 +179,24 @@ void Commands::generateDataSetGW()
 void Commands::trainWorldModelGW()
 {
   GridWorld gw;
-  torch::Tensor states;
-  torch::load(states,FLAGS_dir+"stateInputs.pt");
-  torch::Tensor actions;
-  torch::load(actions,FLAGS_dir+"actionInputs.pt");
-  WorldModelGW model(states.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2,FLAGS_rc1,FLAGS_rfc);
+  string path = FLAGS_dir;
+  torch::Tensor stateInputs, actionInputs, stateLabels, rewardLabels;
+  torch::load(stateInputs,path+"stateInputsTest.pt");
+  torch::load(actionInputs, path+"actionInputsTest.pt");
+  torch::load(stateLabels, path+"stateLabelsTest.pt");
+  torch::load(rewardLabels, path+"rewardLabelsTest.pt");
+  WorldModelGW model(stateInputs.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2,FLAGS_rc1,FLAGS_rfc);
   model->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,WorldModelGW,PlannerGW> agent(gw,model,PlannerGW());
-  agent.learnWorldModel(FLAGS_dir,FLAGS_bs,FLAGS_lr);
+  agent.learnWorldModel(FLAGS_dir,FLAGS_n,FLAGS_bs,FLAGS_lr);
   //  torch::save(model,'../WorldModelGW.pt');
+
+  //Computing accuracy
   model = agent.getModel();
-  cout<<states[1]<<endl;
-  cout<<actions[1]<<endl;
-  cout<<model->predictState(states[1].to(model->getUsedDevice()).reshape({1,3,8,8}),actions[0].to(model->getUsedDevice()).reshape({1}))<<endl;
-  cout<<model->predictReward(states[1].to(model->getUsedDevice()).reshape({1,3,8,8}),actions[0].to(model->getUsedDevice()).reshape({1}))<<endl;
+  torch::Tensor testTransition = gw.predictionToRGBState(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
+  cout<<  stateInputs[0] << endl;
+  cout<< stateLabels[0] << endl;
+  cout << model->predictState(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels)[0] << endl;
 }
 
 void Commands::test()

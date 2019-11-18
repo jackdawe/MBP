@@ -228,12 +228,10 @@ void GridWorld::generateDataSet(int n)
 {
   //Initialising the tensors that will contain the dataset
   
-  torch::Tensor stateInputs = torch::zeros({n,3,size,size});
-  torch::Tensor actionInputs = torch::zeros({n});
-  torch::Tensor stateLabels = torch::zeros({n,3,size,size});
-  torch::Tensor rewardLabels = torch::zeros({n});
-
-  torch::Tensor shuffledIndexes = torch::randperm(n).to(torch::kInt32);  
+  torch::Tensor stateInputs = torch::zeros(0);
+  torch::Tensor actionInputs = torch::zeros(0);
+  torch::Tensor stateLabels = torch::zeros(0);
+  torch::Tensor rewardLabels = torch::zeros(0);
   
   //Making the agent wander randomly for n episodes 
   
@@ -243,30 +241,127 @@ void GridWorld::generateDataSet(int n)
       
       if (n > 100 && i%(5*n/100) == 0)
 	{
-	  cout << "Your agent is working hard... " + to_string(i/(n/100)) + "%" << endl;
+	  cout << "Your agent is crashing into walls for science... " + to_string(i/(n/100)) + "%" << endl;
+	}
+
+      if (i==4.*n/5)
+	{
+	  cout<< "Your training set is complete and contains " + to_string(stateInputs.size(0)) +" elements! Now generating test set..."<<endl; 
+	  torch::save(stateInputs,path+"../stateInputsTrain.pt");
+	  torch::save(actionInputs,path+"../actionInputsTrain.pt");
+	  torch::save(rewardLabels,path+"../rewardLabelsTrain.pt");
+	  torch::save(stateLabels,path+"../stateLabelsTrain.pt");
+	  stateInputs = torch::zeros(0);
+	  actionInputs = torch::zeros(0);
+	  stateLabels = torch::zeros(0);
+	  rewardLabels = torch::zeros(0);
 	}
       
       while(!isTerminal(currentState))
 	{
-	  int idx = *shuffledIndexes[i].data<int>();
-	  torch::Tensor s = toRGBTensor(currentState.getStateVector()).reshape({3,size,size});
-	  stateInputs[idx] = s; //va surement crier
-	  int action = randomAction()[0]; 
-	  actionInputs[idx] = action;
-	  rewardLabels[idx] = transition();
-	  s = toRGBTensor(currentState.getStateVector()).reshape({3,size,size});
-	  stateLabels[idx] = s;
+	  torch::Tensor s = toRGBTensor(currentState.getStateVector());
+	  stateInputs = torch::cat({stateInputs, s}); 
+	  torch::Tensor action = torch::zeros({1});
+	  action[0] = randomAction()[0]; 
+	  actionInputs = torch::cat({actionInputs,action});
+	  torch::Tensor reward = torch::zeros({1});
+	  reward[0] = transition();
+	  rewardLabels = torch::cat({rewardLabels,reward});
+	  s = toRGBTensor(currentState.getStateVector());
+	  stateLabels = torch::cat({stateLabels,s});
 	}
       reset();
     }
-
+  
   //Saving the model
+  
+  cout<< "Your test set is complete and contains " + to_string(stateInputs.size(0)) +" elements!"<<endl; 
+  
+  torch::save(stateInputs,"../stateInputsTest.pt");
+  torch::save(actionInputs,"../actionInputsTest.pt");
+  torch::save(rewardLabels,"../rewardLabelsTest.pt");
+  torch::save(stateLabels,"../stateLabelsTest.pt");
+  
+}
 
-  cout<< "Your dataset was successfully generated. Saving it now..." << endl;
+torch::Tensor GridWorld::predictionToRGBState(torch::Tensor testData, torch::Tensor labels)
+{
+  int n = testData.size(2);
+  int m = testData.size(0);
+  testData = testData.to(torch::Device(torch::kCPU));
+  vector<vector<int>> scores;
+  vector<vector<int>> truth;
+  for (int i=0;i<3;i++)
+    {
+      scores.push_back(vector<int>(4,0));
+      truth.push_back(vector<int>(2,0));
+    }
+  for (int s=0;s<m;s++)
+    {
+      for (int i=0;i<n;i++)
+	{
+	  for (int j=0;j<n;j++)
+	    {
+	      for (int c=0;c<3;c++)
+		{
+		  float pixelt = *testData[s][c][i][j].data<float>();
+		  float pixell = *labels[s][c][i][j].data<float>();
+		  if (pixelt>0.5 && pixell<1.2)
+		    {
+		      testData[s][c][i][j] = 1;
+		      pixelt=1;
+		    }
+		  else
+		    {
+		      testData[s][c][i][j] = 0;
+		      pixelt=0;
+		    }
+		  if (pixelt == 1)
+		    {		      
+		      if (pixell == 1)
+			{
+			  truth[c][1]++;
+			  scores[c][0]++;
+			}
+		      else
+			{
+			  truth[c][0] ++;
+			  scores[c][1]++;
+			}
+		    }
+		  else
+		    {		      
+		      if(pixell == 1)
+			{
+			  truth[c][1]++;
+			  scores[c][2]++;
+			}
+		      else
+			{
+			  truth[c][0]++;
+			  scores[c][3]++;
+			}		      
+		    }
+		}
+	    }
+	}
+    }
+  cout<<"Performance on the test set:"<<endl;
+  vector<string> names = {"Channel 1 - Agent","Channel 2 - Goal", "Channel 3 - Obstacles"};
+  vector<string> names2 = {"True Positives","False Positives","False Negatives","True Negatives"};
   
-  torch::save(stateInputs,"../stateInputs.pt");
-  torch::save(actionInputs,"../actionInputs.pt");
-  torch::save(rewardLabels,"../rewardLabels.pt");
-  torch::save(stateLabels,"../stateLabels.pt");
-  
+  for (int i=0;i<3;i++)
+    {
+      cout<<names[i]+":"<<endl;
+      for (int j=0;j<4;j++)
+	{
+	  int idx = 0;
+	  if (j<2)
+	    {
+	      idx = 1;
+	    }
+	  cout<<names2[j] + ": " + to_string(100.*scores[i][j]/(m*n*n)) + "% " + to_string(scores[i][j])+"/"+to_string(truth[i][idx]) << endl;
+	}
+    }
+  return testData;
 }
