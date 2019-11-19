@@ -80,17 +80,12 @@ WorldModelGWImpl::WorldModelGWImpl(int size,int nStateConv1, int nActionfc1, int
       stateConvLayers2.push_back(register_module("Decoder Conv"+std::to_string(i+1)+"_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn,convIn,3).stride(1).padding(1))));
     }
 
-  stateConvLayers2.push_back(register_module("Decoder Conv Final",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn/2,3,3).stride(1).padding(1))));
+  stateConvLayers2.push_back(register_module("Decoder Conv Final",torch::nn::Conv2d(torch::nn::Conv2dOptions(convIn/2,1,3).stride(1).padding(1))));
 
   //Building the CNN of the reward function
-
-  rewardConvLayers.push_back(register_module("Reward CNN Conv"+std::to_string(1),torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nRewardConv1,3).stride(1).padding(1))));
-  for (int i=1;i<nUnetLayers;i++)
-    {
-      rewardConvLayers.push_back(register_module("Reward CNN Conv"+std::to_string(i+1),torch::nn::Conv2d(torch::nn::Conv2dOptions(nRewardConv1*pow(2,i-1),nRewardConv1*pow(2,i),3).stride(1).padding(1))));
-    }
-  rewardfc = register_module("Reward CNN fc", torch::nn::Linear(4*nRewardConv1*pow(2,nUnetLayers-1),nRewardfc));
-  rewardOut = register_module("Reward CNN out", torch::nn::Linear(nRewardfc,1));
+  
+  rewardOut = register_module("Reward CNN out", torch::nn::Linear(3.*fcOutputSize/2,3));
+  //  std::cout<<*this<<std::endl;
 }
 
 torch::Tensor WorldModelGWImpl::encoderForward(torch::Tensor x)
@@ -139,23 +134,18 @@ torch::Tensor WorldModelGWImpl::decoderForward(torch::Tensor x)
     }
   x = stateDeconvLayers[nUnetLayers-1]->forward(x);
   x = stateConvLayers2[2*(nUnetLayers-1)]->forward(x);
+  int imSize = x.size(2);
+  x = x.reshape({x.size(0),imSize*imSize});
   x = torch::softmax(x,1);
+  x = x.reshape({x.size(0),imSize,imSize});
   return x;
 } 
 
 torch::Tensor WorldModelGWImpl::rewardForward(torch::Tensor x)
 {
-  for (int i=0;i<nUnetLayers;i++)
-    {
-      x = rewardConvLayers[i]->forward(x);
-      x = torch::relu(x);
-      x = torch::max_pool2d(x,2);
-    }
-  x = x.view({-1,4*nRewardConv1*pow(2,nUnetLayers-1)});
-  x = rewardfc->forward(x);
+  x = x.view({-1,3*FLAGS_sc1*pow(2,nUnetLayers+2)/2.});
   x = rewardOut->forward(x);
-  x = torch::tanh(x);
-  //  x = x.view({-1,3*FLAGS_sc1*pow(2,nUnetLayers+2)/8.});
+  x = torch::log_softmax(x,1);
   return x;
 }
 
@@ -171,21 +161,14 @@ torch::Tensor WorldModelGWImpl::predictState(torch::Tensor stateBatch, torch::Te
 
 torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool inputAvailable)
 {
-  /*
-  if (!inputAvailable):
+  if (!inputAvailable)
     {
       torch::Tensor encoderOut = this->encoderForward(stateBatch);
       torch::Tensor actionEmbedding = this->actionForward(actionBatch);
       actionEmbedding = actionEmbedding.reshape({actionEmbedding.size(0),FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
       decoderIn = torch::cat({encoderOut,actionEmbedding},1);
     }
-    return rewardForward(decoderIn); */
-  
-  if (!inputAvailable)
-    {
-      predictState(stateBatch, actionBatch);
-    }
-  return rewardForward(decoderOut);
+  return rewardForward(decoderIn); 
 }
 
 torch::Device WorldModelGWImpl::getUsedDevice()
