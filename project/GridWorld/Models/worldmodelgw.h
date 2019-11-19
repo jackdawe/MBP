@@ -24,10 +24,11 @@ class WorldModelGWImpl: public torch::nn::Module
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
   torch::Tensor predictState(torch::Tensor stateBatch, torch::Tensor actionBatch);
-  torch::Tensor predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  torch::Tensor predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool inputAvailable = false);
 
   torch::Device getUsedDevice();
-  torch::Tensor getStateOutput();
+  torch::Tensor getDecoderIn();
+  torch::Tensor getDecoderOut();
   
  private:
   torch::Device usedDevice;
@@ -51,6 +52,7 @@ class WorldModelGWImpl: public torch::nn::Module
   std::shared_ptr<torch::nn::LinearImpl> rewardfc;
   std::shared_ptr<torch::nn::LinearImpl> rewardOut;
 
-  torch::Tensor stateOutput;
+  torch::Tensor decoderIn;
+  torch::Tensor decoderOut;
 };
 #endif //WORLDMODELGW_H

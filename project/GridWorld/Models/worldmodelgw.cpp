@@ -2,7 +2,7 @@
 DEFINE_int32(sc1,16,"'State Conv 1': The number of feature maps in the first layer of the Unet encoder. Layer 2 will have twice as many feature maps and so on.");
 DEFINE_int32(afc1,32,"'Action Fully Connected 1': The number of hidden units in the first layer of the MLP that maps action vectors to action vector embeddings");
 DEFINE_int32(afc2,64,"'Action Fully Connected 2': The number of hidden units in the second layer of the MLP that maps action vectors to action vector embeddings");
-DEFINE_int32(rc1,8,"'Reward Conv 1': the number of feature maps in the first layer of the ConvNet that maps predicted states to rewards. The next layer will have twice as many feature maps and so on. THe number of layers depend on the size of the map.");
+DEFINE_int32(rc1,16,"'Reward Conv 1': the number of feature maps in the first layer of the ConvNet that maps predicted states to rewards. The next layer will have twice as many feature maps and so on. THe number of layers depend on the size of the map.");
 DEFINE_int32(rfc,64,"'Reward Fully Connected': the number of hidden units in the fully connected layer of the ConvNet that maps predicted states to predicted rewards.");
 
 WorldModelGWImpl::WorldModelGWImpl():
@@ -155,6 +155,7 @@ torch::Tensor WorldModelGWImpl::rewardForward(torch::Tensor x)
   x = rewardfc->forward(x);
   x = rewardOut->forward(x);
   x = torch::tanh(x);
+  //  x = x.view({-1,3*FLAGS_sc1*pow(2,nUnetLayers+2)/8.});
   return x;
 }
 
@@ -163,14 +164,28 @@ torch::Tensor WorldModelGWImpl::predictState(torch::Tensor stateBatch, torch::Te
   torch::Tensor encoderOut = this->encoderForward(stateBatch);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
   actionEmbedding = actionEmbedding.reshape({actionEmbedding.size(0),FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
-  torch::Tensor decoderIn = torch::cat({encoderOut,actionEmbedding},1);
-  return this->decoderForward(decoderIn);
+  decoderIn = torch::cat({encoderOut,actionEmbedding},1);
+  decoderOut = decoderForward(decoderIn);
+  return decoderOut;
 }
 
-torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch)
+torch::Tensor WorldModelGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool inputAvailable)
 {
-  stateOutput = predictState(stateBatch, actionBatch);
-  return rewardForward(stateOutput);
+  /*
+  if (!inputAvailable):
+    {
+      torch::Tensor encoderOut = this->encoderForward(stateBatch);
+      torch::Tensor actionEmbedding = this->actionForward(actionBatch);
+      actionEmbedding = actionEmbedding.reshape({actionEmbedding.size(0),FLAGS_sc1*pow(2,nUnetLayers+2)/4,2,2});
+      decoderIn = torch::cat({encoderOut,actionEmbedding},1);
+    }
+    return rewardForward(decoderIn); */
+  
+  if (!inputAvailable)
+    {
+      predictState(stateBatch, actionBatch);
+    }
+  return rewardForward(decoderOut);
 }
 
 torch::Device WorldModelGWImpl::getUsedDevice()
@@ -178,9 +193,14 @@ torch::Device WorldModelGWImpl::getUsedDevice()
   return usedDevice;
 }
 
-torch::Tensor WorldModelGWImpl::getStateOutput()
+torch::Tensor WorldModelGWImpl::getDecoderIn()
 {
-  return stateOutput;
+  return decoderIn;
+}
+
+torch::Tensor WorldModelGWImpl::getDecoderOut()
+{
+  return decoderOut;
 }
 
 

@@ -284,7 +284,7 @@ void GridWorld::generateDataSet(int n)
   
 }
 
-void GridWorld::worldModelAccuracy(torch::Tensor testData, torch::Tensor labels)
+void GridWorld::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
   int n = testData.size(2);
   int m = testData.size(0);
@@ -365,5 +365,45 @@ void GridWorld::worldModelAccuracy(torch::Tensor testData, torch::Tensor labels)
 	    }
 	  cout<<names2[j] + ": " + to_string(100.*scores[i][j]/(m*n*n)) + "% " + to_string(scores[i][j])+"/"+to_string(truth[i][idx]) << endl;
 	}
+    }
+}
+
+
+void GridWorld::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
+{
+  int m = testData.size(0);
+  vector<int> rCounts(3,0);
+  vector<int> scores(3,0);
+  testData = testData.to(torch::Device(torch::kCPU));
+  for (int s=0;s<m;s++)
+    {
+      float rt = *testData[s].data<float>();
+      float rl = *labels[s].data<float>();
+      int idx;
+      float a = EMPTY_SQUARE_REWARD;
+      if (rl == LOSE_REWARD)
+	{
+	  idx=0;
+	}
+      else if (rl == a)
+	{
+	  idx=1;
+	}
+      else if (rl == WIN_REWARD)
+	{
+	  idx=2;
+	  cout<<rt<<endl;
+	}
+      rCounts[idx]++;
+      if (rt < rl+0.03 && rt > rl-0.03)
+	{
+	  scores[idx]++;
+	}
+    }
+  vector<string> text = {"LOSE REWARD","EMPTY SQUARE REWARD","WIN REWARD"};
+  cout<<"Performances of the reward function on the test maps: " << endl;
+  for (int i=0;i<3;i++)
+    {
+      cout<<text[i]+": "+ to_string(scores[i]) + "/" + to_string(rCounts[i])<<endl;
     }
 }

@@ -189,11 +189,13 @@ void Commands::trainWorldModelGW()
   model->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,WorldModelGW,PlannerGW> agent(gw,model,PlannerGW());
   agent.learnWorldModel(FLAGS_dir,FLAGS_n,FLAGS_bs,FLAGS_lr);
+  agent.saveTrainingData("../");
   //  torch::save(model,'../WorldModelGW.pt');
 
   //Computing accuracy
   model = agent.getModel();
-  gw.worldModelAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
+    gw.rewardAccuracy(model->predictReward(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),rewardLabels);
+  gw.transitionAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
 }
 
 void Commands::test()

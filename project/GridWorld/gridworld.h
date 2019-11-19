@@ -29,8 +29,8 @@ public:
     vector<int> accessibleStates(State s);
     int spaceStateSize();
     void generateDataSet(int n);
-    void  worldModelAccuracy(torch::Tensor testData, torch::Tensor labels);
-    
+    void transitionAccuracy(torch::Tensor testData, torch::Tensor labels);
+    void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
     
 private:
     MapGW map;
