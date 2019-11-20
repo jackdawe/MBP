@@ -164,11 +164,14 @@ int GridWorld::stateId(State s)
 void GridWorld::reset()
 {  
   rewardHistory.push_back(0);
+  default_random_engine generator(std::random_device{}());
+  uniform_int_distribution<int> dist(0,mapPoolSize-1);
+  int mapId; 
   if (mapPoolSize != -1)
     {
       default_random_engine generator(std::random_device{}());
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
-      int mapId = dist(generator); 
+      mapId = dist(generator);
       map.load(mapTag+"map"+to_string(mapId));
       size = map.getSize();
     }
@@ -257,10 +260,11 @@ void GridWorld::generateDataSet(int n)
 	  actionInputs = torch::zeros({n/5});
 	  stateLabels = torch::zeros({n/5,size,size});
 	  rewardLabels = torch::zeros({n/5});
-	}      
+	}
       torch::Tensor s = toRGBTensor(currentState.getStateVector());
-      stateInputs[j] = s;
-      actionInputs[j] = randomAction()[0];
+      stateInputs[j] = s;      
+      takenAction = randomAction();
+      actionInputs[j] = takenAction[0];
       float r = transition();
       float bug = EMPTY_SQUARE_REWARD;
       if(r == LOSE_REWARD)
@@ -280,7 +284,44 @@ void GridWorld::generateDataSet(int n)
       stateLabels[j] = s;
       if (isTerminal(currentState))
 	{
+	  //Adding win situations to the dataset as they occur rarely
 	  reset();
+	  if (i<8*n/25 || i>23*n/25)
+	    {
+	      vector<bool> available = {obstacles[goalX-1][goalY]==0 ,obstacles[goalX][goalY+1]==0,obstacles[goalX+1][goalY]==0,obstacles[goalX][goalY-1]==0};	      
+	      
+	      if (available == vector<bool>({false,false,false,false}))
+		{
+		  cout<<"This map has a trapped goal"<<endl;
+		  reset();
+		}
+	      else
+		{
+		  default_random_engine generator(random_device{}());
+		  uniform_int_distribution<int> dist(0,3);
+		  int picked = dist(generator);
+		  while (!available[picked])
+		    {
+		      picked = dist(generator);
+		    }
+		  switch(picked)
+		    {
+		    case 0:
+		      agentX = goalX-1; agentY = goalY;
+		      break;
+		    case 1:
+		      agentX = goalX; agentY = goalY+1;
+		      break;
+		    case 2:
+		      agentX = goalX+1; agentY = goalY;
+		      break;
+		    case 3:
+		      agentX = goalX; agentY = goalY-1;
+		      break;
+		    }
+		  generateVectorStates();
+		}
+	    }
 	}
       j++;
     }
