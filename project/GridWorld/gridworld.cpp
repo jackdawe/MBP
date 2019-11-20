@@ -340,6 +340,7 @@ void GridWorld::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
   int n = testData.size(2);
   int m = testData.size(0);
+  testData = torch::chunk(testData,3,1)[0].reshape({m,n,n});
   testData = testData.to(torch::Device(torch::kCPU));
   vector<int> scores(4,0);
   vector<int> truth(4,0);
