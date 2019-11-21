@@ -174,9 +174,6 @@ void GridWorld::reset()
       mapId = dist(generator);
       map.load(mapTag+"map"+to_string(mapId));
       size = map.getSize();
-    }
-  if(obstacles[0][0]!=1 || mapPoolSize != -1)
-    {
       for (int i=0;i<size;i++)
 	{
 	  for (int j=0;j<size;j++)
@@ -188,6 +185,7 @@ void GridWorld::reset()
 		  break;
 		case 2:
 		  goalX=i, goalY=j;
+		  obstacles[i][j]=0;
 		  break;
 		default:
 		  obstacles[i][j]=0;
@@ -227,123 +225,14 @@ int GridWorld::spaceStateSize()
   return size*size;
 }
 
-void GridWorld::generateDataSet(int n)
-{
-  //Initialising the tensors that will contain the training set
-  
-  torch::Tensor stateInputs = torch::zeros({4*n/5,3,size,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5});
-  torch::Tensor stateLabels = torch::zeros({4*n/5,size,size});
-  torch::Tensor rewardLabels = torch::zeros({4*n/5});
-  
-  //Making the agent wander randomly for n episodes 
-
-  int j=0;
-  for (int i=0;i<n;i++)
-    {
-      //Displaying a progression bar in the terminal
-      
-      if (n > 100 && i%(5*n/100) == 0)
-	{
-	  cout << "Your agent is crashing into walls for science... " + to_string(i/(n/100)) + "%" << endl;
-	}
-
-      if (i==4*n/5)
-	{
-	  j = 0;
-	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
-	  torch::save(stateInputs,path+"../stateInputsTrain.pt");
-	  torch::save(actionInputs,path+"../actionInputsTrain.pt");
-	  torch::save(rewardLabels,path+"../rewardLabelsTrain.pt");
-	  torch::save(stateLabels,path+"../stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,3,size,size});
-	  actionInputs = torch::zeros({n/5});
-	  stateLabels = torch::zeros({n/5,size,size});
-	  rewardLabels = torch::zeros({n/5});
-	}
-      torch::Tensor s = toRGBTensor(currentState.getStateVector());
-      stateInputs[j] = s;      
-      takenAction = randomAction();
-      actionInputs[j] = takenAction[0];
-      float r = transition();
-      float bug = EMPTY_SQUARE_REWARD;
-      if(r == LOSE_REWARD)
-	{
-	  r = 0;
-	}
-      else if (r == bug)
-	{
-	  r = 1;
-	}
-      else if (r == WIN_REWARD)
-	{
-	  r = 2;
-	}
-      rewardLabels[j] = r;
-      s = toRGBTensor(currentState.getStateVector())[0];
-      stateLabels[j] = s;
-      if (isTerminal(currentState))
-	{
-	  //Adding win situations to the dataset as they occur rarely
-	  reset();
-	  if (i<12*n/25 || i>22*n/25)
-	    {
-	      vector<bool> available = {obstacles[goalX-1][goalY]==0 ,obstacles[goalX][goalY+1]==0,obstacles[goalX+1][goalY]==0,obstacles[goalX][goalY-1]==0};	      
-	      
-	      if (available == vector<bool>({false,false,false,false}))
-		{
-		  cout<<"This map has a trapped goal"<<endl;
-		  reset();
-		}
-	      else
-		{
-		  default_random_engine generator(random_device{}());
-		  uniform_int_distribution<int> dist(0,3);
-		  int picked = dist(generator);
-		  while (!available[picked])
-		    {
-		      picked = dist(generator);
-		    }
-		  switch(picked)
-		    {
-		    case 0:
-		      agentX = goalX-1; agentY = goalY;
-		      break;
-		    case 1:
-		      agentX = goalX; agentY = goalY+1;
-		      break;
-		    case 2:
-		      agentX = goalX+1; agentY = goalY;
-		      break;
-		    case 3:
-		      agentX = goalX; agentY = goalY-1;
-		      break;
-		    }
-		  generateVectorStates();
-		}
-	    }
-	}
-      j++;
-    }
-  
-  //Saving the model
-  
-  cout<< "Test set generation is complete!"<<endl; 
-  
-  torch::save(stateInputs,"../stateInputsTest.pt");
-  torch::save(actionInputs,"../actionInputsTest.pt");
-  torch::save(rewardLabels,"../rewardLabelsTest.pt");
-  torch::save(stateLabels,"../stateLabelsTest.pt");
-}
-
 void GridWorld::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
   int n = testData.size(2);
   int m = testData.size(0);
   //  testData = torch::chunk(testData,3,1)[0].reshape({m,n,n});
   testData = testData.to(torch::Device(torch::kCPU));
-  vector<int> scores(4,0);
-  vector<int> truth(4,0);
+  vector<int> scores(2,0);
+  vector<int> truth(2,0);
   
   for (int s=0;s<m;s++)
     {      
@@ -361,45 +250,19 @@ void GridWorld::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 		  {
 		    pixelt=0;
 		  }
-		if (pixelt == 1)
-		  {		      
-		    if (pixell == 1)
-		      {
-			truth[1]++;
-			scores[0]++;
-		      }
-		    else
-		      {
-			truth[0]++;
-			scores[1]++;
-		      }
-		  }
-		else
-		  {		      
-		    if(pixell == 1)
-		      {
-			truth[1]++;
-			scores[2]++;
-		      }
-		    else
-		      {
-			  truth[0]++;
-			  scores[3]++;
-			}		      
+		truth[pixell]++;
+		if (pixelt==pixell)
+		  {
+		    scores[pixell]++;
 		  }
 	    }
 	}
     }
   cout<<"Performance of the transition function on the test set:"<<endl;
-  vector<string> names = {"True Positives","False Positives","False Negatives","True Negatives"};
-  for (int j=0;j<4;j++)
+  vector<string> names = {"zeros", "ones"};
+  for (int j=0;j<2;j++)
     {
-      int idx = 0;
-      if (j<2)
-	{
-	  idx = 1;
-	}
-      cout<<names[j] + ": " + to_string(100.*scores[j]/(m*n*n)) + "% " + to_string(scores[j])+"/"+to_string(truth[idx]) << endl;
+      cout<<"Correctly classified " + names[j] + ": " + to_string(scores[j])+"/"+to_string(truth[j]) + " (" + to_string(100.*scores[j]/truth[j]) + "%)" << endl;
     }
 }
 
@@ -425,6 +288,51 @@ void GridWorld::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
   cout<<"Performances of the reward function on the test maps: " << endl;
   for (int i=0;i<3;i++)
     {
-      cout<<text[i]+": "+ to_string(scores[i]) + "/" + to_string(rCounts[i])<<endl;
+      cout<<text[i]+": "+ to_string(scores[i]) + "/" + to_string(rCounts[i]) + " (" + to_string(100.*scores[i]/rCounts[i]) + "%)"<<endl;
     }
+}
+
+vector<vector<float>> GridWorld::getObstacles()
+{
+  return obstacles;
+}
+
+float GridWorld::getAgentX()
+{
+  return agentX;
+}
+
+float GridWorld::getAgentY()
+{
+  return agentY;
+}
+
+float GridWorld::getGoalX()
+{
+  return goalX;
+}
+
+float GridWorld::getGoalY()
+{
+  return goalY;
+}
+
+void GridWorld::setAgentX(float x)
+{
+  agentX = x;
+}
+
+void GridWorld::setAgentY(float y)
+{
+  agentY = y;
+}
+
+void GridWorld::setGoalX(float x)
+{
+  goalX = x;
+}
+
+void GridWorld::setGoalY(float y)
+{
+  goalY = y;
 }

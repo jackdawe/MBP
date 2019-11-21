@@ -172,13 +172,15 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   GridWorld gw(FLAGS_dir,FLAGS_nmaps);
+  ToolsGW t(gw);
   gw.generateVectorStates();
-  gw.generateDataSet(FLAGS_n);
+  t.generateDataSet(FLAGS_n,FLAGS_wp);
 }
 
 void Commands::trainWorldModelGW()
 {
   GridWorld gw;
+  ToolsGW t(gw);
   string path = FLAGS_dir;
   torch::Tensor stateInputs, actionInputs, stateLabels, rewardLabels;
   torch::load(stateInputs,path+"stateInputsTest.pt");
@@ -190,7 +192,7 @@ void Commands::trainWorldModelGW()
   ModelBased<GridWorld,WorldModelGW,PlannerGW> agent(gw,model,PlannerGW());
   agent.learnWorldModel(FLAGS_dir,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData("../");
-  //  torch::save(model,'../WorldModelGW.pt');
+  torch::save(agent.getModel(),"../WorldModelGW.pt");
 
   //Computing accuracy
   model = agent.getModel();

@@ -28,9 +28,18 @@ public:
     void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
-    void generateDataSet(int n);
     void transitionAccuracy(torch::Tensor testData, torch::Tensor labels);
     void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
+
+    vector<vector<float>> getObstacles();
+    float getAgentX();
+    float getAgentY();
+    float getGoalX();
+    float getGoalY();
+    void setAgentX(float x);
+    void setAgentY(float y);
+    void setGoalX(float x);
+    void setGoalY(float y);
     
 private:
     MapGW map;

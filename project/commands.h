@@ -1,7 +1,7 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 #include <QApplication>
-#include "GridWorld/gridworld.h"
+#include "GridWorld/toolsgw.h"
 #include "Agents/qlearning.h"
 #include "Agents/A2C/actorcritic.h"
 #include "Agents/modelbased.h"

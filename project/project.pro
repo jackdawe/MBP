@@ -51,6 +51,7 @@ SOURCES += main.cpp \
     GridWorld/Models/modela2cgw.cpp \
     GridWorld/Models/worldmodelgw.cpp \
     GridWorld/Models/plannergw.cpp \
+    GridWorld/toolsgw.cpp \
     commands.cpp
     
 HEADERS += \
@@ -79,6 +80,7 @@ HEADERS += \
     GridWorld/Models/modela2cgw.h \
     GridWorld/Models/worldmodelgw.h \
     GridWorld/Models/plannergw.h \
+    GridWorld/toolsgw.h \
     commands.h
     
 
