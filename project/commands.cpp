@@ -196,9 +196,9 @@ void Commands::trainWorldModelGW()
 
   //Computing accuracy
   model = agent.getModel();
-    gw.rewardAccuracy(model->predictReward(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),rewardLabels);
-    
-  gw.transitionAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
+  
+  t.transitionAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
+  t.rewardAccuracy(model->predictReward(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),rewardLabels);
 }
 
 void Commands::test()

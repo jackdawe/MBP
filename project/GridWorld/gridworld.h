@@ -28,7 +28,6 @@ public:
     void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
-    void transitionAccuracy(torch::Tensor testData, torch::Tensor labels);
     void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
 
     vector<vector<float>> getObstacles();
