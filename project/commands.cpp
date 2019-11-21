@@ -195,17 +195,12 @@ void Commands::trainWorldModelGW()
   //Computing accuracy
   model = agent.getModel();
     gw.rewardAccuracy(model->predictReward(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),rewardLabels);
+    
   gw.transitionAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
 }
 
 void Commands::test()
 {
   WorldModelGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2, FLAGS_rc1, FLAGS_rfc);
-  GridWorld gw("../GridWorld_Maps/Easy16x16/map0",1,1);
   cout<<test<<endl;
-  gw.generateVectorStates();
-  torch::Tensor x = gw.toRGBTensor(gw.getCurrentState().getStateVector());
-  torch::Tensor a = torch::zeros(1,torch::kInt32);
-  x = test->predictReward(x,a);
-  cout<<x<<endl;
 }

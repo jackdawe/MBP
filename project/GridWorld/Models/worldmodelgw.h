@@ -42,6 +42,11 @@ class WorldModelGWImpl: public torch::nn::Module
   std::vector<torch::Tensor> outputCopies;
 
   int nUnetLayers;
+  int nc_actEmb;
+  int nc_encoderOut;
+  int nc_decoderIn;
+  int nc_decoderConv1In;
+
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers1;
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers2;
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateDeconvLayers;
@@ -49,8 +54,10 @@ class WorldModelGWImpl: public torch::nn::Module
   std::shared_ptr<torch::nn::LinearImpl> actionfc1;
   std::shared_ptr<torch::nn::LinearImpl> actionfc2;
   std::shared_ptr<torch::nn::LinearImpl> actionfc3;  
-  std::shared_ptr<torch::nn::LinearImpl> rewardfc;
+  std::shared_ptr<torch::nn::LinearImpl> rewardfc1;
+  std::shared_ptr<torch::nn::LinearImpl> rewardfc2;
   std::shared_ptr<torch::nn::LinearImpl> rewardOut;
+  std::shared_ptr<torch::nn::LinearImpl> test;
 
   torch::Tensor decoderIn;
   torch::Tensor decoderOut;

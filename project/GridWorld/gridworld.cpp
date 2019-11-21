@@ -286,7 +286,7 @@ void GridWorld::generateDataSet(int n)
 	{
 	  //Adding win situations to the dataset as they occur rarely
 	  reset();
-	  if (i<8*n/25 || i>23*n/25)
+	  if (i<12*n/25 || i>22*n/25)
 	    {
 	      vector<bool> available = {obstacles[goalX-1][goalY]==0 ,obstacles[goalX][goalY+1]==0,obstacles[goalX+1][goalY]==0,obstacles[goalX][goalY-1]==0};	      
 	      
@@ -340,7 +340,7 @@ void GridWorld::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
   int n = testData.size(2);
   int m = testData.size(0);
-  testData = torch::chunk(testData,3,1)[0].reshape({m,n,n});
+  //  testData = torch::chunk(testData,3,1)[0].reshape({m,n,n});
   testData = testData.to(torch::Device(torch::kCPU));
   vector<int> scores(4,0);
   vector<int> truth(4,0);
@@ -409,14 +409,14 @@ void GridWorld::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
   int m = testData.size(0);
   vector<int> rCounts(3,0);
   vector<int> scores(3,0);
-  testData = torch::round(torch::exp(testData));
+  testData = torch::argmax(torch::exp(testData),1);
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::kInt32);
   for (int s=0;s<m;s++)
     {
       int rl = *labels[s].data<int>();
       rCounts[rl]++;
-      if (*testData[s][rl].data<float>() == 1)
+      if (*testData[s].data<long>() == rl)
 	{
 	  scores[rl]++;
 	}
