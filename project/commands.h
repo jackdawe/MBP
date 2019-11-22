@@ -33,8 +33,9 @@ class Commands
   //Model Based Planning
   
   void generateDataSetGW();
-  void trainWorldModelGW();
-  
+  void learnTransitionFunctionGW();
+  void learnRewardFunctionGW();
+  void testTransitionFunctionGW();
   //Other
   
   void test();

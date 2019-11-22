@@ -45,10 +45,18 @@ int main(int argc, char *argv[])
     {
       c.generateDataSetGW();
     }
-  else if(FLAGS_cmd == "gwwm")
+  else if(FLAGS_cmd == "gwmbft")
     {
-      c.trainWorldModelGW();
+      c.learnTransitionFunctionGW();
     }
+  else if(FLAGS_cmd == "gwmbfr")
+    {
+      c.learnRewardFunctionGW();
+    }
+  else if(FLAGS_cmd == "gwmbftte")
+    {
+      c.testTransitionFunctionGW();
+    }  
   else if(FLAGS_cmd == "test")
     {
       c.test();
