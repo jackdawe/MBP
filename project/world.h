@@ -63,9 +63,9 @@ public:
     virtual void generateDataSet();
     
     vector<float> randomAction();
-    void saveRewardHistory(string nameTag);
-    void saveLastEpisode(string nameTag);
-    void loadEpisode(string nameTag);
+    void saveRewardHistory();
+    void saveLastEpisode();
+    void loadEpisode(string filename);
     int actionSpaceSize();
     int saPairSpaceSize();
     
@@ -81,21 +81,16 @@ public:
     void setTakenAction(const vector<float> &value);
     void setTakenReward(float value);
 
-    vector<string> getParamLabels() const;
 
-    vector<float> getParamValues() const;
-
-    string getPath() const;
+    string getTag() const;
 
     vector<vector<float> > getStateSequence() const;
 
     vector<vector<float> > getActionSequence() const;
 
-    int getSize() const;
 
 protected:
-    string path;
-    int size;
+    string tag; //Path and prefix for file saving 
     ActionSpace actions;
     
     State previousState;
@@ -106,9 +101,6 @@ protected:
     vector<vector<float>> stateSequence;
     vector<vector<float>> actionSequence;
     vector<float> rewardHistory;
-    
-    vector<string> paramLabels;
-    vector<float> paramValues;
 };
 
 #endif // WORLD_H

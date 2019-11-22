@@ -41,17 +41,17 @@ void Agent<W>::generateNameTag(string prefix)
 template<class W>
 void Agent<W>::saveRewardHistory()
 {
-    world.saveRewardHistory(nameTag);
+    world.saveRewardHistory();
 }
 
 template<class W>
 void Agent<W>::saveLastEpisode()
 {
-    world.saveLastEpisode(nameTag);
+    world.saveLastEpisode();
 }
 
 template<class W>
-void Agent<W>::loadEspisode(string nameTag)
+void Agent<W>::loadEpisode(string nameTag)
 {
     world.loadEpisode(nameTag);
 }

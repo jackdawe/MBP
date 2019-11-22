@@ -7,10 +7,8 @@ SpaceWorld::SpaceWorld()
 
 SpaceWorld::SpaceWorld(string mapTag)
 {
-    paramLabels = {"Gavity", "Damping","Planet Density", "Ship Mass", "Ship Maximum Thrust", "Step Size", "Win Reward",
-                   "Lose Reward", "Wrong signal on Waypoint Reward", "Signal Off Waypoint Reward"};
-    paramValues = {GRAVITY,DAMPING,PLANET_DENSITY,SHIP_MASS,SHIP_MAX_THRUST,STEP_SIZE,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,
-                   CRASH_REWARD, WRONG_SIGNAL_ON_WAYPOINT_REWARD,SIGNAL_OFF_WAYPOINT_REWARD};
+  //    paramLabels = {"Gavity", "Damping","Planet Density", "Ship Mass", "Ship Maximum Thrust", "Step Size", "Win Reward", "Lose Reward", "Wrong signal on Waypoint Reward", "Signal Off Waypoint Reward"};
+//   paramValues = {GRAVITY,DAMPING,PLANET_DENSITY,SHIP_MASS,SHIP_MAX_THRUST,STEP_SIZE,RIGHT_SIGNAL_ON_WAYPOINT_REWARD, CRASH_REWARD, WRONG_SIGNAL_ON_WAYPOINT_REWARD,SIGNAL_OFF_WAYPOINT_REWARD};
     MapSS map;
     map.load(mapTag);
     size = map.getSize();

@@ -17,7 +17,7 @@ public:
     void incrementEpisode();
     void saveRewardHistory();
     void saveLastEpisode();
-    void loadEspisode(string nameTag);
+    void loadEpisode(string nameTag);
 
     int daSize();
     int caSize();

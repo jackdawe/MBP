@@ -127,7 +127,7 @@ void QLearning<W>::playOne()
 template <class W>
 void QLearning<W>::saveQValues()
 {
-    ofstream f(this->world.getPath()+"Policies/"+this->nameTag);
+  ofstream f(this->world.getTag() + "qvalues");
     if (f)
     {
         f << to_string(this->epsilon) << endl;
@@ -148,10 +148,9 @@ void QLearning<W>::saveQValues()
 }
 
 template <class W>
-void QLearning<W>::loadQValues(string tag)
+void QLearning<W>::loadQValues(string filename)
 {
-    this->nameTag = tag;
-    ifstream f(this->world.getPath()+"Policies/"+tag);
+    ifstream f(filename);
     if (f)
     {
         string line;

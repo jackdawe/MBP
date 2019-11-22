@@ -15,9 +15,9 @@ class GridWorld: public World
 {
 public:
     GridWorld();
-    GridWorld(string filename);
-    GridWorld(string filename, float agentXInit, float agentYInit);
-    GridWorld(string mapPoolPath, int mapPoolSize);
+    GridWorld(string pathToMap);
+    GridWorld(string pathToMap, float agentXInit, float agentYInit);
+    GridWorld(string pathToDir, int mapPoolSize);
     void init();
     float transition();
     bool isTerminal(State s);
@@ -31,6 +31,7 @@ public:
     void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
 
     vector<vector<float>> getObstacles();
+    int getSize();
     float getAgentX();
     float getAgentY();
     float getGoalX();
@@ -41,9 +42,10 @@ public:
     void setGoalY(float y);
     
 private:
+    int size; //Map Size
     MapGW map;
     bool randomStart;
-    string mapTag;
+    string mapPoolPath;
     int mapPoolSize;
     vector<vector<float>> obstacles;
     float initX;

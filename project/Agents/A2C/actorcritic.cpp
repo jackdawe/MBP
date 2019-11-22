@@ -147,7 +147,7 @@ void ActorCritic<W,M>::train()
       backPropagate(&optimizer);
     }
   saveTrainingData();
-  this->world.saveRewardHistory("A2C");
+  this->world.saveRewardHistory();
 }
 
 template <class W, class M>

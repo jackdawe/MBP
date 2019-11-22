@@ -1,6 +1,6 @@
 #include "world.h"
 
-World::World(){}
+World::World(): tag("../temp/world_"){}
 
 float World::transition()
 {
@@ -52,10 +52,10 @@ vector<float> World::randomAction()
   return randAction;
 }
 
-void World::saveRewardHistory(string nameTag)
+void World::saveRewardHistory()
 {
     {
-        ofstream f("../Reward");
+        ofstream f(tag+"reward");
         if (f)
         {
             for (unsigned int i=0;i<rewardHistory.size();i++)
@@ -70,17 +70,11 @@ void World::saveRewardHistory(string nameTag)
     }
 }
 
-void World::saveLastEpisode(string nameTag)
+void World::saveLastEpisode()
 {
-    ofstream f("../Sequences/seq" + nameTag);
+    ofstream f(tag+"sequence");
     if (f)
     {
-//        vector<string> paramLabels = agent.getController().getParamLabels();
-//        vector<float> paramValues = agent.getController().getParamValues();
-//        for (unsigned int i=0; i<paramLabels.size();i++)
-//        {
-//            f << paramLabels[i] + " = " + to_string(paramValues[i])<<endl;;
-//        }
         f << "---SEQUENCE---" <<endl;
         for (unsigned int i=0;i<stateSequence.size();i++)
         {
@@ -105,11 +99,11 @@ void World::saveLastEpisode(string nameTag)
     }
 }
 
-void World::loadEpisode(string nameTag)
+void World::loadEpisode(string filename)
 {
     actionSequence = {};
     stateSequence = {};
-    ifstream f("../Sequences/seq" + nameTag);
+    ifstream f(filename);
     if (f)
     {
         string line;
@@ -221,19 +215,9 @@ void World::setTakenReward(float value)
     takenReward = value;
 }
 
-vector<string> World::getParamLabels() const
+string World::getTag() const
 {
-    return paramLabels;
-}
-
-vector<float> World::getParamValues() const
-{
-    return paramValues;
-}
-
-string World::getPath() const
-{
-    return path;
+    return tag;
 }
 
 vector<vector<float> > World::getStateSequence() const
@@ -246,8 +230,5 @@ vector<vector<float> > World::getActionSequence() const
     return actionSequence;
 }
 
-int World::getSize() const
-{
-    return size;
-}
+
 

@@ -2,37 +2,33 @@
 
 GridWorld::GridWorld(){}
 
-GridWorld::GridWorld(string filename):
-  mapTag(filename), randomStart(true), mapPoolSize(-1)
+GridWorld::GridWorld(string pathToMap):
+  randomStart(true), mapPoolSize(-1)
 {
+  map.load(pathToMap);
   init();
 }
 
-GridWorld::GridWorld(string filename, float agentXInit, float agentYInit):
-  mapTag(filename), randomStart(false),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit),mapPoolSize(-1)
+GridWorld::GridWorld(string pathToMap, float agentXInit, float agentYInit):
+  randomStart(false),initX(agentXInit), initY(agentYInit), agentX(agentXInit),agentY(agentYInit),mapPoolSize(-1)
 {
+  map.load(pathToMap);
   init();
 }
 
 GridWorld::GridWorld(string mapPoolPath, int mapPoolSize):
-  mapTag(mapPoolPath), randomStart(true), mapPoolSize(mapPoolSize)
+  mapPoolPath(mapPoolPath), randomStart(true), mapPoolSize(mapPoolSize)
 {
+  map.load(mapPoolPath+"map0");
   init();
 }
 
 void GridWorld::init()
 {
+  this->tag = "../temp/gw_";
   vector<DiscreteAction> dactions = {DiscreteAction(4)};
   actions = ActionSpace(dactions, vector<ContinuousAction>());
   takenAction = vector<float>(1,0);
-  if (mapPoolSize == -1)
-    {
-      map.load(mapTag);
-    }
-  else
-    {
-      map.load(mapTag+"map0");
-    }
   size = map.getSize();
   for (int i=0;i<4+size*size;i++)
     {
@@ -172,7 +168,7 @@ void GridWorld::reset()
       default_random_engine generator(std::random_device{}());
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
       mapId = dist(generator);
-      map.load(mapTag+"map"+to_string(mapId));
+      map.load(mapPoolPath+"map"+to_string(mapId));
       size = map.getSize();
       for (int i=0;i<size;i++)
 	{
@@ -223,6 +219,11 @@ vector<int> GridWorld::accessibleStates(State s)
 int GridWorld::spaceStateSize()
 {
   return size*size;
+}
+
+int GridWorld::getSize()
+{
+  return size;
 }
 
 vector<vector<float>> GridWorld::getObstacles()

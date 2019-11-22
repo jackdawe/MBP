@@ -64,8 +64,8 @@ void ModelBased<W,M,P>::learnWorldModel(string path,int epochs, int batchSize, f
       if (rLossHistory.size()!=0 && *totalLoss.to(torch::Device(torch::kCPU)).data<float>()-*loss.to(torch::Device(torch::kCPU)).data<float>() > 0.5)
 	{
 	  cout<<"High loss variation detected. Resuming training on last checkpoint..."<<endl;
-	  torch::load(model,"../worldmodel-checkpoint.pt");
-	  torch::load(optimizer,"../wmoptim-checkpoint.pt");	
+	  torch::load(model,"../temp/worldmodel-checkpoint.pt");
+	  torch::load(optimizer,"../temp/wmoptim-checkpoint.pt");	
 	} else {
 	loss = totalLoss;
 	
@@ -73,8 +73,8 @@ void ModelBased<W,M,P>::learnWorldModel(string path,int epochs, int batchSize, f
 
 	if (e%500 == 0 || e == 100)
 	  {
-	    torch::save(model,"../worldmodel-checkpoint.pt");
-	    torch::save(optimizer,"../wmoptim-checkpoint.pt");
+	    torch::save(model,"../temp/worldmodel-checkpoint.pt");
+	    torch::save(optimizer,"../temp/wmoptim-checkpoint.pt");
 	    cout<<"Saving model and optimizer for checkpoint..."<<endl;
 	  }
 	    
@@ -96,8 +96,8 @@ void ModelBased<W,M,P>::learnWorldModel(string path,int epochs, int batchSize, f
 template <class W, class M, class P>
 void ModelBased<W,M,P>::saveTrainingData(string dir)
 {
-  ofstream r(dir+"rewardLossWMGW");
-  ofstream s(dir+"stateLossWMGW");
+  ofstream r("../temp/rewardLoss");
+  ofstream s("../temp/stateLoss");
 
   if (!s)
     {
