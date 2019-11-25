@@ -39,10 +39,10 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 	  gw.generateVectorStates();
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
-	  torch::save(stateInputs,"../temp/stateInputsTrain.pt");
-	  torch::save(actionInputs,"../temp/actionInputsTrain.pt");
-	  torch::save(rewardLabels,"../temp/rewardLabelsTrain.pt");
-	  torch::save(stateLabels,"../temp/stateLabelsTrain.pt");
+	  torch::save(stateInputs,path+"stateInputsTrain.pt");
+	  torch::save(actionInputs,path+"actionInputsTrain.pt");
+	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
+	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
 	  stateInputs = torch::zeros({n/5,3,size,size});
 	  actionInputs = torch::zeros({n/5});
 	  stateLabels = torch::zeros({n/5,size,size});
@@ -131,10 +131,10 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
   
   cout<< "Test set generation is complete!"<<endl; 
   
-  torch::save(stateInputs,"../temp/stateInputsTest.pt");
-  torch::save(actionInputs,"../temp/actionInputsTest.pt");
-  torch::save(rewardLabels,"../temp/rewardLabelsTest.pt");
-  torch::save(stateLabels,"../temp/stateLabelsTest.pt");
+  torch::save(stateInputs,path+"stateInputsTest.pt");
+  torch::save(actionInputs,path+"actionInputsTest.pt");
+  torch::save(rewardLabels,path+"rewardLabelsTest.pt");
+  torch::save(stateLabels,path+"stateLabelsTest.pt");
 }
 
 void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)

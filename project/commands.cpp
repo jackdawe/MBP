@@ -171,10 +171,8 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 
 void Commands::generateDataSetGW()
 {
-  GridWorld gw(FLAGS_dir,FLAGS_nmaps);
-  ToolsGW t(gw);
-  gw.generateVectorStates();
-  t.generateDataSet(FLAGS_n,FLAGS_wp);
+  ToolsGW t;
+  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp);
 }
 
 void Commands::learnTransitionFunctionGW()
