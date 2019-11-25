@@ -139,14 +139,12 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 
 void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
-  cout<<"ee"<<endl;
-  
   int n = testData.size(2);
   int m = testData.size(0);
   testData = testData.to(torch::Device(torch::kCPU));
   vector<int> scores(2,0);
   vector<int> truth(2,0);
-  cout<<"hello"<<endl;
+
   for (int s=0;s<m;s++)
     {      
       for (int i=0;i<n;i++)
