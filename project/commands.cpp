@@ -199,10 +199,12 @@ void Commands::learnTransitionFunctionGW()
   torch::save(agent.getTransitionFunction(),"../temp/TransitionGW.pt");
 
   //Computing accuracy
-  auto model = agent.getTransitionFunction();
-  
-  t.transitionAccuracy(model->predictState(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),stateLabelsTe);
 
+  {
+    torch::NoGradGuard no_grad;
+    auto model = agent.getTransitionFunction();
+    t.transitionAccuracy(model->predictState(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),stateLabelsTe);
+  } 
 }
 
 void Commands::learnRewardFunctionGW()
@@ -227,9 +229,13 @@ void Commands::learnRewardFunctionGW()
   torch::save(agent.getRewardFunction(),"../temp/RewardGW.pt");
 
   //Computing accuracy
-  auto model = agent.getRewardFunction();
-  
-  t.rewardAccuracy(model->predictReward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),rewardLabelsTe);
+
+  {
+    torch::NoGradGuard no_grad;
+    auto model = agent.getRewardFunction();
+    t.rewardAccuracy(model->predictReward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),rewardLabelsTe);
+  }
+
 
 }
 
@@ -246,30 +252,6 @@ void Commands::testTransitionFunctionGW()
   t.transitionAccuracy(ft->predictState(stateInputsTe.to(ft->getUsedDevice()),actionInputsTe.to(ft->getUsedDevice())),stateLabelsTe);
 }
 
-/*
-void Commands::trainTransitionFunctionGW(){
-  GridWorld gw;
-  ToolsGW t(gw);
-  string path = FLAGS_dir;
-  torch::Tensor stateInputs, actionInputs, stateLabels, rewardLabels;
-  torch::load(stateInputs,path+"stateInputsTest.pt");
-  torch::load(actionInputs, path+"actionInputsTest.pt");
-  torch::load(stateLabels, path+"stateLabelsTest.pt");
-  torch::load(rewardLabels, path+"rewardLabelsTest.pt");
-  WorldModelGW model(stateInputs.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2,FLAGS_rc1,FLAGS_rfc);
-  model->to(torch::Device(torch::kCUDA));
-  ModelBased<GridWorld,WorldModelGW,PlannerGW> agent(gw,model,PlannerGW());
-  agent.learnWorldModel(FLAGS_dir,FLAGS_n,FLAGS_bs,FLAGS_lr);
-  agent.saveTrainingData("../");
-  torch::save(agent.getModel(),"../WorldModelGW.pt");
-
-  //Computing accuracy
-  model = agent.getModel();
-  
-  t.transitionAccuracy(model->predictState(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),stateLabels);
-  t.rewardAccuracy(model->predictReward(stateInputs.to(model->getUsedDevice()),actionInputs.to(model->getUsedDevice())),rewardLabels);
-}
-*/
 void Commands::test()
 {
   RewardGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);

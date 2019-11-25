@@ -39,11 +39,13 @@ RewardGWImpl::RewardGWImpl(int size,int nConv1, int nActionfc1, int nActionfc2):
 
   //Adding the convolutionnal layers of the state CNN 
 
-  convLayers.push_back(register_module("Conv 1",torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nConv1,3).stride(1).padding(1))));
+  convLayers.push_back(register_module("Conv 1_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nConv1,3).stride(1).padding(1))));
+  convLayers.push_back(register_module("Conv 1_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(nConv1,nConv1,3).stride(1).padding(1))));
 
   for (int i=1;i<nLayers;i++)
     {
-      convLayers.push_back(register_module("Conv "+std::to_string(i+1),torch::nn::Conv2d(torch::nn::Conv2dOptions(nConv1*pow(2,i-1),nConv1*pow(2,i),3).stride(1).padding(1))));
+      convLayers.push_back(register_module("Conv "+std::to_string(i+1)+"_1",torch::nn::Conv2d(torch::nn::Conv2dOptions(nConv1*pow(2,i-1),nConv1*pow(2,i),3).stride(1).padding(1))));
+      convLayers.push_back(register_module("Conv "+std::to_string(i+1)+"_2",torch::nn::Conv2d(torch::nn::Conv2dOptions(nConv1*pow(2,i),nConv1*pow(2,i),3).stride(1).padding(1))));
     }
 
   //Adding the fully connected layers of the action MLP
@@ -69,7 +71,9 @@ torch::Tensor RewardGWImpl::cnnForward(torch::Tensor x)
 {
   for (int i=0;i<nLayers;i++)
     {
-      x = convLayers[i]->forward(x);
+      x = convLayers[2*i]->forward(x);
+      x = torch::relu(x);
+      x = convLayers[2*i+1]->forward(x);
       x = torch::relu(x);
       x = torch::max_pool2d(x,2);
     }
