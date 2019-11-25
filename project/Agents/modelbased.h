@@ -14,10 +14,11 @@ template<class W, class T, class R, class P>
  public:  
   ModelBased();
   ModelBased(W world, T transitionFunction); //For learning the transition function
-  ModelBased(W world, R rewardFunction); 
+  ModelBased(W world, R rewardFunction); //For learning the reward function 
   ModelBased(W world, T transitionFunction, R rewardFunction, P planner);
   void learnTransitionFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize=32, float lr=0.001);
   void learnRewardFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize=32, float lr=0.001);
+  void gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradientSteps, float lr);
   void saveTrainingData();
   T getTransitionFunction();
   R getRewardFunction();
@@ -26,6 +27,9 @@ template<class W, class T, class R, class P>
   T transitionFunction;
   R rewardFunction;
   P planner;
+
+  torch::Tensor actionSequence;
+  torch::Tensor trajectory;
 
   vector<float> rLossHistory;
   vector<float> sLossHistory;
