@@ -101,10 +101,11 @@ torch::Tensor RewardGWImpl::actionForward(torch::Tensor x)
 
 torch::Tensor RewardGWImpl::rewardForward(torch::Tensor x)
 {
-  for (unsigned int i=0;i<rewardFCLayers.size();i++)
+  for (unsigned int i=0;i<rewardFCLayers.size()-1;i++)
     {
       x = torch::relu(rewardFCLayers[i]->forward(x));
     }
+  x = rewardFCLayers[rewardFCLayers.size()-1]->forward(x);
   x = torch::log_softmax(x,1);
   return x;
 }

@@ -5,8 +5,11 @@ ToolsGW::ToolsGW(){}
 
 ToolsGW::ToolsGW(GridWorld gw): gw(gw){}
 
-void ToolsGW::generateDataSet(int n, float winProp)
+void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 {
+  gw = GridWorld(path+"train/",nmaps);
+  gw.generateVectorStates();
+  
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
@@ -32,6 +35,8 @@ void ToolsGW::generateDataSet(int n, float winProp)
       
       if (i==4*n/5)
 	{
+	  gw = GridWorld(path+"test/",nmaps);
+	  gw.generateVectorStates();
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
 	  torch::save(stateInputs,"../temp/stateInputsTrain.pt");
