@@ -1,6 +1,7 @@
 #ifndef CONVNETGW_H
 #define CONVNETGW_H
 #undef slots
+#include "../toolsgw.h"
 #include <torch/torch.h>
 #define slots Q_SLOTS
 #include <gflags/gflags.h>
@@ -14,8 +15,8 @@ public:
     ConvNetGWImpl();
     ConvNetGWImpl(int size, int nConv1, int nConv2, int nfc);
     torch::Tensor forward(torch::Tensor x);
-    torch::Tensor actorOutput(torch::Tensor x);
-    torch::Tensor criticOutput(torch::Tensor x);
+    torch::Tensor actorOutput(torch::Tensor batch);
+    torch::Tensor criticOutput(torch::Tensor batch);
     torch::Device getUsedDevice();
     
 private:

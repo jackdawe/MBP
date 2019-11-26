@@ -29,14 +29,9 @@ ModelBased<W,T,R,P>::ModelBased(W world, T transitionFunction, R rewardFunction,
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize, float lr)
 {
-   //Migrating tensors to CUDA if available 
-
-  stateInputs = stateInputs.to(transitionFunction->getUsedDevice());
-  actionInputs = actionInputs.to(transitionFunction->getUsedDevice());
-  labels = labels.to(transitionFunction->getUsedDevice());
-
   int n = stateInputs.size(0);
-  int imSize = stateInputs.size(2);
+  int svecSize = stateInputs.size(1);
+  int avecSize = actionInputs.size(1);
   torch::optim::Adam optimizer(transitionFunction->parameters(), lr);
 
   //Training Loop
@@ -47,15 +42,15 @@ void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, to
     {
       //Extracting batch from dataset
     
-      torch::Tensor siBatch = torch::zeros({batchSize,3,imSize,imSize}).to(transitionFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize,4}).to(transitionFunction->getUsedDevice());
-      torch::Tensor lBatch = torch::zeros({batchSize,imSize,imSize}).to(transitionFunction->getUsedDevice());
+      torch::Tensor siBatch = torch::zeros({batchSize,svecSize}).to(transitionFunction->getUsedDevice());
+      torch::Tensor aiBatch = torch::zeros({batchSize,avecSize}).to(transitionFunction->getUsedDevice());
+      torch::Tensor lBatch = torch::zeros(0).to(transitionFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
 	  siBatch[i] = stateInputs[index]; 
 	  aiBatch[i] = actionInputs[index];
-	  lBatch[i] = labels[index];
+	  lBatch = torch::cat({lBatch,labels[index]},0);
 	}
       
       //Forward and backward pass
@@ -79,14 +74,9 @@ void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, to
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize, float lr)
 {
-   //Migrating tensors to CUDA if available 
-
-  stateInputs = stateInputs.to(rewardFunction->getUsedDevice());
-  actionInputs = actionInputs.to(rewardFunction->getUsedDevice());
-  labels = labels.to(rewardFunction->getUsedDevice());
-
   int n = stateInputs.size(0);
-  int imSize = stateInputs.size(2);
+  int svecSize = stateInputs.size(1);
+  int avecSize = actionInputs.size(1);
   torch::optim::Adam optimizer(rewardFunction->parameters(), lr);
 
   //Training Loop
@@ -97,8 +87,8 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
     {
       //Extracting batch from dataset
     
-      torch::Tensor siBatch = torch::zeros({batchSize,3,imSize,imSize}).to(rewardFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize,4}).to(rewardFunction->getUsedDevice());
+      torch::Tensor siBatch = torch::zeros({batchSize,svecSize}).to(rewardFunction->getUsedDevice());
+      torch::Tensor aiBatch = torch::zeros({batchSize,avecSize}).to(rewardFunction->getUsedDevice());
       torch::Tensor lBatch = torch::zeros({batchSize}).to(rewardFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{
@@ -146,7 +136,7 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	    {
 	      torch::Tensor rgbState = torch::zeros({1,3,8,8}).to(transitionFunction->getUsedDevice()); 
 	      rgbState[0][0] = stateSequences[k][t], rgbState[0][1] = initState[1], rgbState[0][2] = initState[2];
-	      if (this->world.isTerminal(rgbState))
+	      if ()
 		{
 		  stateSequences[k][t+1] = stateSequences[k][t];
 		  stepRewards[t] = 0;

@@ -5,6 +5,7 @@
 #define slots Q_SLOTS
 #include <gflags/gflags.h>
 #include <math.h>
+#include "../toolsgw.h"
 DECLARE_int32(sc1);
 DECLARE_int32(sc2);
 DECLARE_int32(afc1);

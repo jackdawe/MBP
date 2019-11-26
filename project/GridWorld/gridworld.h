@@ -22,8 +22,6 @@ public:
     float transition();
     bool isTerminal(State s);
     void generateVectorStates();
-    cv::Mat toRGBMat(vector<float> stateVector);
-    torch::Tensor toRGBTensor(vector<float> stateVector);
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);

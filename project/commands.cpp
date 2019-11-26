@@ -22,6 +22,7 @@ void Commands::showMapGW(int argc, char* argv[])
   a.exec();
 }
 
+/*
 void Commands::trainA2COneMapGW()
 {
   GridWorld gw(FLAGS_f);
@@ -100,7 +101,6 @@ void Commands::showCriticOnMapGW(int argc, char* argv[])
 	{
 	  GridWorld gw(filename,i,j);
 	  gw.generateVectorStates();
-	  gw.toRGBTensor(gw.getCurrentState().getStateVector());
 	  torch::Tensor output = net->criticOutput(gw.toRGBTensor(gw.getCurrentState().getStateVector()).to(net->getUsedDevice()));
 	  string val = to_string(*output.to(torch::Device(torch::kCPU)).data<float>());
 	  string val2;
@@ -111,7 +111,7 @@ void Commands::showCriticOnMapGW(int argc, char* argv[])
     }
   EpisodePlayerGW ep(FLAGS_f);
   ep.displayOnGrid(toDisplay);
-  a.exec();
+  a.exec(); 
 }
 
 void Commands::showActorOnMapGW(int argc, char* argv[])
@@ -168,7 +168,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
   ep.displayOnGrid(toDisplay);
   a.exec();
 }
-
+*/
 void Commands::generateDataSetGW()
 {
   ToolsGW t;

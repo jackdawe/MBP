@@ -13,34 +13,17 @@ ActorCritic<W,M>::ActorCritic()
 
 template<class W,class M>
 ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
-  model(model),usesCNN(usesCNN)
+  model(model)
 {
   this->world = world;
-  if (usesCNN)
-    {
-      //     this->generateNameTag("A2C_CNN");
-    }
-  else
-    {
-      this->generateNameTag("A2C_MLP");
-    }
 }
 
 
 template <class W,class M>
 ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param,bool usesCNN):
   Agent<W>(world, param.nEpisodes), model(model), gamma(param.gamma), learningRate(param.learningRate),
-  beta(param.beta),zeta(param.zeta), batchSize(param.batchSize), usesCNN(usesCNN)
-{
-  if (usesCNN)
-    {
-      this->generateNameTag("A2C_CNN");
-    }
-  else
-    {
-      this->generateNameTag("A2C_MLP");
-    }
-}
+  beta(param.beta),zeta(param.zeta), batchSize(param.batchSize)
+{}
 
 template <class W,class M>
 void ActorCritic<W,M>::evaluateRunValues()
@@ -53,17 +36,16 @@ void ActorCritic<W,M>::evaluateRunValues()
     }
     else
     {
-        torch::Tensor prediction = model->criticOutput(runStates[batchSize-1]
-                .reshape({1,3,this->world.getSize(),this->world.getSize()}));
-        nextReturn = *prediction.to(torch::Device(torch::kCPU)).data<float>();
+      torch::Tensor prediction = model->criticOutput(runStates[batchSize-1].unsqueeze(0));
+      nextReturn = *prediction.to(torch::Device(torch::kCPU)).data<float>();
     }
     runValues[batchSize-1] = nextReturn;
     for (int i=batchSize-2;i>=0;i--)
-    {
+      {
         if (runAreTerminal[i])
-        {
+	  {
             nextReturn=0;
-        }
+	  }
         thisReturn=runRewards[i] + gamma*nextReturn;
         runValues[i][0] = thisReturn;
         nextReturn = thisReturn;        
@@ -104,27 +86,21 @@ void ActorCritic<W,M>::train()
   torch::optim::Adam optimizer(model->parameters(),learningRate);
   while (this->episodeNumber<this->nEpisodes)
     {
-      runStates = torch::zeros(0).to(model->getUsedDevice()), runActions = torch::zeros(0).to(model->getUsedDevice()), runRewards = {}, runAreTerminal = {}, runValues = torch::zeros({batchSize,1}).to(model->getUsedDevice());
+      runStates = torch::zeros({batchSize,this->currentState().getStateVector().size()});
+      runActions = torch::zeros({batchSize}).to(model->getUsedDevice());
+      runRewards = {}, runAreTerminal = {};
+      runValues = torch::zeros({batchSize,1}).to(model->getUsedDevice());
       for (int i=0;i<batchSize;i++)
         {
 	  nSteps++;
-	  torch::Tensor s;
-	  if(usesCNN)
-            {
-	      s = this->world.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
-            }
-	  else
-            {
-	      s = torch::tensor(this->currentState().getStateVector());
-	      s = s.reshape({1,s.size(0)});
-            }
-	  torch::Tensor actionProbabilities = model->actorOutput(s);
+	  torch::Tensor stateVector = torch::tensor(this->currentState().getStateVector());
+	  torch::Tensor actionProbabilities = model->actorOutput(stateVector.unsqueeze(0));
 	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
 	  this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
 	  this->world.setTakenReward(this->world.transition());
-	  runStates = torch::cat({runStates,s});
+	  runStates[i] = stateVector;
 	  runRewards.push_back(this->takenReward());
-	  runActions = torch::cat({runActions,action.to(model->getUsedDevice())});
+	  runActions[i] = action.to(model->getUsedDevice());
 	  runAreTerminal.push_back(this->world.isTerminal(this->currentState()));
 	  if (runAreTerminal.back() || nSteps==pow(this->world.getSize(),2)/2)
             {
@@ -157,17 +133,8 @@ void ActorCritic<W,M>::playOne()
   while(count<pow(this->world.getSize(),2) && !this->world.isTerminal(this->currentState()))
     {
       count++;
-      torch::Tensor s;
-      if(usesCNN)
-	{
-	      s = this->world.toRGBTensor(this->currentState().getStateVector()).to(model->getUsedDevice());	    
-            }
-	  else
-            {
-	      s = torch::tensor(this->currentState().getStateVector());
-	      s = s.reshape({1,s.size(0)});
-            }
-      torch::Tensor actionProbabilities = model->actorOutput(s);
+      torch::Tensor stateVector = torch::tensor(this->currentState().getStateVector());
+      torch::Tensor actionProbabilities = model->actorOutput(stateVector.unsqueeze(0));
       torch::Tensor action = torch::argmax(actionProbabilities).to(torch::kFloat32);
       this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
       this->world.setTakenReward(this->world.transition());
@@ -200,5 +167,4 @@ M ActorCritic<W,M>::getModel() const
     return model;
 }
 
-//template class ActorCritic<GridWorld,ModelA2CGW>;
 template class ActorCritic<GridWorld,ConvNetGW>;

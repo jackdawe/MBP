@@ -2,10 +2,11 @@
 #define TRANSITIONGW_H
 #undef slots
 #include <torch/torch.h>
-#include <fstream>
-#include <iostream>
 #define slots Q_SLOTS
 #include <math.h>
+#include <fstream>
+#include <iostream>
+#include "../toolsgw.h"
 
 class TransitionGWImpl: public torch::nn::Module
 {

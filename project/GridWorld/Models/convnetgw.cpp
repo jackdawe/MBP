@@ -47,16 +47,18 @@ torch::Tensor ConvNetGWImpl::forward(torch::Tensor x)
     return x;
 }
 
-torch::Tensor ConvNetGWImpl::actorOutput(torch::Tensor x)
+torch::Tensor ConvNetGWImpl::actorOutput(torch::Tensor batch)
 {
-    x = this->forward(x);
-    return torch::softmax(actor->forward(x),1);
+  torch::Tensor x = ToolsGW().toRGBTensor(batch).to(usedDevice); 
+  x = this->forward(x);
+  return torch::softmax(actor->forward(x),1);
 }
 
-torch::Tensor ConvNetGWImpl::criticOutput(torch::Tensor x)
+torch::Tensor ConvNetGWImpl::criticOutput(torch::Tensor batch)
 {
-    x = this->forward(x);
-    return critic->forward(x);
+  torch::Tensor x = ToolsGW().toRGBTensor(batch).to(usedDevice); 
+  x = this->forward(x);
+  return critic->forward(x);
 }
 
 torch::Device ConvNetGWImpl::getUsedDevice()

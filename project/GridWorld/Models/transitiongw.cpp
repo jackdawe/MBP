@@ -136,6 +136,7 @@ torch::Tensor TransitionGWImpl::decoderForward(torch::Tensor x)
 
 torch::Tensor TransitionGWImpl::predictState(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
+  stateBatch = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
   torch::Tensor encoderOut = this->encoderForward(stateBatch);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
   torch::Tensor x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});

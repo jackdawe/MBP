@@ -17,8 +17,8 @@ template <class W, class M>
 {
  public:
   ActorCritic();
-  ActorCritic(W world, M model, bool usesCNN = false);
-  ActorCritic(W world, M model, ParametersA2C param, bool usesCNN = false);
+  ActorCritic(W world, M model);
+  ActorCritic(W world, M model, ParametersA2C param);
   void evaluateRunValues();
   void backPropagate(torch::optim::Adam *opti);
   void train();
@@ -26,8 +26,7 @@ template <class W, class M>
   void saveTrainingData();
   M getModel() const;
 
- private:
-  bool usesCNN;
+ private:  
   float gamma;
   float learningRate;
   float beta;

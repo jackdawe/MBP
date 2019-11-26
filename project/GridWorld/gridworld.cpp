@@ -105,51 +105,6 @@ void GridWorld::generateVectorStates()
     stateSequence.push_back(currentState.getStateVector());
 }
 
-cv::Mat GridWorld::toRGBMat(vector<float> stateVector)
-{
-    cv::Mat rgbState(size,size,CV_8UC3);
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            for (int k=0;k<3;k++)
-            {
-                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
-            }
-        }
-    }
-
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            if (stateVector[i*size+j+4] == 1)
-            {
-                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255);
-            }
-        }
-    }
-
-    rgbState.at<cv::Vec3b>(stateVector[0],stateVector[1]) += cv::Vec3b(255,0,0);
-    rgbState.at<cv::Vec3b>(stateVector[2],stateVector[3]) += cv::Vec3b(0,255,0);
-    return rgbState;
-}
-
-torch::Tensor GridWorld::toRGBTensor(vector<float> stateVector)
-{
-  torch::Tensor rgbState = torch::zeros({3,size,size});
-  for (int i=0;i<size;i++)
-    {
-      for (int j=0;j<size;j++)
-	{
-	  rgbState[2][i][j] = stateVector[i*size+j+4];
-	}
-    }
-  rgbState[0][stateVector[0]][stateVector[1]] = 1;
-  rgbState[1][stateVector[2]][stateVector[3]] = 1;
-  return rgbState;
-}
-
 int GridWorld::stateId(State s)
 {
     float ax = s.getStateVector()[0];

@@ -7,6 +7,56 @@ ToolsGW::ToolsGW(){}
 
 ToolsGW::ToolsGW(GridWorld gw): gw(gw){}
 
+torch::Tensor ToolsGW::toRGBTensor(torch::Tensor batch)
+{
+  torch::Tensor rgbState = torch::zeros({batch.size(0),3,size,size});
+  for (int s=0;s<batch.size(0);s++)
+    {
+      for (int i=0;i<size;i++)
+	{
+	  for (int j=0;j<size;j++)
+	    {
+	      rgbState[s][2][i][j] = batch[s][i*size+j+4];
+	    }
+	}
+      rgbState[s][0][batch[s][0]][batch[s][1]] = 1;
+      rgbState[s][1][batch[s][2]][batch[s][3]] = 1;
+    }
+  return rgbState;
+}
+
+/*
+cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
+{
+    cv::Mat rgbState(size,size,CV_8UC3);
+    for (int i=0;i<size;i++)
+    {
+        for (int j=0;j<size;j++)
+        {
+            for (int k=0;k<3;k++)
+            {
+                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
+            }
+        }
+    }
+
+    for (int i=0;i<size;i++)
+    {
+        for (int j=0;j<size;j++)
+        {
+            if (stateVector[i*size+j+4] == 1)
+            {
+                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255);
+            }
+        }
+    }
+
+    rgbState.at<cv::Vec3b>(stateVector[0],stateVector[1]) += cv::Vec3b(255,0,0);
+    rgbState.at<cv::Vec3b>(stateVector[2],stateVector[3]) += cv::Vec3b(0,255,0);
+    return rgbState;
+    }*/
+
+
 void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool noise, float sigma)
 {
   gw = GridWorld(path+"train/",nmaps);
