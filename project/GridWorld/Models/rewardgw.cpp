@@ -21,9 +21,19 @@ RewardGWImpl::RewardGWImpl():
 }
 
 RewardGWImpl::RewardGWImpl(int size,int nConv1, int nActionfc1, int nActionfc2):
-  usedDevice(torch::Device(torch::kCPU)),nLayers(-1+log(size)/log(2)) 
+  size(size), nConv1(nConv1), nActionfc1(nActionfc1), nActionfc2(nActionfc2), usedDevice(torch::Device(torch::kCPU)),nLayers(-1+log(size)/log(2)) 
 {
+  init();
+}
 
+RewardGWImpl::RewardGWImpl(std::string filename):
+  usedDevice(torch::Device(torch::kCPU))
+{
+  loadParams(filename);
+}
+
+void RewardGWImpl::init()
+{
   //Switching to CUDA if available
   
   if (torch::cuda::is_available())
@@ -118,6 +128,37 @@ torch::Tensor RewardGWImpl::predictReward(torch::Tensor stateBatch, torch::Tenso
   
   torch::Tensor x = torch::cat({cnnOut,actionEmbedding},1);
   return rewardForward(x); 
+}
+
+void RewardGWImpl::saveParams(std::string filename)
+{
+  std::ofstream f(filename);
+  {
+    f<<"###PARAMETERS FOR LOADING A REWARD MODEL###"<<std::endl;
+    f<<std::to_string(size)<<std::endl;
+    f<<std::to_string(nConv1)<<std::endl;
+    f<<std::to_string(nActionfc1)<<std::endl;
+    f<<std::to_string(nActionfc2)<<std::endl;
+  }
+}
+
+void RewardGWImpl::loadParams(std::string filename)
+{
+  std::ifstream f(filename);
+  if (!f)
+    {
+      std::cout<<"An error has occured while trying to load the Reward model." << std::endl;
+    }
+  else {
+    std::string line;
+    std::getline(f,line);
+    std::getline(f,line); size=stoi(line);
+    std::getline(f,line); nConv1=stoi(line);
+    std::getline(f,line); nActionfc1=stoi(line);
+    std::getline(f,line); nActionfc2=stoi(line);
+    nLayers = -1+log(size)/log(2);
+    init();
+  }
 }
 
 torch::Device RewardGWImpl::getUsedDevice()

@@ -17,9 +17,20 @@ TransitionGWImpl::TransitionGWImpl():
 }
 
 TransitionGWImpl::TransitionGWImpl(int size, int nStateConv1, int nActionfc1, int nActionfc2):
-  usedDevice(torch::Device(torch::kCPU)), nUnetLayers(-1+log(size)/log(2))
+  size(size), nStateConv1(nStateConv1), nActionfc1(nActionfc1), nActionfc2(nActionfc2), usedDevice(torch::Device(torch::kCPU)), nUnetLayers(-1+log(size)/log(2))
 {
-    if (torch::cuda::is_available())
+  init();
+}
+
+TransitionGWImpl::TransitionGWImpl(std::string filename):
+  usedDevice(torch::Device(torch::kCPU))
+{
+  loadParams(filename);
+}
+
+void TransitionGWImpl::init()
+{
+  if (torch::cuda::is_available())
     {
       std::cout << "CUDA detected for TransitionGW: training and inference will be done using CUDA." << std::endl;
       usedDevice = torch::Device(torch::kCUDA);
@@ -142,6 +153,37 @@ torch::Tensor TransitionGWImpl::predictState(torch::Tensor stateBatch, torch::Te
   x = torch::cat({encoderOut,x},1);
   x = decoderForward(x);
   return x;
+}
+
+void TransitionGWImpl::saveParams(std::string filename)
+{
+  std::ofstream f(filename);
+  {
+    f<<"###PARAMETERS FOR LOADING A TRANSITION MODEL###"<<std::endl;
+    f<<std::to_string(size)<<std::endl;
+    f<<std::to_string(nStateConv1)<<std::endl;
+    f<<std::to_string(nActionfc1)<<std::endl;
+    f<<std::to_string(nActionfc2)<<std::endl;
+  }
+}
+
+void TransitionGWImpl::loadParams(std::string filename)
+{
+  std::ifstream f(filename);
+  if (!f)
+    {
+      std::cout<<"An error has occured while trying to load the Transition model." << std::endl;
+    }
+  else {
+    std::string line;
+    std::getline(f,line);
+    std::getline(f,line); size=stoi(line);
+    std::getline(f,line); nStateConv1=stoi(line);
+    std::getline(f,line); nActionfc1=stoi(line);
+    std::getline(f,line); nActionfc2=stoi(line);
+    nUnetLayers = -1+log(size)/log(2);
+    init();
+  }
 }
 
 torch::Device TransitionGWImpl::getUsedDevice()

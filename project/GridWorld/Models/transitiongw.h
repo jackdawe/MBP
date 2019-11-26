@@ -2,6 +2,8 @@
 #define TRANSITIONGW_H
 #undef slots
 #include <torch/torch.h>
+#include <fstream>
+#include <iostream>
 #define slots Q_SLOTS
 #include <math.h>
 
@@ -10,19 +12,30 @@ class TransitionGWImpl: public torch::nn::Module
  public:
   TransitionGWImpl();
   TransitionGWImpl(int size, int nStateConv1, int nActionfc1, int nActionfc2);
+  TransitionGWImpl(std::string filename);
   torch::Tensor encoderForward(torch::Tensor x);
   torch::Tensor actionForward(torch::Tensor x);
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
   torch::Tensor predictState(torch::Tensor stateBatch, torch::Tensor actionBatch);
 
+  void saveParams(std::string filename);
+  void loadParams(std::string filename);
+  
   torch::Device getUsedDevice();
 
  private:
+  void init();
+  
   torch::Device usedDevice;
 
   std::vector<torch::Tensor> outputCopies;
 
+  int size;
+  int nStateConv1;
+  int nActionfc1;
+  int nActionfc2;
+  
   int nUnetLayers;
   int nc_actEmb;
   int nc_encoderOut;

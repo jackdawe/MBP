@@ -195,7 +195,8 @@ void Commands::learnTransitionFunctionGW()
   agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData();
   torch::save(agent.getTransitionFunction(),"../temp/TransitionGW.pt");
-
+  agent.getTransitionFunction()->saveParams("../temp/TransitionGW_Params");
+  
   //Computing accuracy
 
   {
@@ -225,7 +226,7 @@ void Commands::learnRewardFunctionGW()
   agent.learnRewardFunction(actionInputsTr, stateInputsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData();
   torch::save(agent.getRewardFunction(),"../temp/RewardGW.pt");
-
+  agent.getRewardFunction()->saveParams("../temp/RewardGW_Params");
   //Computing accuracy
 
   {
