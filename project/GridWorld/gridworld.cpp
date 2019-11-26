@@ -163,13 +163,16 @@ void GridWorld::reset()
   default_random_engine generator(std::random_device{}());
   uniform_int_distribution<int> dist(0,mapPoolSize-1);
   int mapId; 
-  if (mapPoolSize != -1)
+  if (mapPoolSize != -1) 
     {
       default_random_engine generator(std::random_device{}());
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
       mapId = dist(generator);
       map.load(mapPoolPath+"map"+to_string(mapId));
       size = map.getSize();
+    }
+  if (obstacles[0][0] != 1 || mapPoolSize != -1) //First condition is for first initialisation
+    {
       for (int i=0;i<size;i++)
 	{
 	  for (int j=0;j<size;j++)
@@ -221,6 +224,23 @@ int GridWorld::spaceStateSize()
   return size*size;
 }
 
+float GridWorld::idToReward(int id)
+{
+  switch(id)
+    {
+    case 0:
+      return LOSE_REWARD;
+      break;
+    case 1:
+      return EMPTY_SQUARE_REWARD;
+      break;
+    case 2:
+      return WIN_REWARD;
+      break;
+    }
+  return 0;
+}
+  
 int GridWorld::getSize()
 {
   return size;

@@ -129,30 +129,45 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
 {
-  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps,3,8,8}); //MEH
-  torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps});
+  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps+1,8,8}); //MEH
+  torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps,4});
   torch::Tensor rewards = torch::zeros({nRollouts});
+  torch::Tensor initState = this->world.toRGBTensor(this->currentState().getStateVector());
   
   for (int k=0;k<nRollouts;k++)
     {
-      stateSequences[k][0] = this->world.toRGBTensor(this->currentState().getStateVector());
-      torch::Tensor tokens = torch::randn({nRollouts});
+      stateSequences[k][0] = initState[0];
+      torch::Tensor tokens = torch::randn({nTimesteps,4},torch::requires_grad());
       for (int i=0;i<nGradsteps;i++)
 	{
-	  actionSequences[k] = torch::softmax(tokens,0);
-	  torch::Tensor r = torch::zeros({1},torch::requires_grad());
-	  for (int t=0;t<nTimesteps;t++)
+	  actionSequences[k] = torch::softmax(tokens,1);
+	  torch::Tensor stepRewards = torch::zeros({nTimesteps});
+ 	  for (int t=0;t<nTimesteps;t++)
 	    {
-	      stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].to(transitionFunction->getUsedDevice()),actionSequences[k][t].to(transitionFunction->getUsedDevice()));
-	      r+=rewardFunction->predictReward(stateSequences[k][t].to(transitionFunction->getUsedDevice()),actionSequences[k][t].to(transitionFunction->getUsedDevice()));
+	      torch::Tensor rgbState = torch::zeros({1,3,8,8}).to(transitionFunction->getUsedDevice()); 
+	      rgbState[0][0] = stateSequences[k][t], rgbState[0][1] = initState[1], rgbState[0][2] = initState[2];
+	      if (this->world.isTerminal(rgbState))
+		{
+		  stateSequences[k][t+1] = stateSequences[k][t];
+		  stepRewards[t] = 0;
+		}
+	      else
+		{
+		  stateSequences[k][t+1] = transitionFunction->predictState(rgbState,softmax(tokens[t].reshape({1,4}),1).to(transitionFunction->getUsedDevice()))[0];
+		  torch::Tensor rLogProbs = rewardFunction->predictReward(rgbState,actionSequences[k][t].reshape({1,4}).to(transitionFunction->getUsedDevice()));
+		  int rId = *torch::argmax(torch::exp(rLogProbs)).to(torch::Device(torch::kCPU)).data<long>();
+		  stepRewards[t]=this->world.idToReward(rId);
+		}
 	    }
-	  rewards[k] = r;
-	  r.backward();
+	  cout<<torch::round(stateSequences[k])<<endl;
+	  torch::Tensor totalStepReward = stepRewards.sum();
+	  rewards[k] = totalStepReward;
+	  totalStepReward.backward();
 	  for (int t=nTimesteps-1;t>0;t--)
 	    {
 	      tokens[t]-= lr*tokens[t].grad();
 	    }
-	  actionSequences[k] = torch::softmax(tokens,0);	 
+	  actionSequences[k] = torch::softmax(tokens,1);	 
 	}
     }
   int maxRewardIdx = *torch::argmax(rewards).data<long>();

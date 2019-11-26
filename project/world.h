@@ -60,7 +60,8 @@ public:
      * @return The cardinal of the space state or -1 if the space state is infinite
      */
     virtual int spaceStateSize();
-    virtual void generateDataSet();
+
+    virtual float idToReward(int id);
     
     vector<float> randomAction();
     void saveRewardHistory();

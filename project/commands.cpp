@@ -192,7 +192,6 @@ void Commands::learnTransitionFunctionGW()
   TransitionGW ft(stateInputsTr.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   ft->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
-  cout<<"kejjfwo"<<endl;
   agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData();
   torch::save(agent.getTransitionFunction(),"../temp/TransitionGW.pt");
@@ -255,6 +254,12 @@ void Commands::testTransitionFunctionGW()
 
 void Commands::test()
 {
-  RewardGW test(FLAGS_size,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
-  cout<<test<<endl;
+  TransitionGW ft("../GridWorld/Saved/Models/TransitionFunctionWN_Inter8x8_Params");
+  torch::load(ft,"../GridWorld/Saved/Models/TransitionFunctionWN_Inter8x8.pt");  
+  RewardGW fr("../GridWorld/Saved/Models/RewardFunctionWN_Inter8x8_Params");
+  torch::load(fr,"../GridWorld/Saved/Models/RewardFunctionWN_Inter8x8.pt");
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map2",6,1);
+  gw.generateVectorStates();
+  ModelBased<GridWorld,TransitionGW,RewardGW,PlannerGW> agent(gw,ft,fr,PlannerGW());
+  agent.gradientBasedPlanner(10,5,10,0.001);
 }

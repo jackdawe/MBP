@@ -34,8 +34,9 @@ int World::spaceStateSize()
     return -1;
 }
 
-void World::generateDataSet()
+float World::idToReward(int id)
 {
+  return 0;
 }
 
 vector<float> World::randomAction()
