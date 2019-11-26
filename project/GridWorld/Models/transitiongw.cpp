@@ -108,21 +108,10 @@ torch::Tensor TransitionGWImpl::encoderForward(torch::Tensor x)
 
 torch::Tensor TransitionGWImpl::actionForward(torch::Tensor x)
 {
-  //One-Hot encoding the batch of actions
-
-  torch::Tensor y = torch::zeros({x.size(0),4}).to(usedDevice);
-  x = x.to(torch::kInt32);
-  for (int i=0;i<x.size(0);i++)
-    {
-      y[i][*x[i].to(torch::Device(torch::kCPU)).data<int>()] = 1;
-    }
-  
-  //Going through the MLP
-
-  y = torch::relu(actionfc1->forward(y));  
-  y = torch::relu(actionfc2->forward(y));
-  y = torch::relu(actionfc3->forward(y));
-  return y;
+  x = torch::relu(actionfc1->forward(x));  
+  x = torch::relu(actionfc2->forward(x));
+  x = torch::relu(actionfc3->forward(x));
+  return x;
 }
 
 torch::Tensor TransitionGWImpl::decoderForward(torch::Tensor x)

@@ -48,7 +48,7 @@ void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, to
       //Extracting batch from dataset
     
       torch::Tensor siBatch = torch::zeros({batchSize,3,imSize,imSize}).to(transitionFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize}).to(transitionFunction->getUsedDevice());
+      torch::Tensor aiBatch = torch::zeros({batchSize,4}).to(transitionFunction->getUsedDevice());
       torch::Tensor lBatch = torch::zeros({batchSize,imSize,imSize}).to(transitionFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{
@@ -98,7 +98,7 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
       //Extracting batch from dataset
     
       torch::Tensor siBatch = torch::zeros({batchSize,3,imSize,imSize}).to(rewardFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize}).to(rewardFunction->getUsedDevice());
+      torch::Tensor aiBatch = torch::zeros({batchSize,4}).to(rewardFunction->getUsedDevice());
       torch::Tensor lBatch = torch::zeros({batchSize}).to(rewardFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{

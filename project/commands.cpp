@@ -172,7 +172,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   ToolsGW t;
-  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp);
+  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp,FLAGS_wn,FLAGS_sd);
 }
 
 void Commands::learnTransitionFunctionGW()
@@ -192,6 +192,7 @@ void Commands::learnTransitionFunctionGW()
   TransitionGW ft(stateInputsTr.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   ft->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
+  cout<<"kejjfwo"<<endl;
   agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData();
   torch::save(agent.getTransitionFunction(),"../temp/TransitionGW.pt");
@@ -227,6 +228,7 @@ void Commands::learnRewardFunctionGW()
   agent.saveTrainingData();
   torch::save(agent.getRewardFunction(),"../temp/RewardGW.pt");
   agent.getRewardFunction()->saveParams("../temp/RewardGW_Params");
+
   //Computing accuracy
 
   {

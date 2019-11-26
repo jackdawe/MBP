@@ -1,11 +1,13 @@
 #include "toolsgw.h"
 DEFINE_double(wp,0.1,"Percentage of forced win scenarios during the dataset generation"); 
+DEFINE_bool(wn,false,"Adding white noise to the one-hot encoded action vectors");
+DEFINE_double(sd,0.25,"Standard deviation");
 
 ToolsGW::ToolsGW(){}
 
 ToolsGW::ToolsGW(GridWorld gw): gw(gw){}
 
-void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
+void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool noise, float sigma)
 {
   gw = GridWorld(path+"train/",nmaps);
   gw.generateVectorStates();
@@ -14,7 +16,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 
   int size = gw.getSize();
   torch::Tensor stateInputs = torch::zeros({4*n/5,3,size,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5});
+  torch::Tensor actionInputs = torch::zeros({4*n/5,4});
   torch::Tensor stateLabels = torch::zeros({4*n/5,size,size});
   torch::Tensor rewardLabels = torch::zeros({4*n/5});
   
@@ -40,11 +42,15 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
 	  torch::save(stateInputs,path+"stateInputsTrain.pt");
+	  if (noise)
+	    {	    
+	      actionInputs+=torch::empty({actionInputs.size(0),actionInputs.size(1)}).normal_(0,sigma);
+	    }
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
 	  stateInputs = torch::zeros({n/5,3,size,size});
-	  actionInputs = torch::zeros({n/5});
+	  actionInputs = torch::zeros({n/5,4});
 	  stateLabels = torch::zeros({n/5,size,size});
 	  rewardLabels = torch::zeros({n/5});
 	}
@@ -57,7 +63,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 	{
 	  gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation
 	}
-      actionInputs[j] = gw.getTakenAction()[0];
+      actionInputs[j][(int)gw.getTakenAction()[0]]=1;
       float r = gw.transition();
       float bug = EMPTY_SQUARE_REWARD; //Code does not compile if I use EMPTY_SQUARE_REWARD in switch
       if(r == LOSE_REWARD)
@@ -132,6 +138,10 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
   cout<< "Test set generation is complete!"<<endl; 
   
   torch::save(stateInputs,path+"stateInputsTest.pt");
+  if (noise)
+    {	    
+      actionInputs+=torch::empty({actionInputs.size(0),actionInputs.size(1)}).normal_(0,sigma);
+    }	  
   torch::save(actionInputs,path+"actionInputsTest.pt");
   torch::save(rewardLabels,path+"rewardLabelsTest.pt");
   torch::save(stateLabels,path+"stateLabelsTest.pt");
