@@ -84,7 +84,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	{
 	  cout << "Your agent is crashing into walls for science... " + to_string(i/(n/100)) + "%" << endl;
 	}
-
+      
       //Swapping to test set generation when training set generation is done
       
       if (i==4*n/5)
@@ -116,21 +116,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	  gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation
 	}
       actionInputs[j][(int)gw.getTakenAction()[0]]=1;
-      float r = gw.transition();
-      float bug = EMPTY_SQUARE_REWARD; //Code does not compile if I use EMPTY_SQUARE_REWARD in switch
-      if(r == LOSE_REWARD)
-	{
-	  r = 0;
-	}
-      else if (r == bug)
-	{
-	  r = 1;
-	}
-      else if (r == WIN_REWARD)
-	{
-	  r = 2;
-	}
-      rewardLabels[j] = r;
+      rewardLabels[j] = gw.transition();
       stateLabels[j] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0][0];
 	
       //Resettiing the gridworld at the end of an episode
@@ -244,16 +230,35 @@ void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
   int m = testData.size(0);
   vector<int> rCounts(3,0);
   vector<int> scores(3,0);
-  testData = torch::argmax(torch::exp(testData),1);
   testData = testData.to(torch::Device(torch::kCPU));
-  labels = labels.to(torch::kInt32);
   for (int s=0;s<m;s++)
     {
-      int rl = *labels[s].data<int>();
-      rCounts[rl]++;
-      if (*testData[s].data<long>() == rl)
+      float bug = EMPTY_SQUARE_REWARD;
+      float rl = *labels[s].data<float>();
+      if (rl==LOSE_REWARD)
 	{
-	  scores[rl]++;
+	  rCounts[0]++;
+	}
+      else if (rl == bug)
+	{
+	  rCounts[1]++;
+	}
+      else if (rl == WIN_REWARD)
+	{
+	  rCounts[2]++;
+	}
+      float precision = abs(*testData[s].data<float>()-rl);
+      if (rl==LOSE_REWARD && precision<0.1)
+	{
+	  scores[0]++;
+	}
+      else if (rl == bug && precision<0.1 && *testData[s].data<float>()<0)
+	{
+	  scores[1]++;
+	}
+      else if (rl == WIN_REWARD && precision<0.1)
+	{
+	  scores[2]++;
 	}
     }
   vector<string> text = {"LOSE REWARD","EMPTY SQUARE REWARD","WIN REWARD"};

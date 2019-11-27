@@ -74,7 +74,7 @@ void RewardGWImpl::init()
       rewardFCLayers.push_back(register_module("Reward FC " + std::to_string(i+1),torch::nn::Linear(nUnitsCount,nUnitsCount/2)));
       nUnitsCount/=2;
     }
-  rewardFCLayers.push_back(register_module("Reward FC OUT", torch::nn::Linear(nUnitsCount,3)));
+  rewardFCLayers.push_back(register_module("Reward FC OUT", torch::nn::Linear(nUnitsCount,1)));
 }
 
 torch::Tensor RewardGWImpl::cnnForward(torch::Tensor x)
@@ -105,7 +105,7 @@ torch::Tensor RewardGWImpl::rewardForward(torch::Tensor x)
       x = torch::relu(rewardFCLayers[i]->forward(x));
     }
   x = rewardFCLayers[rewardFCLayers.size()-1]->forward(x);
-  x = torch::log_softmax(x,1);
+  x = torch::tanh(x);
   return x;
 }
 

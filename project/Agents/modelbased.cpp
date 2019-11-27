@@ -104,7 +104,7 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
       //Forward and backward pass
 
       torch::Tensor output = rewardFunction->predictReward(siBatch, aiBatch);
-      torch::Tensor loss =  torch::nll_loss(output,lBatch.to(torch::kLong)); 
+      torch::Tensor loss =  torch::mse_loss(output.squeeze(),lBatch); 
       optimizer.zero_grad();
       loss.backward();
       optimizer.step();
@@ -144,13 +144,15 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 		}
 	      else
 		{
-		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),softmax(tokens[t].reshape({1,4}),1).to(transitionFunction->getUsedDevice()))[0];
+		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),softmax(tokens[t].unsqueeze(0),1).to(transitionFunction->getUsedDevice()))[0];
 		  torch::Tensor rLogProbs = rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0),actionSequences[k][t].reshape({1,4}).to(transitionFunction->getUsedDevice()));
+		  torch::Tensor q = torch::argmax(torch::exp(rLogProbs));
 		  int rId = *torch::argmax(torch::exp(rLogProbs)).to(torch::Device(torch::kCPU)).data<long>();
+		  rLogProbs.backward();
+		  cout<<"hey"<<endl;
 		  stepRewards[t]=this->world.idToReward(rId);
 		}
 	    }
-	  cout<<ToolsGW().toRGBTensor(stateSequences[k])<<endl;
 	  torch::Tensor totalStepReward = stepRewards.sum();
 	  rewards[k] = totalStepReward;
 	  totalStepReward.backward();
