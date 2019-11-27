@@ -12,7 +12,7 @@ ActorCritic<W,M>::ActorCritic()
 }
 
 template<class W,class M>
-ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
+ActorCritic<W,M>::ActorCritic(W world, M model):
   model(model)
 {
   this->world = world;
@@ -20,7 +20,7 @@ ActorCritic<W,M>::ActorCritic(W world, M model,bool usesCNN):
 
 
 template <class W,class M>
-ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param,bool usesCNN):
+ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param):
   Agent<W>(world, param.nEpisodes), model(model), gamma(param.gamma), learningRate(param.learningRate),
   beta(param.beta),zeta(param.zeta), batchSize(param.batchSize)
 {}

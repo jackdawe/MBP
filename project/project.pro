@@ -50,7 +50,6 @@ SOURCES += main.cpp \
     GridWorld/gridworld.cpp \
     Starship/spaceworld.cpp \
     GridWorld/Models/convnetgw.cpp \
-    GridWorld/Models/modela2cgw.cpp \
     GridWorld/Models/transitiongw.cpp \
     GridWorld/Models/rewardgw.cpp \
     GridWorld/Models/plannergw.cpp \
@@ -80,7 +79,6 @@ HEADERS += \
     GridWorld/gridworld.h \
     Starship/spaceworld.h \
     GridWorld/Models/convnetgw.h \
-    GridWorld/Models/modela2cgw.h \
     GridWorld/Models/transitiongw.h \
     GridWorld/Models/rewardgw.h \
     GridWorld/Models/plannergw.h \

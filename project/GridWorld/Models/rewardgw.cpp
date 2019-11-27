@@ -120,7 +120,7 @@ torch::Tensor RewardGWImpl::predictReward(torch::Tensor stateBatch, torch::Tenso
   torch::Tensor x = torch::cat({cnnOut,actionEmbedding},1);
   return rewardForward(x); 
 }
-x
+
 void RewardGWImpl::saveParams(std::string filename)
 {
   std::ofstream f(filename);

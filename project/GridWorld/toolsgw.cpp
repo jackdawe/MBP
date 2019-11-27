@@ -9,6 +9,8 @@ ToolsGW::ToolsGW(GridWorld gw): gw(gw){}
 
 torch::Tensor ToolsGW::toRGBTensor(torch::Tensor batch)
 {
+  
+  int size = sqrt(batch.size(1)-4);
   torch::Tensor rgbState = torch::zeros({batch.size(0),3,size,size});
   for (int s=0;s<batch.size(0);s++)
     {
@@ -19,8 +21,8 @@ torch::Tensor ToolsGW::toRGBTensor(torch::Tensor batch)
 	      rgbState[s][2][i][j] = batch[s][i*size+j+4];
 	    }
 	}
-      rgbState[s][0][batch[s][0]][batch[s][1]] = 1;
-      rgbState[s][1][batch[s][2]][batch[s][3]] = 1;
+      rgbState[s][0][(int)*batch[s][0].data<float>()][(int)*batch[s][1].data<float>()] = 1;
+      rgbState[s][1][(int)*batch[s][2].data<float>()][(int)*batch[s][3].data<float>()] = 1;
     }
   return rgbState;
 }
@@ -65,7 +67,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({4*n/5,3,size,size});
+  torch::Tensor stateInputs = torch::zeros({4*n/5,4+size*size});
   torch::Tensor actionInputs = torch::zeros({4*n/5,4});
   torch::Tensor stateLabels = torch::zeros({4*n/5,size,size});
   torch::Tensor rewardLabels = torch::zeros({4*n/5});
@@ -99,7 +101,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,3,size,size});
+	  stateInputs = torch::zeros({n/5,size*size+4});
 	  actionInputs = torch::zeros({n/5,4});
 	  stateLabels = torch::zeros({n/5,size,size});
 	  rewardLabels = torch::zeros({n/5});
@@ -107,8 +109,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 
       //Building the dataset tensors
       
-      torch::Tensor s = gw.toRGBTensor(gw.getCurrentState().getStateVector());
-      stateInputs[j] = s;
+      stateInputs[j] = torch::tensor(gw.getCurrentState().getStateVector());
       if (i>winProp*4*n/5 && i<n-winProp*n/5)
 	{
 	  gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation
@@ -129,9 +130,8 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	  r = 2;
 	}
       rewardLabels[j] = r;
-      s = gw.toRGBTensor(gw.getCurrentState().getStateVector())[0];
-      stateLabels[j] = s;
-
+      stateLabels[j] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0][0];
+	
       //Resettiing the gridworld at the end of an episode
       
       if (gw.isTerminal(gw.getCurrentState()))

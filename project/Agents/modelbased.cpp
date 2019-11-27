@@ -29,9 +29,11 @@ ModelBased<W,T,R,P>::ModelBased(W world, T transitionFunction, R rewardFunction,
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize, float lr)
 {
+  cout<<"1"<<endl;
+  ToolsGW().toRGBTensor(stateInputs);
+  cout<<"2"<<endl;
   int n = stateInputs.size(0);
   int svecSize = stateInputs.size(1);
-  int avecSize = actionInputs.size(1);
   torch::optim::Adam optimizer(transitionFunction->parameters(), lr);
 
   //Training Loop
@@ -42,17 +44,20 @@ void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, to
     {
       //Extracting batch from dataset
     
-      torch::Tensor siBatch = torch::zeros({batchSize,svecSize}).to(transitionFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize,avecSize}).to(transitionFunction->getUsedDevice());
-      torch::Tensor lBatch = torch::zeros(0).to(transitionFunction->getUsedDevice());
+      torch::Tensor siBatch = torch::zeros({batchSize,svecSize});
+      torch::Tensor aiBatch = torch::zeros(0);
+      torch::Tensor lBatch = torch::zeros(0);
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
 	  siBatch[i] = stateInputs[index]; 
-	  aiBatch[i] = actionInputs[index];
-	  lBatch = torch::cat({lBatch,labels[index]},0);
+	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
+	  lBatch = torch::cat({lBatch,labels[index].unsqueeze(0)});
 	}
       
+      aiBatch = aiBatch.to(transitionFunction->getUsedDevice());
+      lBatch = lBatch.to(transitionFunction->getUsedDevice());
+
       //Forward and backward pass
 
       torch::Tensor output = transitionFunction->predictState(siBatch, aiBatch); 
@@ -76,7 +81,6 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
 {
   int n = stateInputs.size(0);
   int svecSize = stateInputs.size(1);
-  int avecSize = actionInputs.size(1);
   torch::optim::Adam optimizer(rewardFunction->parameters(), lr);
 
   //Training Loop
@@ -88,13 +92,13 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
       //Extracting batch from dataset
     
       torch::Tensor siBatch = torch::zeros({batchSize,svecSize}).to(rewardFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros({batchSize,avecSize}).to(rewardFunction->getUsedDevice());
+      torch::Tensor aiBatch = torch::zeros(0).to(rewardFunction->getUsedDevice());
       torch::Tensor lBatch = torch::zeros({batchSize}).to(rewardFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
 	  siBatch[i] = stateInputs[index]; 
-	  aiBatch[i] = actionInputs[index];
+	  aiBatch = torch::cat({aiBatch,actionInputs[index]},0);
 	  lBatch[i] = labels[index];
 	}
       
@@ -119,7 +123,7 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
 {
-  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps+1,8,8}); //MEH
+  /*  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps+1,8,8}); //MEH
   torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps,4});
   torch::Tensor rewards = torch::zeros({nRollouts});
   torch::Tensor initState = this->world.toRGBTensor(this->currentState().getStateVector());
@@ -136,7 +140,7 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	    {
 	      torch::Tensor rgbState = torch::zeros({1,3,8,8}).to(transitionFunction->getUsedDevice()); 
 	      rgbState[0][0] = stateSequences[k][t], rgbState[0][1] = initState[1], rgbState[0][2] = initState[2];
-	      if ()
+	      if (true)
 		{
 		  stateSequences[k][t+1] = stateSequences[k][t];
 		  stepRewards[t] = 0;
@@ -161,7 +165,7 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	}
     }
   int maxRewardIdx = *torch::argmax(rewards).data<long>();
-  cout<<rewards<<endl;
+  cout<<rewards<<endl;*/
 }
 
 template <class W, class T, class R, class P>

@@ -182,14 +182,15 @@ void Commands::learnTransitionFunctionGW()
   string path = FLAGS_dir;
   torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe;
-  torch::load(stateInputsTr,path+"stateInputsTest.pt");
-  torch::load(actionInputsTr, path+"actionInputsTest.pt");
-  torch::load(stateLabelsTr, path+"stateLabelsTest.pt");
-  torch::load(stateInputsTe,path+"stateInputsTrain.pt");
-  torch::load(actionInputsTe, path+"actionInputsTrain.pt");
-  torch::load(stateLabelsTe, path+"stateLabelsTrain.pt");
-  
-  TransitionGW ft(stateInputsTr.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
+  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
+  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
+  torch::load(stateLabelsTr, path+"stateLabelsTrain.pt");
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe, path+"stateLabelsTest.pt");
+
+  int mapSize = sqrt(stateInputsTr.size(1)-4);
+  TransitionGW ft(mapSize,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   ft->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
   agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);

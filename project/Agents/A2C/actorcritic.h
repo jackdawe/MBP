@@ -2,7 +2,6 @@
 #define ACTORCRITIC_H
 #include "agent.h"
 #include "parametersa2c.h"
-#include "../../GridWorld/Models/modela2cgw.h"
 #include "../../GridWorld/Models/convnetgw.h"
 DECLARE_double(g);
 DECLARE_double(lr);
