@@ -67,7 +67,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({4*n/5,4+size*size});
+  torch::Tensor stateInputs = torch::zeros({4*n/5,3,size,size});
   torch::Tensor actionInputs = torch::zeros({4*n/5,4});
   torch::Tensor stateLabels = torch::zeros({4*n/5,size,size});
   torch::Tensor rewardLabels = torch::zeros({4*n/5});
@@ -101,15 +101,16 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,size*size+4});
+	  stateInputs = torch::zeros({n/5,3,size,size});
 	  actionInputs = torch::zeros({n/5,4});
 	  stateLabels = torch::zeros({n/5,size,size});
 	  rewardLabels = torch::zeros({n/5});
 	}
 
       //Building the dataset tensors
+
       
-      stateInputs[j] = torch::tensor(gw.getCurrentState().getStateVector());
+      stateInputs[j] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
       if (i>winProp*4*n/5 && i<n-winProp*n/5)
 	{
 	  gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation

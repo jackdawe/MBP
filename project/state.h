@@ -6,6 +6,7 @@ class State
 {
 public:
     State();
+    State(vector<float> stateVector);
     void add(float value);
     void update(int index, float value);
     vector<float> currentStateVector();

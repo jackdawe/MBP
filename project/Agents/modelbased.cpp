@@ -29,11 +29,7 @@ ModelBased<W,T,R,P>::ModelBased(W world, T transitionFunction, R rewardFunction,
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize, float lr)
 {
-  cout<<"1"<<endl;
-  ToolsGW().toRGBTensor(stateInputs);
-  cout<<"2"<<endl;
   int n = stateInputs.size(0);
-  int svecSize = stateInputs.size(1);
   torch::optim::Adam optimizer(transitionFunction->parameters(), lr);
 
   //Training Loop
@@ -44,17 +40,18 @@ void ModelBased<W,T,R,P>::learnTransitionFunction(torch::Tensor actionInputs, to
     {
       //Extracting batch from dataset
     
-      torch::Tensor siBatch = torch::zeros({batchSize,svecSize});
+      torch::Tensor siBatch = torch::zeros(0);
       torch::Tensor aiBatch = torch::zeros(0);
       torch::Tensor lBatch = torch::zeros(0);
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
-	  siBatch[i] = stateInputs[index]; 
+	  siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
 	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	  lBatch = torch::cat({lBatch,labels[index].unsqueeze(0)});
 	}
-      
+
+      siBatch = siBatch.to(transitionFunction->getUsedDevice());
       aiBatch = aiBatch.to(transitionFunction->getUsedDevice());
       lBatch = lBatch.to(transitionFunction->getUsedDevice());
 
@@ -80,7 +77,6 @@ template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor labels, int epochs, int batchSize, float lr)
 {
   int n = stateInputs.size(0);
-  int svecSize = stateInputs.size(1);
   torch::optim::Adam optimizer(rewardFunction->parameters(), lr);
 
   //Training Loop
@@ -90,17 +86,20 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
   for (int e=0;e<epochs;e++)
     {
       //Extracting batch from dataset
-    
-      torch::Tensor siBatch = torch::zeros({batchSize,svecSize}).to(rewardFunction->getUsedDevice());
-      torch::Tensor aiBatch = torch::zeros(0).to(rewardFunction->getUsedDevice());
+
+      torch::Tensor siBatch = torch::zeros(0);
+      torch::Tensor aiBatch = torch::zeros(0);      
       torch::Tensor lBatch = torch::zeros({batchSize}).to(rewardFunction->getUsedDevice());
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
-	  siBatch[i] = stateInputs[index]; 
-	  aiBatch = torch::cat({aiBatch,actionInputs[index]},0);
+	  siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
+	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	  lBatch[i] = labels[index];
 	}
+
+      siBatch = siBatch.to(transitionFunction->getUsedDevice());
+      aiBatch = aiBatch.to(transitionFunction->getUsedDevice());
       
       //Forward and backward pass
 
@@ -123,14 +122,14 @@ void ModelBased<W,T,R,P>::learnRewardFunction(torch::Tensor actionInputs, torch:
 template <class W, class T, class R, class P>
 void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
 {
-  /*  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps+1,8,8}); //MEH
+  torch::Tensor stateSequences = torch::zeros({nRollouts,nTimesteps+1,this->currentState().getStateVector().size()}); 
   torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps,4});
   torch::Tensor rewards = torch::zeros({nRollouts});
-  torch::Tensor initState = this->world.toRGBTensor(this->currentState().getStateVector());
+  torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
   
   for (int k=0;k<nRollouts;k++)
     {
-      stateSequences[k][0] = initState[0];
+      stateSequences[k][0] = initState;
       torch::Tensor tokens = torch::randn({nTimesteps,4},torch::requires_grad());
       for (int i=0;i<nGradsteps;i++)
 	{
@@ -138,22 +137,20 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	  torch::Tensor stepRewards = torch::zeros({nTimesteps});
  	  for (int t=0;t<nTimesteps;t++)
 	    {
-	      torch::Tensor rgbState = torch::zeros({1,3,8,8}).to(transitionFunction->getUsedDevice()); 
-	      rgbState[0][0] = stateSequences[k][t], rgbState[0][1] = initState[1], rgbState[0][2] = initState[2];
-	      if (true)
+	      if (this->world.isTerminal(State(tensorToVector(stateSequences[k][t]))))
 		{
 		  stateSequences[k][t+1] = stateSequences[k][t];
 		  stepRewards[t] = 0;
 		}
 	      else
 		{
-		  stateSequences[k][t+1] = transitionFunction->predictState(rgbState,softmax(tokens[t].reshape({1,4}),1).to(transitionFunction->getUsedDevice()))[0];
-		  torch::Tensor rLogProbs = rewardFunction->predictReward(rgbState,actionSequences[k][t].reshape({1,4}).to(transitionFunction->getUsedDevice()));
+		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),softmax(tokens[t].reshape({1,4}),1).to(transitionFunction->getUsedDevice()))[0];
+		  torch::Tensor rLogProbs = rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0),actionSequences[k][t].reshape({1,4}).to(transitionFunction->getUsedDevice()));
 		  int rId = *torch::argmax(torch::exp(rLogProbs)).to(torch::Device(torch::kCPU)).data<long>();
 		  stepRewards[t]=this->world.idToReward(rId);
 		}
 	    }
-	  cout<<torch::round(stateSequences[k])<<endl;
+	  cout<<ToolsGW().toRGBTensor(stateSequences[k])<<endl;
 	  torch::Tensor totalStepReward = stepRewards.sum();
 	  rewards[k] = totalStepReward;
 	  totalStepReward.backward();
@@ -165,7 +162,7 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	}
     }
   int maxRewardIdx = *torch::argmax(rewards).data<long>();
-  cout<<rewards<<endl;*/
+  cout<<rewards<<endl;
 }
 
 template <class W, class T, class R, class P>
@@ -202,5 +199,15 @@ R ModelBased<W,T,R,P>::getRewardFunction()
   return rewardFunction;
 }
 
+template <class W, class T, class R, class P>
+vector<float> ModelBased<W,T,R,P>::tensorToVector(torch::Tensor stateVector)
+{
+  vector<float> vec;
+  for (int i=0;i<stateVector.size(0);i++)
+    {
+      vec.push_back(*stateVector[i].data<float>());
+    }
+  return vec;
+}
 
 template class ModelBased<GridWorld, TransitionGW, RewardGW, PlannerGW>;

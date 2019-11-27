@@ -111,14 +111,24 @@ torch::Tensor RewardGWImpl::rewardForward(torch::Tensor x)
 
 torch::Tensor RewardGWImpl::predictReward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-  stateBatch = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
-  //OHE NOW
-  torch::Tensor cnnOut = cnnForward(stateBatch);
+
+  //Conversion to image if input is a batch of state vectors
+
+  bool imState = stateBatch.size(1)==3;        
+  torch::Tensor x(stateBatch);
+  if (!imState)
+    {
+      x = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
+    }
+
+  //Forward pass
+  
+  torch::Tensor cnnOut = cnnForward(x);
   cnnOut = cnnOut.view({-1,cnnOut.size(1)*cnnOut.size(2)*cnnOut.size(2)});
   torch::Tensor actionEmbedding = actionForward(actionBatch);
-  
-  torch::Tensor x = torch::cat({cnnOut,actionEmbedding},1);
-  return rewardForward(x); 
+  x = torch::cat({cnnOut,actionEmbedding},1);
+  x = rewardForward(x);
+  return x;
 }
 
 void RewardGWImpl::saveParams(std::string filename)

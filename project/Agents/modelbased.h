@@ -22,6 +22,7 @@ template<class W, class T, class R, class P>
   void saveTrainingData();
   T getTransitionFunction();
   R getRewardFunction();
+  vector<float> tensorToVector(torch::Tensor stateVector);
   
  private:
   T transitionFunction;

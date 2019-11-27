@@ -4,6 +4,8 @@ State::State()
 {
 }
 
+State::State(vector<float> stateVector): stateVector(stateVector){}
+
 void State::add(float value)
 {
     stateVector.push_back(value);

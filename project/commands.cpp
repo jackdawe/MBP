@@ -189,8 +189,7 @@ void Commands::learnTransitionFunctionGW()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe, path+"stateLabelsTest.pt");
 
-  int mapSize = sqrt(stateInputsTr.size(1)-4);
-  TransitionGW ft(mapSize,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
+  TransitionGW ft(stateInputsTr.size(2),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   ft->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
   agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
