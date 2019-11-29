@@ -254,12 +254,12 @@ void Commands::testTransitionFunctionGW()
 
 void Commands::test()
 {
-  TransitionGW ft("../GridWorld/Saved/Models/TransitionFunctionWN_Inter8x8_Params");
-  torch::load(ft,"../GridWorld/Saved/Models/TransitionFunctionWN_Inter8x8.pt");  
-  RewardGW fr("../GridWorld/Saved/Models/RewardFunctionWN_Inter8x8_Params");
-  torch::load(fr,"../GridWorld/Saved/Models/RewardFunctionWN_Inter8x8.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map2",6,1);
+  TransitionGW ft("../temp/TransitionGW_Params");
+  torch::load(ft,"../temp/TransitionGW.pt");  
+  RewardGW fr("../temp/RewardGW_Params");
+  torch::load(fr,"../temp/RewardGW.pt");
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map3",2,3);
   gw.generateVectorStates();
   ModelBased<GridWorld,TransitionGW,RewardGW,PlannerGW> agent(gw,ft,fr,PlannerGW());
-  agent.gradientBasedPlanner(10,5,10,0.001);
+  agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
 }

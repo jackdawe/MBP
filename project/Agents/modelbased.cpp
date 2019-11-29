@@ -1,4 +1,7 @@
 #include "modelbased.h"
+DEFINE_int32(K,10,"number of rollouts");
+DEFINE_int32(T,10,"number of steps to plan");
+DEFINE_int32(gs,10,"number of gradient steps");
 
 template <class W, class T, class R, class P>
 ModelBased<W,T,R,P>::ModelBased()
@@ -126,45 +129,56 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
   torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps,4});
   torch::Tensor rewards = torch::zeros({nRollouts});
   torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
-  
+  torch::Tensor qactionSequences = torch::zeros({nRollouts,nTimesteps,4});
+
   for (int k=0;k<nRollouts;k++)
     {
-      stateSequences[k][0] = initState;
       torch::Tensor tokens = torch::randn({nTimesteps,4},torch::requires_grad());
+      qactionSequences[k] = torch::softmax(tokens,1);
       for (int i=0;i<nGradsteps;i++)
 	{
-	  actionSequences[k] = torch::softmax(tokens,1);
-	  torch::Tensor stepRewards = torch::zeros({nTimesteps});
- 	  for (int t=0;t<nTimesteps;t++)
+	  stateSequences[k][0] = initState;
+	  torch::Tensor totalReward = torch::zeros({1});
+ 	  for (int t=0;t<nTimesteps;t++)	    
 	    {
+
+	      //Clipping tokens to closest one-hot encoded vector
+	      
+	      torch::Tensor ohev = torch::zeros({4});
+	      ohev = torch::softmax(tokens[t],0);
+	      ohev = (1/torch::max(ohev))*ohev - 0.999;
+	      ohev = torch::relu(ohev) * 1000;
+	      actionSequences[k][t] = ohev;
 	      if (this->world.isTerminal(State(tensorToVector(stateSequences[k][t]))))
 		{
 		  stateSequences[k][t+1] = stateSequences[k][t];
-		  stepRewards[t] = 0;
 		}
 	      else
 		{
-		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),softmax(tokens[t].unsqueeze(0),1).to(transitionFunction->getUsedDevice()))[0];
-		  torch::Tensor rLogProbs = rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0),actionSequences[k][t].reshape({1,4}).to(transitionFunction->getUsedDevice()));
-		  torch::Tensor q = torch::argmax(torch::exp(rLogProbs));
-		  int rId = *torch::argmax(torch::exp(rLogProbs)).to(torch::Device(torch::kCPU)).data<long>();
-		  rLogProbs.backward();
-		  cout<<"hey"<<endl;
-		  stepRewards[t]=this->world.idToReward(rId);
+		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),actionSequences[k][t].unsqueeze(0).to(transitionFunction->getUsedDevice()))[0];		
+		  totalReward += rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0),torch::softmax(tokens[t],0).unsqueeze(0).to(transitionFunction->getUsedDevice()))[0].to(torch::Device(torch::kCPU));
 		}
+		  //		  cout<<actionSequences[k][t]<<endl;		  
+		  //		  cout<<ToolsGW().toRGBTensor(stateSequences[k][t+1].unsqueeze(0))[0]<<endl;
+		  //		  cout<<stepRewards[t]<<endl;
 	    }
-	  torch::Tensor totalStepReward = stepRewards.sum();
-	  rewards[k] = totalStepReward;
-	  totalStepReward.backward();
-	  for (int t=nTimesteps-1;t>0;t--)
-	    {
-	      tokens[t]-= lr*tokens[t].grad();
-	    }
-	  actionSequences[k] = torch::softmax(tokens,1);	 
+	  rewards[k] = totalReward[0];
+	  totalReward.backward();
+	  torch::Tensor grads = tokens.grad();
+	  torch::Tensor newTokens = tokens.clone().detach() + lr*grads;
+	  tokens = torch::autograd::Variable(newTokens.clone().detach().set_requires_grad(true));
 	}
+      actionSequences[k] = torch::softmax(tokens,1);
     }
   int maxRewardIdx = *torch::argmax(rewards).data<long>();
-  cout<<rewards<<endl;
+  cout<<actionSequences[maxRewardIdx] - qactionSequences[maxRewardIdx]<<endl;
+  cout<<actionSequences[maxRewardIdx]<<endl;      
+  cout<<rewards[maxRewardIdx]<<endl;
+  for (int o=0;o<6;o++)
+    {
+      //      cout<<ToolsGW().toRGBTensor(stateSequences[maxRewardIdx])[o][0]<<endl;
+    }
+  //cout<<rewards<<endl;
 }
 
 template <class W, class T, class R, class P>

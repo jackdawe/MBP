@@ -115,12 +115,12 @@ torch::Tensor RewardGWImpl::predictReward(torch::Tensor stateBatch, torch::Tenso
   //Conversion to image if input is a batch of state vectors
 
   bool imState = stateBatch.size(1)==3;        
-  torch::Tensor x(stateBatch);
+  torch::Tensor x;
   if (!imState)
     {
       x = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
     }
-
+  
   //Forward pass
   
   torch::Tensor cnnOut = cnnForward(x);

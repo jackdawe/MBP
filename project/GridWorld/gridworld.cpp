@@ -85,9 +85,9 @@ float GridWorld::transition()
 
 bool GridWorld::isTerminal(State s)
 {
-    float ax = s.getStateVector()[0];
-    float ay = s.getStateVector()[1];
-    return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
+  float ax = s.getStateVector()[0];
+  float ay = s.getStateVector()[1];
+  return obstacles[ax][ay] == 1 || (ax == goalX && ay == goalY);
 }
 
 void GridWorld::generateVectorStates()

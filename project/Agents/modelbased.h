@@ -7,6 +7,9 @@
 #include "../GridWorld/Models/plannergw.h"
 TORCH_MODULE(TransitionGW);
 TORCH_MODULE(RewardGW);
+DECLARE_int32(K);
+DECLARE_int32(T);
+DECLARE_int32(gs);
 
 template<class W, class T, class R, class P>
   class ModelBased: public Agent<W>

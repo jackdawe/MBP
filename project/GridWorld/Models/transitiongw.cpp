@@ -137,18 +137,18 @@ torch::Tensor TransitionGWImpl::decoderForward(torch::Tensor x)
 torch::Tensor TransitionGWImpl::predictState(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
 
-  //Conversion to image if input is a batch of state vectors
+  //Conversion to image if input is a batch of state vector
 
-  cout<<stateBatch<<endl;
   bool imState = stateBatch.size(1)==3;        
-  torch::Tensor x(stateBatch);
+  torch::Tensor x = stateBatch.clone();
+  torch::Tensor y = x.clone();
   if (!imState)
     {
       x = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
     }
 
   //Forward Pass
-  
+
   torch::Tensor encoderOut = this->encoderForward(x);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
   x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});
@@ -165,13 +165,13 @@ torch::Tensor TransitionGWImpl::predictState(torch::Tensor stateBatch, torch::Te
     {
       for (unsigned int s=0;s<stateBatch.size(0);s++)
 	{
-	  torch::Tensor agentPos = torch::nonzero(torch::round(x[s]));
-	  cout<<agentPos<<endl;
-	  stateBatch[s][0] = agentPos[0][0];
-	  stateBatch[s][1] = agentPos[0][1];
+	  int agentPos = *torch::argmax(torch::round(x[s])).to(torch::Device(torch::kCPU)).data<long>();
+	  int xmax = agentPos/size;
+	  int ymax = agentPos%size;	  
+	  y[s][0] = xmax;
+	  y[s][1] = ymax;
 	}
-      cout<<stateBatch<<endl;
-      return stateBatch;
+      return y;
     }
 }
 
