@@ -258,7 +258,7 @@ void Commands::test()
   torch::load(ft,"../temp/TransitionGW.pt");  
   RewardGW fr("../temp/RewardGW_Params");
   torch::load(fr,"../temp/RewardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map3",2,3);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map0",4,4);
   gw.generateVectorStates();
   ModelBased<GridWorld,TransitionGW,RewardGW,PlannerGW> agent(gw,ft,fr,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
