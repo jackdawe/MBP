@@ -3,7 +3,6 @@
 #include "agent.h"
 #include "parametersa2c.h"
 #include "../../GridWorld/Models/convnetgw.h"
-DECLARE_double(g);
 DECLARE_double(lr);
 DECLARE_double(beta);
 DECLARE_double(zeta);
@@ -17,17 +16,16 @@ template <class W, class M>
  public:
   ActorCritic();
   ActorCritic(W world, M model);
-  ActorCritic(W world, M model, ParametersA2C param);
   void evaluateRunValues();
   void backPropagate(torch::optim::Adam *opti);
-  void train();
+  void train(int nEpisodes, float gamma, float beta, float zeta, float lr, int batchSize);
   void playOne();    
   void saveTrainingData();
   M getModel() const;
 
  private:  
+  int episodeNumber;
   float gamma;
-  float learningRate;
   float beta;
   float zeta;
   int batchSize;    

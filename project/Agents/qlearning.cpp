@@ -6,11 +6,10 @@ QLearning<C>::QLearning()
 }
 
 template <class W>
-QLearning<W>::QLearning(W world,int nEpisodes, float epsilon, float gamma):
-  Agent<W>(world, nEpisodes),epsilon(epsilon), gamma(gamma)
+QLearning<W>::QLearning(W world):
+  Agent<W>(world)
 {
-    this->generateNameTag("QL");
-    //Initialising the Q fonction to 0 for each state action pair
+    //Initialising the Q values to 0 for each state action pair
 
     for (int i=0;i<world.spaceStateSize();i++)
     {
@@ -69,7 +68,7 @@ void QLearning<W>::updateQValues()
     {
         for (int i=0;i<this->actions().cardinal();i++)
         {
-            qvalues[psIndex][3-i] += (1./(this->episodeNumber+1))*(this->takenReward()+gamma*qvalues[psIndex][0]-qvalues[psIndex][0]);
+            qvalues[psIndex][3-i] += (1./(this->episodeId+1))*(this->takenReward()+gamma*qvalues[psIndex][0]-qvalues[psIndex][0]);
         }
     }
     else
@@ -80,34 +79,34 @@ void QLearning<W>::updateQValues()
             updateChoice.push_back(qvalues[csIndex][i]);
         }
         float bestChoice = *max_element(updateChoice.begin(),updateChoice.end());
-        qvalues[psIndex][actionId] += (1./(sqrt(this->episodeNumber)+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex][actionId]);
+        qvalues[psIndex][actionId] += (1./(sqrt(this->episodeId)+1))*(this->takenReward()+gamma*bestChoice-qvalues[psIndex][actionId]);
     }
 }
 
 template <class W>
-void QLearning<W>::train()
+void QLearning<W>::train(int nEpisodes, float epsilon, float gamma)
 {
     float e = epsilon;
-    for (int k=0;k<this->nEpisodes;k++)
+    for (int k=0;k<nEpisodes;k++)
     {
-        epsilon = e*exp(-k*5./this->nEpisodes);
+      epsilon = e*exp(-k*5./nEpisodes); //Decreasing exploration rate throughout training
 
         //Displaying a progression bar in the terminal
 
-        if (this->nEpisodes > 100 && k%(5*this->nEpisodes/100) == 0)
+        if (nEpisodes > 100 && k%(5*nEpisodes/100) == 0)
         {
-            cout << "Training in progress... " + to_string(k/(this->nEpisodes/100)) + "%" << endl;
+            cout << "Training in progress... " + to_string(k/(nEpisodes/100)) + "%" << endl;
         }
         bool terminal = false;
         while(!terminal)
         {
-            epsilonGreedyPolicy();
+	  epsilonGreedyPolicy();
             terminal = this->world.isTerminal(this->currentState());
             updateQValues();
         }
         this->world.transition();
         updateQValues();
-        this->episodeNumber++;
+        episodeId++;
         this->world.reset();
     }
 }
@@ -118,16 +117,16 @@ void QLearning<W>::playOne()
     bool terminal = false;
     while(!terminal)
     {
-        epsilonGreedyPolicy();
-        terminal = this->world.isTerminal(this->currentState());
+      epsilonGreedyPolicy();
+      terminal = this->world.isTerminal(this->currentState().getStateVector());
     }
-    this->saveLastEpisode();
+    this->saveLastEpisode();    
 }
 
 template <class W>
-void QLearning<W>::saveQValues()
+void QLearning<W>::saveQValues(string filename)
 {
-  ofstream f(this->world.getTag() + "qvalues");
+  ofstream f(filename);
     if (f)
     {
         f << to_string(this->epsilon) << endl;
@@ -158,7 +157,6 @@ void QLearning<W>::loadQValues(string filename)
         this->epsilon = stof(line);
         getline(f,line);
         gamma = stof(line);
-        this->generateNameTag("QL");
         for (unsigned int i=0;i<qvalues.size();i++)
         {
             getline(f,line);            

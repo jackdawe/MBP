@@ -12,9 +12,8 @@ class Agent
 {
 public:
     Agent();
-    Agent(W World, int nEpisodes);
+    Agent(W World);
     void generateNameTag(string prefix);
-    void incrementEpisode();
     void saveRewardHistory();
     void saveLastEpisode();
     void loadEpisode(string nameTag);
@@ -36,8 +35,6 @@ public:
     string getNameTag() const;
 
 protected:
-    int nEpisodes;
-    int episodeNumber;
     W world;
     string nameTag;
 

@@ -7,16 +7,17 @@ class QLearning: public Agent<W>
 {
 public:
     QLearning();
-    QLearning(W world,int nEpisodes, float epsilon, float gamma);
+    QLearning(W world);
     void epsilonGreedyPolicy();
     void updateQValues();
-    void train();
+    void train(int nEpisodes, float epsilon, float gamma);
     void playOne();
-    void saveQValues();
-    void loadQValues(string tag);
+    void saveQValues(string filename);
+    void loadQValues(string filename);
     void saveTrainingData();
 
 private:
+    int episodeId;
     float epsilon;
     float gamma;
     vector<vector<float>> qvalues;

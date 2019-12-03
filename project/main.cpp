@@ -21,6 +21,14 @@ int main(int argc, char *argv[])
     {
       c.showMapGW(argc,argv);
     }
+  else if (FLAGS_cmd == "gwqltr")
+    {
+      c.trainQLAgentGW();
+    }
+  else if (FLAGS_cmd == "gwqlpl")
+    {
+      c.playQLAgentGW(argc,argv);
+    }
   /*  else if (FLAGS_cmd == "gwa2c1m")
     {
       c.trainA2COneMapGW();

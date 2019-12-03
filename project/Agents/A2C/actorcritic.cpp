@@ -1,5 +1,4 @@
 #include "actorcritic.h"
-DEFINE_double(g,0.99,"Discount factor");
 DEFINE_double(lr,0.003,"Learning Rate");
 DEFINE_double(beta,0.01,"Coefficient applied to the entropy loss");
 DEFINE_double(zeta,0.5,"Coefficient applied to the value loss");
@@ -11,19 +10,8 @@ ActorCritic<W,M>::ActorCritic()
 {
 }
 
-template<class W,class M>
-ActorCritic<W,M>::ActorCritic(W world, M model):
-  model(model)
-{
-  this->world = world;
-}
-
-
 template <class W,class M>
-ActorCritic<W,M>::ActorCritic(W world,M model, ParametersA2C param):
-  Agent<W>(world, param.nEpisodes), model(model), gamma(param.gamma), learningRate(param.learningRate),
-  beta(param.beta),zeta(param.zeta), batchSize(param.batchSize)
-{}
+ActorCritic<W,M>::ActorCritic(W world,M model): Agent<W>(world), model(model){}
 
 template <class W,class M>
 void ActorCritic<W,M>::evaluateRunValues()
@@ -79,12 +67,12 @@ void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 
 
 template <class W,class M>
-void ActorCritic<W,M>::train()
+void ActorCritic<W,M>::train(int nEpisodes, float gamma, float beta, float zeta, float lr, int batchSize)
 {
   int nSteps = 0;
-  this->episodeNumber = 0;
-  torch::optim::Adam optimizer(model->parameters(),learningRate);
-  while (this->episodeNumber<this->nEpisodes)
+  episodeNumber = 0;
+  torch::optim::Adam optimizer(model->parameters(),lr);
+  while (episodeNumber< nEpisodes)
     {
       runStates = torch::zeros({batchSize,this->currentState().getStateVector().size()});
       runActions = torch::zeros({batchSize}).to(model->getUsedDevice());
@@ -110,12 +98,12 @@ void ActorCritic<W,M>::train()
 		}
 	      nSteps = 0;
 	      this->world.reset();
-	      this->episodeNumber++;
+	      episodeNumber++;
 	      //Displaying a progression bar in the terminal
 	      
-	      if (this->nEpisodes > 100 && lossHistory.size()>0 &&  this->episodeNumber%(this->nEpisodes/100) == 0)
+	      if (nEpisodes > 100 && lossHistory.size()>0 &&  episodeNumber%(nEpisodes/100) == 0)
                 {
-		  cout << "Training in progress... " + to_string(this->episodeNumber/(this->nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
+		  cout << "Training in progress... " + to_string(episodeNumber/(nEpisodes/100)) + "%. Current Loss: " + to_string(lossHistory.back())
 		    + "  Current entropy: " + to_string(entropyHistory.back()/beta)<< endl;
                 }
             }
@@ -144,13 +132,13 @@ void ActorCritic<W,M>::playOne()
 template <class W,class M>
 void ActorCritic<W,M>::saveTrainingData()
 {
-  ofstream ag("../PolicyLoss");
-  ofstream vl("../ValueLoss");
-  ofstream e("../Entropy");
-  ofstream tl("../TotalLoss");
+  ofstream ag("../temp/A2C_PolicyLoss");
+  ofstream vl("../temp/A2C_ValueLoss");
+  ofstream e("../temp/A2C_Entropy");
+  ofstream tl("../temp/A2C_Loss");
   if(!ag)
     {
-      cout<<"oups"<<endl;
+      cout<<"An error has occured while trying to save training data from ActorCritic"<<endl;
     }
   for (unsigned int i=0;i<policyLossHistory.size();i++)
     {

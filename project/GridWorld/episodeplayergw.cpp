@@ -12,15 +12,6 @@ EpisodePlayerGW::EpisodePlayerGW(string filename)
     agentShape->hide();
 }
 
-EpisodePlayerGW::EpisodePlayerGW(string filename, vector<vector<float>> sequence): sequence(sequence)
-{
-    map.load(filename);
-    initMap();
-    agentShape->setPos((sequence[0][1]+0.1)*SQUARE_SIZE,(sequence[0][0]+0.1)*SQUARE_SIZE);
-    startShape->setPos(sequence[0][1]*SQUARE_SIZE,sequence[0][0]*SQUARE_SIZE);
-    connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
-}
-
 void EpisodePlayerGW::initMap()
 {
     gwView.setScene(&gwScene);
@@ -76,11 +67,12 @@ void EpisodePlayerGW::displayOnGrid(vector<vector<string>> texts)
     showMap();
 }
 
-void EpisodePlayerGW::playEpisode()
+void EpisodePlayerGW::playEpisode(vector<vector<float>> sequence)
 {
-    gwView.show();
-    playClock.start(TIME_STEP);
-    stepCount=0;
+  this->sequence = sequence;
+  gwView.show();
+  playClock.start(TIME_STEP);
+  stepCount=0;
 }
 
 void EpisodePlayerGW::update()
@@ -109,11 +101,6 @@ vector<vector<float>> EpisodePlayerGW::getSequence()
 void EpisodePlayerGW::setMap(MapGW map)
 {
     this->map = map;
-}
-
-void EpisodePlayerGW::setSequence(vector<vector<float>> sequence)
-{
-    this->sequence=sequence;
 }
 
 EpisodePlayerGW::~EpisodePlayerGW()

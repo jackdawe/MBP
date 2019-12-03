@@ -22,7 +22,8 @@ class Commands
 
   //QLearning
 
-  void trainQLAgent();
+  void trainQLAgentGW();
+  void playQLAgentGW(int argc, char* argv[]);
 
   
   //Actor Advantage Critic 

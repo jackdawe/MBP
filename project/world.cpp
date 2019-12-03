@@ -73,7 +73,9 @@ void World::saveRewardHistory()
 
 void World::saveLastEpisode()
 {
-    ofstream f(tag+"sequence");
+  cout<<actionSequence.size()<<endl;
+  cout<<stateSequence.size()<<endl;
+  ofstream f(tag+"sequence");
     if (f)
     {
         f << "---SEQUENCE---" <<endl;

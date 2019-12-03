@@ -14,15 +14,13 @@ class EpisodePlayerGW: public QWidget
 public:
     EpisodePlayerGW();
     EpisodePlayerGW(string filename);
-    EpisodePlayerGW(string filename,vector<vector<float>> sequence);
     void initMap();
     void showMap();    
     void displayOnGrid(vector<vector<string>> texts);
-    void playEpisode();
+    void playEpisode(vector<vector<float>> sequence);
     MapGW getMap();
     vector<vector<float>> getSequence();
     void setMap(MapGW map);
-    void setSequence(vector<vector<float>> sequence);
     ~EpisodePlayerGW();
 
 public slots:

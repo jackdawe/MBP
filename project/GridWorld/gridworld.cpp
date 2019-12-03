@@ -102,7 +102,6 @@ void GridWorld::generateVectorStates()
         }
     }
     previousState = State(currentState);
-    stateSequence.push_back(currentState.getStateVector());
 }
 
 int GridWorld::stateId(State s)

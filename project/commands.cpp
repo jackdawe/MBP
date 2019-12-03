@@ -1,4 +1,8 @@
 #include "commands.h"
+DEFINE_double(eps,0.1,"Probability of exploring for agents using epsilon greedy policies");
+DEFINE_double(g,0.95,"Discount factor");
+DEFINE_string(map,"../GridWorld/Maps/Inter8x8/train/map0","Path to a map file");
+
 Commands::Commands(){}
 
 void Commands::generateMapGW()
@@ -19,6 +23,28 @@ void Commands::showMapGW(int argc, char* argv[])
   QApplication a(argc,argv);
   EpisodePlayerGW ep(FLAGS_f);
   ep.showMap();
+  a.exec();
+}
+
+void Commands::trainQLAgentGW()
+{
+  GridWorld gw(FLAGS_map);
+  gw.generateVectorStates();
+  QLearning<GridWorld> agent(gw);
+  agent.train(FLAGS_n,FLAGS_eps,FLAGS_g);
+  agent.saveQValues("../temp/QValuesGW");
+}
+
+void Commands::playQLAgentGW(int argc, char* argv[])
+{
+  QApplication a(argc,argv);
+  GridWorld gw(FLAGS_map);
+  gw.generateVectorStates();
+  QLearning<GridWorld> agent(gw);
+  agent.loadQValues(FLAGS_f);
+  agent.playOne();
+  EpisodePlayerGW ep(FLAGS_map);
+  ep.playEpisode(agent.getWorld().getStateSequence());
   a.exec();
 }
 
