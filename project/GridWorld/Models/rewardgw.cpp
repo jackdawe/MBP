@@ -115,14 +115,14 @@ torch::Tensor RewardGWImpl::predictReward(torch::Tensor stateBatch, torch::Tenso
   //Conversion to image if input is a batch of state vectors
 
   bool imState = stateBatch.size(1)==3;        
-  torch::Tensor x;
+  torch::Tensor x = stateBatch.clone();
   if (!imState)
     {
-      x = ToolsGW().toRGBTensor(stateBatch).to(usedDevice);
+      x = ToolsGW().toRGBTensor(x).to(usedDevice);     
     }
-  
+
   //Forward pass
-  
+
   torch::Tensor cnnOut = cnnForward(x);
   cnnOut = cnnOut.view({-1,cnnOut.size(1)*cnnOut.size(2)*cnnOut.size(2)});
   torch::Tensor actionEmbedding = actionForward(actionBatch);

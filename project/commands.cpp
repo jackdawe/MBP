@@ -172,7 +172,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   ToolsGW t;
-  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp,FLAGS_wn,FLAGS_sd);
+  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp);
 }
 
 void Commands::learnTransitionFunctionGW()
@@ -189,6 +189,12 @@ void Commands::learnTransitionFunctionGW()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe, path+"stateLabelsTest.pt");
 
+  if (FLAGS_wn)
+    {
+      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
+    }
+  
   TransitionGW ft(stateInputsTr.size(2),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   ft->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
@@ -219,7 +225,12 @@ void Commands::learnRewardFunctionGW()
   torch::load(stateInputsTe,path+"stateInputsTest.pt");
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  
+
+  if (FLAGS_wn)
+    {
+      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
+    }
   RewardGW fr(stateInputsTr.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
   fr->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,fr);
@@ -258,8 +269,19 @@ void Commands::test()
   torch::load(ft,"../temp/TransitionGW.pt");  
   RewardGW fr("../temp/RewardGW_Params");
   torch::load(fr,"../temp/RewardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map0",4,4);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map3",3,5);
   gw.generateVectorStates();
   ModelBased<GridWorld,TransitionGW,RewardGW,PlannerGW> agent(gw,ft,fr,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+
+  /*
+  ofstream f("../hello");
+  for (int i=0;i<10000;i++)
+    {
+      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
+      torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
+      torch::Tensor r = fr->predictReward(s.unsqueeze(0),a.unsqueeze(0).to(fr->getUsedDevice()))[0].to(torch::Device(torch::kCPU));
+      f<<*r.data<float>()<<endl;
+    }
+  */
 }

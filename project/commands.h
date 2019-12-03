@@ -22,6 +22,9 @@ class Commands
 
   //QLearning
 
+  void trainQLAgent();
+
+  
   //Actor Advantage Critic 
   /*  
   void trainA2COneMapGW();

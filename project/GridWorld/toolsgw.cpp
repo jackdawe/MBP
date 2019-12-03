@@ -59,7 +59,7 @@ cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
     }*/
 
 
-void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool noise, float sigma)
+void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 {
   gw = GridWorld(path+"train/",nmaps);
   gw.generateVectorStates();
@@ -94,10 +94,6 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
 	  torch::save(stateInputs,path+"stateInputsTrain.pt");
-	  if (noise)
-	    {	    
-	      actionInputs+=torch::empty({actionInputs.size(0),actionInputs.size(1)}).normal_(0,sigma);
-	    }
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
@@ -175,10 +171,6 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp, bool
   cout<< "Test set generation is complete!"<<endl; 
   
   torch::save(stateInputs,path+"stateInputsTest.pt");
-  if (noise)
-    {	    
-      actionInputs+=torch::empty({actionInputs.size(0),actionInputs.size(1)}).normal_(0,sigma);
-    }	  
   torch::save(actionInputs,path+"actionInputsTest.pt");
   torch::save(rewardLabels,path+"rewardLabelsTest.pt");
   torch::save(stateLabels,path+"stateLabelsTest.pt");

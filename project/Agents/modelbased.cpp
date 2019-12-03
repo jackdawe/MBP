@@ -129,16 +129,17 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
   torch::Tensor actionSequences = torch::zeros({nRollouts,nTimesteps,4});  
   torch::Tensor rewards = torch::zeros({nRollouts});
   torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
+
   torch::Tensor qactionSequences = torch::zeros({nRollouts,nTimesteps,4});
 
-  
   for (int k=0;k<nRollouts;k++)
     {
-      //torch::Tensor tokens = torch::full({nTimesteps,4},0.1).to(torch::kFloat32);
-      //tokens[0][3]=0.5,tokens[1][0]=0.5;
-      //tokens = torch::autograd::Variable(tokens.clone().detach().set_requires_grad(true));
+      torch::Tensor tokens = torch::full({nTimesteps,4},0.1).to(torch::kFloat32);
+      tokens[0][0]=0.5,tokens[0][1]=0.4999;
+      tokens = torch::autograd::Variable(tokens.clone().detach().set_requires_grad(true));
 
-      torch::Tensor tokens = torch::randn({nTimesteps,4},torch::requires_grad());
+      //torch::Tensor tokens = torch::randn({nTimesteps,4},torch::requires_grad());
+      
       qactionSequences[k] = torch::softmax(tokens,1);
       for (int i=0;i<nGradsteps;i++)
 	{
@@ -146,30 +147,33 @@ void ModelBased<W,T,R,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, in
 	  torch::Tensor totalReward = torch::zeros({1});
  	  for (int t=0;t<nTimesteps;t++)	    
 	    {
-	      torch::Tensor test = torch::zeros({nTimesteps});
-	      
 	      //Clipping tokens to closest one-hot encoded vector
-	      
-	      torch::Tensor ohev = torch::zeros({4});
+
+	      torch::Tensor ohev = torch::zeros({4});	      	      
 	      ohev = torch::softmax(tokens[t],0);
 	      ohev = (1/torch::max(ohev))*ohev - 0.999;
 	      ohev = torch::relu(ohev) * 1000;
-	      actionSequences[k][t] = ohev;
+	      actionSequences[k][t] = ohev;		
 	      if (this->world.isTerminal(State(tensorToVector(stateSequences[k][t]))))
 		{
 		  stateSequences[k][t+1] = stateSequences[k][t];
 		}
 	      else
 		{
-		  stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),ohev.unsqueeze(0).to(transitionFunction->getUsedDevice()))[0];		
-		  totalReward += rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0), torch::softmax(tokens[t],0).unsqueeze(0).to(transitionFunction->getUsedDevice()))[0].to(torch::Device(torch::kCPU));
+		  {
+		    torch::NoGradGuard no_grad;
+		    stateSequences[k][t+1] = transitionFunction->predictState(stateSequences[k][t].unsqueeze(0),ohev.unsqueeze(0).to(transitionFunction->getUsedDevice()))[0];
+		  }
+		  //torch::Tensor softToken = torch::softmax(tokens[t],0).unsqueeze(0).to(transitionFunction->getUsedDevice());
+		  totalReward += rewardFunction->predictReward(stateSequences[k][t].unsqueeze(0),ohev.unsqueeze(0).to(transitionFunction->getUsedDevice()))[0].to(torch::Device(torch::kCPU));
 		}
 	    }
 	  totalReward.backward();
 	  rewards[k] = totalReward[0];
 	  torch::Tensor grads = tokens.grad();
+	  cout<<grads<<endl;
 	  torch::Tensor newTokens = tokens.clone().detach() + lr*grads;
-	  cout<<torch::softmax(newTokens,1)-torch::softmax(tokens,1)<<endl;
+	  //cout<<torch::softmax(newTokens,1)-torch::softmax(tokens,1)<<endl;
 	  tokens = torch::autograd::Variable(newTokens.clone().detach().set_requires_grad(true));
 	}
       actionSequences[k] = torch::softmax(tokens,1);
