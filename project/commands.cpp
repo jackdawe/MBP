@@ -343,5 +343,23 @@ void Commands::learnForwardModelGW()
 
 void Commands::test2()
 {
-  learnForwardModelGW();
+  ForwardGW fm("../temp/ForwardGW_Params");
+  torch::load(fm,"../temp/ForwardGW.pt");
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",5,4);
+  gw.generateVectorStates();
+  ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+  agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  
+  /*
+  ofstream f("../hello");
+  for (int i=0;i<10000;i++)
+    {
+      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
+      torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
+      fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
+      f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;
+    }
+  */
+  
+
 }
