@@ -276,19 +276,6 @@ void Commands::learnRewardFunctionGW()
 
 }
 
-void Commands::testTransitionFunctionGW()
-{
-  TransitionGW ft(8,FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
-  torch::load(ft,FLAGS_f);
-  ToolsGW t;
-  string path ="../temp/";
-  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe;  
-  torch::load(stateInputsTe,path+"stateInputsTest.pt");
-  torch::load(actionInputsTe, path+"actionInputsTest.pt");
-  torch::load(stateLabelsTe, path+"stateLabelsTest.pt");
-  t.transitionAccuracy(ft->predictState(stateInputsTe.to(ft->getUsedDevice()),actionInputsTe.to(ft->getUsedDevice())),stateLabelsTe);
-}
-
 void Commands::test()
 {
   TransitionGW ft("../temp/TransitionGW_Params");
@@ -310,4 +297,51 @@ void Commands::test()
       f<<*r.data<float>()<<endl;
     }
   */
+}
+
+void Commands::learnForwardModelGW()
+{
+  GridWorld gw;
+  ToolsGW t(gw);
+  string path = FLAGS_dir;
+  torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr, rewardLabelsTr;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
+  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
+  torch::load(stateLabelsTr,path+"stateLabelsTrain.pt");
+  torch::load(rewardLabelsTr, path+"rewardLabelsTrain.pt");
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+
+  if (FLAGS_wn)
+    {
+      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
+    }
+  ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
+  forwardModel->to(torch::Device(torch::kCUDA));
+  ModelBased2<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
+  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
+  agent.saveTrainingData();
+  torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
+  agent.getForwardModel()->saveParams("../temp/ForwardGW_Params");
+  //Computing accuracy
+
+  {
+    torch::NoGradGuard no_grad;
+    auto model = agent.getForwardModel();
+    model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
+    t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);
+    
+  }
+
+
+}
+
+void Commands::test2()
+{
+  learnForwardModelGW();
 }

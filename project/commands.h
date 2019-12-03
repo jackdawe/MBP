@@ -5,6 +5,7 @@
 #include "Agents/qlearning.h"
 #include "Agents/A2C/actorcritic.h"
 #include "Agents/modelbased.h"
+#include "Agents/modelbased2.h"
 #include "GridWorld/episodeplayergw.h"
 
 class Commands
@@ -39,10 +40,12 @@ class Commands
   void generateDataSetGW();
   void learnTransitionFunctionGW();
   void learnRewardFunctionGW();
-  void testTransitionFunctionGW();
+  void learnForwardModelGW();
+  
   //Other
   
   void test();
+  void test2();
 };
 
 #endif // COMMANDS_H

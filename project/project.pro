@@ -46,12 +46,14 @@ SOURCES += main.cpp \
     Agents/A2C/actorcritic.cpp \
     Agents/A2C/parametersa2c.cpp \
     Agents/modelbased.cpp \
+    Agents/modelbased2.cpp \
     world.cpp \
     GridWorld/gridworld.cpp \
     Starship/spaceworld.cpp \
     GridWorld/Models/convnetgw.cpp \
     GridWorld/Models/transitiongw.cpp \
     GridWorld/Models/rewardgw.cpp \
+    GridWorld/Models/forwardgw.cpp \
     GridWorld/Models/plannergw.cpp \
     GridWorld/toolsgw.cpp \
     commands.cpp
@@ -75,12 +77,14 @@ HEADERS += \
     Agents/A2C/actorcritic.h \
     Agents/A2C/parametersa2c.h \
     Agents/modelbased.h \
+    Agents/modelbased2.h \
     world.h \
     GridWorld/gridworld.h \
     Starship/spaceworld.h \
     GridWorld/Models/convnetgw.h \
     GridWorld/Models/transitiongw.h \
     GridWorld/Models/rewardgw.h \
+    GridWorld/Models/forwardgw.h \
     GridWorld/Models/plannergw.h \
     GridWorld/toolsgw.h \
     commands.h

@@ -33,7 +33,6 @@ class RewardGWImpl: public torch::nn::Module
   
  private:
   void init();
-  
   torch::Device usedDevice;
 
   int size;
@@ -48,6 +47,6 @@ class RewardGWImpl: public torch::nn::Module
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> rewardFCLayers;
   std::shared_ptr<torch::nn::LinearImpl> actionfc1;
   std::shared_ptr<torch::nn::LinearImpl> actionfc2;
-  std::shared_ptr<torch::nn::LinearImpl> actionfc3;  
+  std::shared_ptr<torch::nn::LinearImpl> actionfc3;   
 };
 #endif //WORLDMODELGW_H

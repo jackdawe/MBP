@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
     {
       c.learnRewardFunctionGW();
     }
-  else if(FLAGS_cmd == "gwmbftte")
-    {
-      c.testTransitionFunctionGW();
-    }  
   else if(FLAGS_cmd == "test")
     {
       c.test();
+    }
+  else if(FLAGS_cmd =="test2")
+    {
+      c.test2();
     }
   else
     {
