@@ -15,7 +15,7 @@ III - ModelBased Agent
 
 a) Learning the forward model
 
-b) Finding the optimal sequence of actions using the forward model and a Gradient Based Planner (GBP)
+b) Finding the optimal sequence of actions using the forward model and a Gradient Based Planner (GBP) (Currently working on that)
 
 c) Learning a policy network for faster inference
 
@@ -23,3 +23,12 @@ c) Learning a policy network for faster inference
 <huge><b>SPACEWORLD TASK</b>
 #############
 
+I - Advantage Actor Critic Agent (A2C)
+
+II - ModelBased Agent
+
+a) Learning the forward model
+
+b) Finding the optimal sequence of actions using the forward model and a Gradient Based Planner (GBP)
+
+c) Learning a policy network for faster inference
