@@ -1,13 +1,13 @@
 #include "qlearning.h"
 
 template <class C>
-QLearning<C>::QLearning()
+QLearning<C>::QLearning(): episodeId(0)
 {
 }
 
 template <class W>
 QLearning<W>::QLearning(W world):
-  Agent<W>(world)
+  Agent<W>(world),episodeId(0)
 {
     //Initialising the Q values to 0 for each state action pair
 
@@ -18,12 +18,11 @@ QLearning<W>::QLearning(W world):
 }
 
 template <class W>
-void QLearning<W>::epsilonGreedyPolicy()
+void QLearning<W>::epsilonGreedyPolicy(float e)
 {
-
     default_random_engine generator = default_random_engine(random_device{}());
     uniform_real_distribution<float> dist(0,1);
-    if (dist(generator) < epsilon)
+    if (dist(generator) < e)
     {
         for (int i=0;i<this->daSize();i++)
         {
@@ -39,7 +38,7 @@ void QLearning<W>::epsilonGreedyPolicy()
             possibleQValues.push_back(qvalues[this->world.stateId(this->currentState())][i]);
         }
         float maxQValue = *max_element(possibleQValues.begin(),possibleQValues.end());
-
+	  
         //If several qvalues are equal to the max, pick one of them randomly
 
         vector<int> indexOfMax;
@@ -50,10 +49,12 @@ void QLearning<W>::epsilonGreedyPolicy()
                 indexOfMax.push_back(i);
             }
         }
+	
         default_random_engine generator(random_device{}());
         uniform_int_distribution<int> dist(0,indexOfMax.size()-1);
-        int actionId = indexOfMax[dist(generator)];
+	int actionId = indexOfMax[dist(generator)];
         this->world.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
+		  
     }
     this->world.setTakenReward(this->world.transition());
 }
@@ -86,10 +87,11 @@ void QLearning<W>::updateQValues()
 template <class W>
 void QLearning<W>::train(int nEpisodes, float epsilon, float gamma)
 {
-    float e = epsilon;
+  this->epsilon = epsilon, this->gamma=gamma;
+  float e = epsilon;
     for (int k=0;k<nEpisodes;k++)
     {
-      epsilon = e*exp(-k*5./nEpisodes); //Decreasing exploration rate throughout training
+      e = epsilon*exp(-k*5./nEpisodes); //Decreasing exploration rate throughout training
 
         //Displaying a progression bar in the terminal
 
@@ -100,9 +102,9 @@ void QLearning<W>::train(int nEpisodes, float epsilon, float gamma)
         bool terminal = false;
         while(!terminal)
         {
-	  epsilonGreedyPolicy();
-            terminal = this->world.isTerminal(this->currentState());
-            updateQValues();
+	  epsilonGreedyPolicy(e);
+	  terminal = this->world.isTerminal(this->currentState());
+	  updateQValues();
         }
         this->world.transition();
         updateQValues();
@@ -117,7 +119,7 @@ void QLearning<W>::playOne()
     bool terminal = false;
     while(!terminal)
     {
-      epsilonGreedyPolicy();
+      epsilonGreedyPolicy(0);
       terminal = this->world.isTerminal(this->currentState().getStateVector());
     }
     this->saveLastEpisode();    
@@ -184,7 +186,7 @@ void QLearning<W>::loadQValues(string filename)
 template <class W>
 void QLearning<W>::saveTrainingData()
 {
-
+  
 }
 
 template class QLearning<GridWorld>;

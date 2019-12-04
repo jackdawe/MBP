@@ -29,6 +29,11 @@ int main(int argc, char *argv[])
     {
       c.playQLAgentGW(argc,argv);
     }
+  else if (FLAGS_cmd == "gwqleval")
+    {
+      c.evaluateQLPolicy(argc,argv);
+    }
+  
   /*  else if (FLAGS_cmd == "gwa2c1m")
     {
       c.trainA2COneMapGW();

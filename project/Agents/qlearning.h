@@ -8,7 +8,7 @@ class QLearning: public Agent<W>
 public:
     QLearning();
     QLearning(W world);
-    void epsilonGreedyPolicy();
+    void epsilonGreedyPolicy(float e);
     void updateQValues();
     void train(int nEpisodes, float epsilon, float gamma);
     void playOne();

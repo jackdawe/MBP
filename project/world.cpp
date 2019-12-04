@@ -56,7 +56,7 @@ vector<float> World::randomAction()
 void World::saveRewardHistory()
 {
     {
-        ofstream f(tag+"reward");
+        ofstream f("../temp/reward");
         if (f)
         {
             for (unsigned int i=0;i<rewardHistory.size();i++)
@@ -75,7 +75,7 @@ void World::saveLastEpisode()
 {
   cout<<actionSequence.size()<<endl;
   cout<<stateSequence.size()<<endl;
-  ofstream f(tag+"sequence");
+  ofstream f("../temp/sequence");
     if (f)
     {
         f << "---SEQUENCE---" <<endl;

@@ -33,6 +33,7 @@ void Commands::trainQLAgentGW()
   QLearning<GridWorld> agent(gw);
   agent.train(FLAGS_n,FLAGS_eps,FLAGS_g);
   agent.saveQValues("../temp/QValuesGW");
+  agent.saveRewardHistory();
 }
 
 void Commands::playQLAgentGW(int argc, char* argv[])
@@ -46,6 +47,58 @@ void Commands::playQLAgentGW(int argc, char* argv[])
   EpisodePlayerGW ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getStateSequence());
   a.exec();
+}
+
+void Commands::evaluateQLPolicy(int argc, char* argv[])
+{
+  vector<vector<string>> toDisplay;
+  string filename = FLAGS_map;
+  MapGW map;
+  map.load(filename);
+  int size = map.getSize();
+  for (int i=0;i<size;i++)
+    {
+      vector<string> line;
+      for (int j=0;j<size;j++)
+	{
+	  GridWorld gw(filename,i,j);
+	  gw.generateVectorStates();
+	  string sDirection; 
+	  if (gw.isTerminal(gw.getCurrentState().getStateVector()))
+	    {
+	      sDirection = "";
+	    }
+	  else
+	    {	  
+	      
+	      QLearning<GridWorld> agent(gw);
+	      agent.loadQValues(FLAGS_f);    	  
+	      agent.epsilonGreedyPolicy(0);	  
+	      int iDirection = agent.takenAction()[0];
+	      switch (iDirection)
+		{
+		case 0:
+		  sDirection = "UP";
+		  break;
+		case 1:
+		  sDirection = "RIGHT";
+		  break;
+		case 2:
+		  sDirection = "DOWN";
+		  break;
+		case 3:
+		  sDirection = "LEFT";
+		  break;
+		}
+	    }
+	  line.push_back(sDirection);
+	}
+      toDisplay.push_back(line);
+    }
+  QApplication a(argc,argv);  
+  EpisodePlayerGW ep(FLAGS_map);
+  ep.displayOnGrid(toDisplay);
+  a.exec();  
 }
 
 /*

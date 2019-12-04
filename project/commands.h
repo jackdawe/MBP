@@ -25,7 +25,7 @@ class Commands
 
   void trainQLAgentGW();
   void playQLAgentGW(int argc, char* argv[]);
-
+  void evaluateQLPolicy(int argc, char* argv[]);
   
   //Actor Advantage Critic 
   /*  
