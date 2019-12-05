@@ -370,7 +370,6 @@ void Commands::learnForwardModelGW()
 
   if (FLAGS_wn)
     {
-      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
     }
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
@@ -398,13 +397,13 @@ void Commands::test2()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",5,4);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",6,6);
   gw.generateVectorStates();
   ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  
+
   /*
-  ofstream f("../hello");
+  ofstream f("../hello4");
   for (int i=0;i<10000;i++)
     {
       torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
@@ -413,6 +412,4 @@ void Commands::test2()
       f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;
     }
   */
-  
-
 }

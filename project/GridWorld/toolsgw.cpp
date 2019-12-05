@@ -192,7 +192,7 @@ void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 	    {
 	      float pixelt = *testData[s][i][j].data<float>();
 	      float pixell = *labels[s][i][j].data<float>();
-		if (pixelt>0.9 && pixell<1.1)
+		if (pixelt>0.7 && pixell<1.3)
 		  {		  
 		    pixelt=1;
 		  }

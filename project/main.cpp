@@ -66,6 +66,10 @@ int main(int argc, char *argv[])
     {
       c.learnRewardFunctionGW();
     }
+  else if(FLAGS_cmd == "gwmbfm")
+    {
+      c.learnForwardModelGW();
+    }
   else if(FLAGS_cmd == "test")
     {
       c.test();

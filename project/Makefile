@@ -800,6 +800,8 @@ main.o: main.cpp commands.h \
 		GridWorld/Models/transitiongw.h \
 		GridWorld/Models/rewardgw.h \
 		GridWorld/Models/plannergw.h \
+		Agents/modelbased2.h \
+		GridWorld/Models/forwardgw.h \
 		GridWorld/episodeplayergw.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
@@ -4850,6 +4852,8 @@ commands.o: commands.cpp commands.h \
 		GridWorld/Models/transitiongw.h \
 		GridWorld/Models/rewardgw.h \
 		GridWorld/Models/plannergw.h \
+		Agents/modelbased2.h \
+		GridWorld/Models/forwardgw.h \
 		GridWorld/episodeplayergw.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o commands.o commands.cpp
 
