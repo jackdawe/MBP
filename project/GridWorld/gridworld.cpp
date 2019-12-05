@@ -47,38 +47,38 @@ float GridWorld::transition()
     float r = 0;
     previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
-    {
+      {
         switch (a)
-        {
-        case 0:
+	  {
+	  case 0:
             agentX--;
             break;
-        case 1:
+	  case 1:
             agentY++;
             break;
-        case 2:
+	  case 2:
             agentX++;
             break;
-        case 3:
+	  case 3:
             agentY--;
             break;
-        }
+	  }
         currentState.update(0,agentX), currentState.update(1,agentY);
         actionSequence.push_back({a});
-        stateSequence.push_back(currentState.getStateVector());
-    }   
-    if (obstacles[agentX][agentY] == 1)
-    {
-        r = LOSE_REWARD;
-    }
-    else if (agentX == goalX && agentY == goalY)
-    {
-        r = WIN_REWARD;
-    }
-    else
-    {
-        r = EMPTY_SQUARE_REWARD;
-    }
+        stateSequence.push_back(currentState.getStateVector());   
+	if (obstacles[agentX][agentY] == 1)
+	  {
+	    r = LOSE_REWARD;
+	  }
+	else if (agentX == goalX && agentY == goalY)
+	  {
+	    r = WIN_REWARD;
+	  }
+	else
+	  {
+	    r = EMPTY_SQUARE_REWARD;
+	  }
+      }
     rewardHistory.back()+= r;
     return r;
 }

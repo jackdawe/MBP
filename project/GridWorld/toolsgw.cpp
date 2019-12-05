@@ -59,7 +59,7 @@ cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
     }*/
 
 
-void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
+void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp)
 {
   gw = GridWorld(path+"train/",nmaps);
   gw.generateVectorStates();
@@ -67,11 +67,11 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({4*n/5,3,size,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5,4});
-  torch::Tensor stateLabels = torch::zeros({4*n/5,size,size});
-  torch::Tensor rewardLabels = torch::zeros({4*n/5});
-  
+  torch::Tensor stateInputs = torch::zeros({4*n/5,nTimesteps,3,size,size});
+  torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,4});
+  torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,size,size});
+  torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
+   
   //Making the agent wander randomly for n episodes 
 
   int j=0;
@@ -97,76 +97,74 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, float winProp)
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,3,size,size});
-	  actionInputs = torch::zeros({n/5,4});
-	  stateLabels = torch::zeros({n/5,size,size});
-	  rewardLabels = torch::zeros({n/5});
+	  cout<<stateInputs[1]<<endl;
+	  cout<<stateLabels[1]<<endl;
+	  cout<<actionInputs[1]<<endl;
+	  stateInputs = torch::zeros({n/5,nTimesteps,3,size,size});
+	  actionInputs = torch::zeros({n/5,nTimesteps,4});
+	  stateLabels = torch::zeros({n/5,nTimesteps,size,size});
+	  rewardLabels = torch::zeros({n/5,nTimesteps});
 	}
 
-      //Building the dataset tensors
-
-      
-      stateInputs[j] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
-      if (i>winProp*4*n/5 && i<n-winProp*n/5)
+      for (int t=0;t<nTimesteps;t++)
 	{
-	  gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation
-	}
-      actionInputs[j][(int)gw.getTakenAction()[0]]=1;
-      rewardLabels[j] = gw.transition();
-      stateLabels[j] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0][0];
-	
-      //Resettiing the gridworld at the end of an episode
       
-      if (gw.isTerminal(gw.getCurrentState()))
-	{
-	  gw.reset();
-	  
-	  //Adding win situations to the dataset as they occur rarely
-	  
-	  if (i<winProp*4*n/5 || i>n-winProp*n/5)
+	  //Building the dataset tensors
+      
+	  stateInputs[j][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
+	  if (i>winProp*4*n/5 && i<n-winProp*n/5)
 	    {
-	      vector<bool> available = {gw.getObstacles()[gw.getGoalX()-1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()+1]==0, gw.getObstacles()[gw.getGoalX()+1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()-1]==0};	      
-	      
-	      while (available == vector<bool>({false,false,false,false})) //Starting over if the map contains a goal surrounded by walls
-		{
-		  cout<<"The goal is surrounded by walls !"<<endl;
-		  gw.reset();
-		  available = {gw.getObstacles()[gw.getGoalX()-1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()+1]==0, gw.getObstacles()[gw.getGoalX()+1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()-1]==0};
-		}
-	      default_random_engine generator(random_device{}());
-	      uniform_int_distribution<int> dist(0,3);
-	      int picked = dist(generator);
-	      while (!available[picked])
-		{
-		  picked = dist(generator);
-		}
-	      switch(picked)
-		{
-		case 0:
-		  gw.setAgentX(gw.getGoalX()-1); gw.setAgentY(gw.getGoalY());
-		  gw.setTakenAction({2});
-		  break;
-		case 1:
-		  gw.setAgentX(gw.getGoalX()); gw.setAgentY(gw.getGoalY()+1);
-		  gw.setTakenAction({3});
-		  break;
-		case 2:
-		  gw.setAgentX(gw.getGoalX()+1); gw.setAgentY(gw.getGoalY());
-		  gw.setTakenAction({0});
-		  break;
-		case 3:
-		  gw.setAgentX(gw.getGoalX()); gw.setAgentY(gw.getGoalY()-1);
-		  gw.setTakenAction({1});
-		  break;
-		    }
-	      gw.generateVectorStates();
+	      gw.setTakenAction(gw.randomAction()); //Not changing the action when in winning scenarios generation
 	    }
-	}
+	  actionInputs[j][t][(int)gw.getTakenAction()[0]]=1;
+	  rewardLabels[j][t] = gw.transition();
+	  stateLabels[j][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0][0];
+	}            
+      gw.reset();
       j++;
+      
+      //Adding win situations to the dataset as they occur rarely
+	  
+      if (i<winProp*4*n/5 || i>n-winProp*n/5)
+	{
+	  vector<bool> available = {gw.getObstacles()[gw.getGoalX()-1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()+1]==0, gw.getObstacles()[gw.getGoalX()+1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()-1]==0};	      	      
+	  while (available == vector<bool>({false,false,false,false})) //Starting over if the map contains a goal surrounded by walls
+	    {
+	      cout<<"The goal is surrounded by walls !"<<endl;
+	      gw.reset();
+	      available = {gw.getObstacles()[gw.getGoalX()-1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()+1]==0, gw.getObstacles()[gw.getGoalX()+1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()-1]==0};
+	    }
+	  default_random_engine generator(random_device{}());
+	  uniform_int_distribution<int> dist(0,3);
+	  int picked = dist(generator);
+	  while (!available[picked])
+	    {
+	      picked = dist(generator);
+	    }
+	  switch(picked)
+	    {
+	    case 0:
+	      gw.setAgentX(gw.getGoalX()-1); gw.setAgentY(gw.getGoalY());
+	      gw.setTakenAction({2});
+	      break;
+	    case 1:
+	      gw.setAgentX(gw.getGoalX()); gw.setAgentY(gw.getGoalY()+1);
+	      gw.setTakenAction({3});
+	      break;
+	    case 2:
+	      gw.setAgentX(gw.getGoalX()+1); gw.setAgentY(gw.getGoalY());
+	      gw.setTakenAction({0});
+	      break;
+	    case 3:
+	      gw.setAgentX(gw.getGoalX()); gw.setAgentY(gw.getGoalY()-1);
+	      gw.setTakenAction({1});
+	      break;
+	    }
+	  gw.generateVectorStates();
+	}      
     }
   
-
-  //Saving the model
+  //Saving the test set
   
   cout<< "Test set generation is complete!"<<endl; 
   

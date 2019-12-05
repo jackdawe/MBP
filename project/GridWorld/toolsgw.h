@@ -12,7 +12,7 @@ class ToolsGW
   ToolsGW(GridWorld gw);
   torch::Tensor toRGBTensor(torch::Tensor batch);
   //  cv::Mat toRGBMat(torch::Tensor stateTensor);
-  void generateDataSet(string path, int nmaps, int n,float winProp=0.1);
+  void generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp=0.1);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels);
   void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
  private:

@@ -251,7 +251,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   ToolsGW t;
-  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp);
+  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n, FLAGS_T, FLAGS_wp);
 }
 
 void Commands::learnTransitionFunctionGW()
