@@ -69,7 +69,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   int size = gw.getSize();
   torch::Tensor stateInputs = torch::zeros({4*n/5,nTimesteps,3,size,size});
   torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,4});
-  torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,size,size});
+  torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,3,size,size});
   torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
    
   //Making the agent wander randomly for n episodes 
@@ -97,12 +97,9 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	  cout<<stateInputs[1]<<endl;
-	  cout<<stateLabels[1]<<endl;
-	  cout<<actionInputs[1]<<endl;
 	  stateInputs = torch::zeros({n/5,nTimesteps,3,size,size});
 	  actionInputs = torch::zeros({n/5,nTimesteps,4});
-	  stateLabels = torch::zeros({n/5,nTimesteps,size,size});
+	  stateLabels = torch::zeros({n/5,nTimesteps,3,size,size});
 	  rewardLabels = torch::zeros({n/5,nTimesteps});
 	}
 
@@ -118,7 +115,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	    }
 	  actionInputs[j][t][(int)gw.getTakenAction()[0]]=1;
 	  rewardLabels[j][t] = gw.transition();
-	  stateLabels[j][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0][0];
+	  stateLabels[j][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
 	}            
       gw.reset();
       j++;
@@ -188,8 +185,8 @@ void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 	{
 	  for (int j=0;j<n;j++)
 	    {
-	      float pixelt = *testData[s][i][j].data<float>();
-	      float pixell = *labels[s][i][j].data<float>();
+	      float pixelt = *testData[s][0][i][j].data<float>();
+	      float pixell = *labels[s][0][i][j].data<float>();
 		if (pixelt>0.7 && pixell<1.3)
 		  {		  
 		    pixelt=1;
@@ -217,10 +214,12 @@ void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 
 void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
-  int m = testData.size(0);
+  cout<<"e"<<endl;
   vector<int> rCounts(3,0);
   vector<int> scores(3,0);
-  testData = testData.to(torch::Device(torch::kCPU));
+  testData = testData.flatten().to(torch::Device(torch::kCPU));
+  labels = labels.flatten();
+  int m = testData.size(0);
   for (int s=0;s<m;s++)
     {
       float bug = EMPTY_SQUARE_REWARD;

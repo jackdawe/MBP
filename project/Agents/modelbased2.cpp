@@ -33,15 +33,16 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
   for (int e=0;e<epochs;e++)
     {
       //Extracting batch from dataset
-    
+
+      int nTimesteps = rewardLabels.size(1);
       torch::Tensor siBatch = torch::zeros(0);
       torch::Tensor aiBatch = torch::zeros(0);
       torch::Tensor slBatch = torch::zeros(0);
-      torch::Tensor rlBatch = torch::zeros({batchSize});
+      torch::Tensor rlBatch = torch::zeros({batchSize,nTimesteps});
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
-	  siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
+	  siBatch = torch::cat({siBatch,stateInputs[index][0].unsqueeze(0)});
 	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	  slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
 	  rlBatch[i] = rewardLabels[index]; 
@@ -54,9 +55,17 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
       
       //Forward and backward pass
 
-      forwardModel->forward(siBatch,aiBatch);
-      torch::Tensor sLoss = 5*torch::mse_loss(forwardModel->predictedState,slBatch);
-      torch::Tensor rLoss = torch::mse_loss(forwardModel->predictedReward,rlBatch); 
+      torch::Tensor stateOutputs = torch::zeros(0).to(device);
+      torch::Tensor rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);
+      for (int t=0;t<nTimesteps;t++)
+	{	  
+	  forwardModel->forward(siBatch.squeeze(),aiBatch.transpose(0,1)[t]);
+	  siBatch = forwardModel->predictedState;
+	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
+	  rewardOutputs[t] = forwardModel->predictedReward;
+	}
+      torch::Tensor sLoss = 5*torch::mse_loss(stateOutputs,slBatch);
+      torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
       torch::Tensor totalLoss = sLoss+rLoss;
       optimizer.zero_grad();
       totalLoss.backward();

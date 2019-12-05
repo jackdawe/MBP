@@ -368,6 +368,15 @@ void Commands::learnForwardModelGW()
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
+  int n = stateInputsTe.size(0);
+  int T = stateInputsTe.size(1);
+  int pix = stateInputsTe.size(3);
+  stateInputsTe = stateInputsTe.reshape({n*T,3,pix,pix});
+  stateLabelsTe = stateLabelsTe.reshape({n*T,3,pix,pix});
+  actionInputsTe = actionInputsTe.reshape({n*T,4});
+  rewardLabelsTe = rewardLabelsTe.reshape({n*T});
+  
+  
   if (FLAGS_wn)
     {
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);

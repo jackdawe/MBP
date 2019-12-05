@@ -187,7 +187,8 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
   
   if(imState)
     {
-      predictedState = x.squeeze();
+      x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
+      predictedState = x;
     }
   else
     {
@@ -204,9 +205,6 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 
   /*PREDICTING THE REWARD ASSOCIATED TO THE TRANSITION*/
 
-  //Reconstituting the 3-channel image from the predicted state
-
-  x=torch::cat({x,channels[1],channels[2]},1);
   predictedReward = rewardForward(x).squeeze();  
 }
 
