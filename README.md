@@ -9,6 +9,10 @@ Please find the paper here: https://arxiv.org/abs/1705.07177
 
 I - QLearning Agent
 
+![ql8](/img/ql8x8.png)
+
+![ql16](/img/ql16x16.png)
+
 II - Advantage Actor Critic Agent (A2C)
 
 III - ModelBased Agent
