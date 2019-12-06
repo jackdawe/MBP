@@ -64,7 +64,7 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
-      torch::Tensor sLoss = 5*torch::mse_loss(stateOutputs,slBatch);
+      torch::Tensor sLoss = 25*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
       torch::Tensor totalLoss = sLoss+rLoss;
       optimizer.zero_grad();
@@ -93,7 +93,7 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
   //torch::Tensor tokens = torch::full({nTimesteps,4},0.1).to(torch::kFloat32);
   //      tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
 
-  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.6);
+  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.3);
   tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
   torch::Tensor qactionSequences = torch::softmax(tokens,2);
   for (int i=0;i<nGradsteps;i++)
@@ -103,7 +103,7 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
 	  stateSequences[0][k] = initState;
 	}
       torch::Tensor totalReward = torch::zeros({nRollouts}).to(device);
-      for (int t=0;t<nTimesteps;t++)	    
+      for (int t=0;t<nTimesteps;t++)
 	{
 	  //Clipping tokens to closest one-hot encoded vector
 	  
@@ -130,11 +130,12 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
     }
   stateSequences = stateSequences.transpose(0,1);
   tokens = tokens.transpose(0,1);
+  qactionSequences = qactionSequences.transpose(0,1);
   actionSequences = torch::softmax(tokens,2);
   int maxRewardIdx = *torch::argmax(rewards.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
   cout<<qactionSequences[maxRewardIdx]<<endl;
-  cout<<actionSequences[maxRewardIdx] - qactionSequences.transpose(0,1)[maxRewardIdx]<<endl;
+  cout<<actionSequences[maxRewardIdx] - qactionSequences[maxRewardIdx]<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<rewards[maxRewardIdx]<<endl;
   for (int o=0;o<6;o++)

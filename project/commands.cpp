@@ -379,8 +379,10 @@ void Commands::learnForwardModelGW()
   
   if (FLAGS_wn)
     {
-      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({stateInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);
     }
+  actionInputsTr = torch::softmax(actionInputsTr,2);
+  actionInputsTe = torch::softmax(actionInputsTe,1);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased2<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
@@ -406,16 +408,16 @@ void Commands::test2()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",6,6);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",1,6);
   gw.generateVectorStates();
   ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
 
   /*
-  ofstream f("../hello4");
+  ofstream f("../hello1");
   for (int i=0;i<10000;i++)
     {
-      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
+      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);	  
       torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
       fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
       f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;

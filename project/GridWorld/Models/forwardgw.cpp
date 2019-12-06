@@ -164,7 +164,6 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
-
   bool imState = stateBatch.size(1)==3;        
   torch::Tensor x = stateBatch.clone();
   torch::Tensor y = x.clone();
@@ -182,13 +181,12 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
   x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});
   x = torch::cat({encoderOut,x},1);
   x = decoderForward(x);
-  
+
   //Converting output into state vector if needed
   
   if(imState)
-    {
-      x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
-      predictedState = x;
+    {      
+      predictedState = torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state;
     }
   else
     {
@@ -205,6 +203,7 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 
   /*PREDICTING THE REWARD ASSOCIATED TO THE TRANSITION*/
 
+  x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
   predictedReward = rewardForward(x).squeeze();  
 }
 

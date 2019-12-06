@@ -214,9 +214,8 @@ void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 
 void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
-  cout<<"e"<<endl;
-  vector<int> rCounts(3,0);
-  vector<int> scores(3,0);
+  vector<int> rCounts(4,0);
+  vector<int> scores(4,0);
   testData = testData.flatten().to(torch::Device(torch::kCPU));
   labels = labels.flatten();
   int m = testData.size(0);
@@ -236,6 +235,10 @@ void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 	{
 	  rCounts[2]++;
 	}
+      else if (rl==0)
+	{
+	  rCounts[3]++;
+	}
       float precision = abs(*testData[s].data<float>()-rl);
       if (rl==LOSE_REWARD && precision<0.1)
 	{
@@ -249,10 +252,14 @@ void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 	{
 	  scores[2]++;
 	}
+      else if (rl == 0 && precision<0.01)
+	{
+	  scores[3]++;
+	}
     }
-  vector<string> text = {"LOSE REWARD","EMPTY SQUARE REWARD","WIN REWARD"};
+  vector<string> text = {"LOSE REWARD","EMPTY SQUARE REWARD","WIN REWARD","TERMINAL REWARD"};
   cout<<"\n########## REWARD FUNCTION EVALUATION ##########\n " << endl;
-  for (int i=0;i<3;i++)
+  for (int i=0;i<4;i++)
     {
       cout<<text[i]+": "+ to_string(scores[i]) + "/" + to_string(rCounts[i]) + " (" + to_string(100.*scores[i]/rCounts[i]) + "%)"<<endl;
     }
