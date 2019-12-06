@@ -28,9 +28,9 @@ class Commands
   void evaluateQLPolicy(int argc, char* argv[]);
   
   //Actor Advantage Critic 
-  /*  
-  void trainA2COneMapGW();
-  void trainA2CMapPoolGW();
+    
+  void trainA2CGW();
+  /*
   void testA2C();
   void showCriticOnMapGW(int argc,char* argv[]);
   void showActorOnMapGW(int argc,char* argv[]);

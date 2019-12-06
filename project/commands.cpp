@@ -2,6 +2,7 @@
 DEFINE_double(eps,0.1,"Probability of exploring for agents using epsilon greedy policies");
 DEFINE_double(g,0.95,"Discount factor");
 DEFINE_string(map,"../GridWorld/Maps/Inter8x8/train/map0","Path to a map file");
+DEFINE_string(mp,"../GridWorld/Maps/Inter8x8/","Path to a directory containing your maps");
 
 Commands::Commands(){}
 
@@ -101,28 +102,18 @@ void Commands::evaluateQLPolicy(int argc, char* argv[])
   a.exec();  
 }
 
-/*
-void Commands::trainA2COneMapGW()
+void Commands::trainA2CGW()
 {
-  GridWorld gw(FLAGS_f);
+  GridWorld gw(FLAGS_mp,FLAGS_nmaps);
   int size = gw.getSize();
   ConvNetGW net(size,FLAGS_conv1,FLAGS_conv2,FLAGS_fc1);
   ParametersA2C params(FLAGS_g, FLAGS_lr, FLAGS_beta, FLAGS_zeta, FLAGS_bs, FLAGS_n);
-  ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
-  agent.train();
-  torch::save(agent.getModel(),"../model.pt");
+  ActorCritic<GridWorld,ConvNetGW> agent(gw,net);
+  agent.train(FLAGS_n,FLAGS_g,FLAGS_beta,FLAGS_zeta,FLAGS_lr,FLAGS_bs);
+  torch::save(agent.getModel(),"../temp/CNN_A2C_GW.pt");
 }
 
-void Commands::trainA2CMapPoolGW()
-{
-  GridWorld gw(FLAGS_dir,FLAGS_nmaps);
-  int size = gw.getSize();
-  ConvNetGW net(size,FLAGS_conv1,FLAGS_conv2,FLAGS_fc1);
-  ParametersA2C params(FLAGS_g, FLAGS_lr, FLAGS_beta, FLAGS_zeta, FLAGS_bs, FLAGS_n);
-  ActorCritic<GridWorld,ConvNetGW> agent(gw,net,params,true);
-  agent.train();
-  torch::save(agent.getModel(),"../model.pt");
-}
+/*
 
 void Commands::testA2C()
 {

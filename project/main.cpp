@@ -32,16 +32,13 @@ int main(int argc, char *argv[])
   else if (FLAGS_cmd == "gwqleval")
     {
       c.evaluateQLPolicy(argc,argv);
-    }
+    }  
   
-  /*  else if (FLAGS_cmd == "gwa2c1m")
+  else if (FLAGS_cmd == "gwa2ctr")
     {
-      c.trainA2COneMapGW();
+      c.trainA2CGW();
     }
-  else if (FLAGS_cmd == "gwa2cmp")
-    {
-      c.trainA2CMapPoolGW();
-    }
+  /*
   else if(FLAGS_cmd == "gwa2cvshow")
     {
       c.showCriticOnMapGW(argc,argv);
@@ -78,8 +75,16 @@ int main(int argc, char *argv[])
     {
       c.test2();
     }
+  else if(FLAGS_cmd=="ssmgen")
+    {
+      c.generateMapSS();
+    }
+  else if(FLAGS_cmd=="ssmshow")
+    {
+      c.showMapSS(argc,argv);
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;
-    }
+    }      
 }
