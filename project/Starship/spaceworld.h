@@ -20,8 +20,8 @@ class SpaceWorld: public World
 public:
 
     SpaceWorld();
-    SpaceWorld(string mapTag);
-    SpaceWorld(string mapTag, Ship s);
+    SpaceWorld(string filename);
+    SpaceWorld(string filename, Ship s);
 
     float transition();
     bool isTerminal(State s);

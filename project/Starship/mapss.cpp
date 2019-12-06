@@ -5,7 +5,7 @@ MapSS::MapSS()
 
 }
 
-MapSS::MapSS(int size, string mapTag): size(size), mapTag(mapTag)
+MapSS::MapSS(int size): size(size)
 {
 }
 
@@ -24,7 +24,7 @@ void MapSS::generate(int nPlanets, int planetMinSize,
         dist = uniform_int_distribution<int>(planetMinSize,planetMaxSize);
         int radius = dist(generator);
         planet.setRadius(radius);
-        dist = uniform_int_distribution<int>(radius,size-radius);
+        dist = uniform_int_distribution<int>(radius,size-radius);	
         planet.setCentre(Vect2d(dist(generator),dist(generator)));
         planets.push_back(planet);
     }
@@ -96,9 +96,9 @@ void MapSS::generate(int nPlanets, int planetMinSize,
     }
 }
 
-void MapSS::save()
+void MapSS::save(string filename)
 {
-    ofstream f("../Starship/Map" + mapTag + "/map");
+  ofstream f(filename);
     if (f)
     {
         f << to_string(size) << endl;
@@ -124,9 +124,9 @@ void MapSS::save()
     }
 }
 
-void MapSS::load(string mapTag)
+void MapSS::load(string filename)
 {
-    ifstream f("../Starship/Map" + mapTag + "/map");
+  ifstream f(filename);
     if (f)
     {
         string line;
@@ -239,11 +239,6 @@ void MapSS::load(string mapTag)
 int MapSS::getSize() const
 {
     return size;
-}
-
-string MapSS::getMapTag() const
-{
-    return mapTag;
 }
 
 vector<Planet> MapSS::getPlanets() const

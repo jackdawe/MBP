@@ -5,21 +5,20 @@ EpisodePlayerSS::EpisodePlayerSS()
 
 }
 
-EpisodePlayerSS::EpisodePlayerSS(string mapTag):
-    wpColors(QList<QColor>({Qt::red,Qt::green,Qt::yellow,Qt::cyan,Qt::black}))
+EpisodePlayerSS::EpisodePlayerSS(string filename):
+  wpColors(QList<QColor>({Qt::red,Qt::green,Qt::yellow,Qt::cyan,Qt::black}))
 {
-    map.load(mapTag);
-    initMap();
+  map.load(filename);
+  initMap();
 }
 
-EpisodePlayerSS::EpisodePlayerSS(string mapTag, vector<vector<float>> actionSequence,vector<vector<float>> stateSequence,
-                                 vector<float> parameters):
-    wpColors(QList<QColor>({Qt::red,Qt::green,Qt::yellow,Qt::cyan,Qt::black})), actionSequence(actionSequence),
-    stateSequence(stateSequence), parameters(parameters), stepCount(0)
+EpisodePlayerSS::EpisodePlayerSS(string filename, vector<vector<float>> actionSequence,vector<vector<float>> stateSequence, vector<float> parameters):
+  wpColors(QList<QColor>({Qt::red,Qt::green,Qt::yellow,Qt::cyan,Qt::black})), actionSequence(actionSequence),
+  stateSequence(stateSequence), parameters(parameters), stepCount(0)
 {
-    map.load(mapTag);    
-    initMap();
-    connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
+  map.load(filename);    
+  initMap();
+  connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
 }
 
 void EpisodePlayerSS::initMap()

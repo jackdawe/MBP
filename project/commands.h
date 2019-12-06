@@ -7,6 +7,7 @@
 #include "Agents/modelbased.h"
 #include "Agents/modelbased2.h"
 #include "GridWorld/episodeplayergw.h"
+#include "Starship/episodeplayerss.h"
 
 class Commands
 {
@@ -41,6 +42,11 @@ class Commands
   void learnTransitionFunctionGW();
   void learnRewardFunctionGW();
   void learnForwardModelGW();
+
+  /////* Starship related commands */////
+
+  void generateMapSS();
+  void showMapSS(int argc, char* argv[]);
   
   //Other
   

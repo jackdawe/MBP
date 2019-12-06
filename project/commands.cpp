@@ -242,7 +242,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   ToolsGW t;
-  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n, FLAGS_T, FLAGS_wp);
+  t.generateDataSet(FLAGS_dir,FLAGS_nmaps,FLAGS_n,FLAGS_wp);
 }
 
 void Commands::learnTransitionFunctionGW()
@@ -359,21 +359,10 @@ void Commands::learnForwardModelGW()
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
-  int n = stateInputsTe.size(0);
-  int T = stateInputsTe.size(1);
-  int pix = stateInputsTe.size(3);
-  stateInputsTe = stateInputsTe.reshape({n*T,3,pix,pix});
-  stateLabelsTe = stateLabelsTe.reshape({n*T,3,pix,pix});
-  actionInputsTe = actionInputsTe.reshape({n*T,4});
-  rewardLabelsTe = rewardLabelsTe.reshape({n*T});
-  
-  
   if (FLAGS_wn)
     {
-      actionInputsTr+=torch::zeros({stateInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
     }
-  actionInputsTr = torch::softmax(actionInputsTr,2);
-  actionInputsTe = torch::softmax(actionInputsTe,1);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased2<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
@@ -399,19 +388,34 @@ void Commands::test2()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",5,4);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",6,6);
   gw.generateVectorStates();
   ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
 
   /*
-  ofstream f("../hello1");
+  ofstream f("../hello4");
   for (int i=0;i<10000;i++)
     {
-      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);	  
+      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
       torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
       fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
       f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;
     }
   */
+}
+
+void Commands::generateMapSS()
+{
+  MapSS map(1000);
+  map.generate();
+  map.save(FLAGS_map);
+}
+
+void Commands::showMapSS(int argc, char* argv[])
+{
+  QApplication a(argc,argv);
+  EpisodePlayerSS ep(FLAGS_map);
+  ep.showMap();
+  a.exec();
 }
