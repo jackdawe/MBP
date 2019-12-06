@@ -408,7 +408,7 @@ void Commands::test2()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",1,6);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map1",5,4);
   gw.generateVectorStates();
   ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);

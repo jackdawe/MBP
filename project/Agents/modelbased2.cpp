@@ -120,7 +120,7 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
 	  forwardModel->forward(stateSequences[t].to(device),torch::softmax(tokens[t],1).to(device));
 	  totalReward+=forwardModel->predictedReward;
 	}
-	  //	  cout<<100*totalReward<<endl;
+      cout<<100*totalReward<<endl;
       totalReward.backward(torch::ones({nRollouts}).to(device));
       rewards = totalReward;
       torch::Tensor grads = tokens.grad();
