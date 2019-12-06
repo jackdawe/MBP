@@ -24,8 +24,10 @@ ConvNetGWImpl::ConvNetGWImpl(int size, int nConv1, int nConv2, int nfc):
     conv1 = register_module("conv1",torch::nn::Conv2d(torch::nn::Conv2dOptions(3,nConv1,3).stride(1).padding(1)));
     conv2 = register_module("conv2",torch::nn::Conv2d(torch::nn::Conv2dOptions(nConv1,nConv2,3).stride(1).padding(1)));
     fc = register_module("fc",torch::nn::Linear(nConv2*size*size/16,nfc));
-    actor = register_module("actor",torch::nn::Linear(nfc,4));
-    critic = register_module("critic",torch::nn::Linear(nfc,1));
+    fca = register_module("fca",torch::nn::Linear(nfc,64));
+    fcc = register_module("fcc",torch::nn::Linear(nfc,64));
+    actor = register_module("actor",torch::nn::Linear(64,4));
+    critic = register_module("critic",torch::nn::Linear(64,1));
     if (torch::cuda::is_available())
       {
 	std::cout << "Training will be done using CUDA" << std::endl;
@@ -51,6 +53,8 @@ torch::Tensor ConvNetGWImpl::actorOutput(torch::Tensor batch)
 {
   torch::Tensor x = ToolsGW().toRGBTensor(batch).to(usedDevice); 
   x = this->forward(x);
+  x = fca->forward(x);
+  x = torch::relu(x);
   return torch::softmax(actor->forward(x),1);
 }
 
@@ -58,7 +62,9 @@ torch::Tensor ConvNetGWImpl::criticOutput(torch::Tensor batch)
 {
   torch::Tensor x = ToolsGW().toRGBTensor(batch).to(usedDevice); 
   x = this->forward(x);
-  return critic->forward(x);
+  x = fca->forward(x);
+  x = torch::relu(x);
+  return torch::tanh(critic->forward(x));
 }
 
 torch::Device ConvNetGWImpl::getUsedDevice()

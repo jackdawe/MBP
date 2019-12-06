@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     {
       c.trainA2CGW();
     }
-  /*
+  
   else if(FLAGS_cmd == "gwa2cvshow")
     {
       c.showCriticOnMapGW(argc,argv);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd == "gwa2ctest")
     {
       c.testA2C();
-      }*/
+    }
   else if(FLAGS_cmd == "gwdsgen")
     {
       c.generateDataSetGW();

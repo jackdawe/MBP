@@ -44,10 +44,10 @@ template <class W,class M>
 void ActorCritic<W,M>::backPropagate(torch::optim::Adam *opti)
 {
   evaluateRunValues();
-  torch::Tensor actionProbs = model->actorOutput(runStates);
+  torch::Tensor actionProbs = model->actorOutput(runStates);  
   torch::Tensor valuesEstimate = model->criticOutput(runStates);
   torch::Tensor actionLogProbs = actionProbs.log();
-  torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.to(torch::kLong)).to(torch::kFloat32);
+  torch::Tensor chosenActionLogProbs = actionLogProbs.gather(1,runActions.unsqueeze(1).to(torch::kLong)).to(torch::kFloat32);
   torch::Tensor advantages = runValues - valuesEstimate; //TD Error
   torch::Tensor entropy = -(actionProbs*actionLogProbs).sum(1).mean();
   torch::Tensor entropyLoss = beta*entropy;
@@ -71,6 +71,7 @@ void ActorCritic<W,M>::train(int nEpisodes, float gamma, float beta, float zeta,
 {
   int nSteps = 0;
   episodeNumber = 0;
+  this->batchSize=batchSize, this->gamma=gamma,this->beta=beta,this->zeta=zeta;
   torch::optim::Adam optimizer(model->parameters(),lr);
   while (episodeNumber< nEpisodes)
     {
@@ -88,11 +89,11 @@ void ActorCritic<W,M>::train(int nEpisodes, float gamma, float beta, float zeta,
 	  this->world.setTakenReward(this->world.transition());
 	  runStates[i] = stateVector;
 	  runRewards.push_back(this->takenReward());
-	  runActions[i] = action.to(model->getUsedDevice());
+	  runActions[i] = action.squeeze().to(model->getUsedDevice());
 	  runAreTerminal.push_back(this->world.isTerminal(this->currentState()));
 	  if (runAreTerminal.back() || nSteps==pow(this->world.getSize(),2)/2)
             {
-	      if (nSteps==pow(this->world.getSize(),2)/2)
+	      if (nSteps==pow(this->world.getSize(),2)/4)
 		{
 		  cout <<"Episode " + to_string(this->episodeNumber) + " was interrupted because it reached the maximum number of steps"<<endl;
 		}

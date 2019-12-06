@@ -30,12 +30,11 @@ class Commands
   
   //Actor Advantage Critic 
     
-  void trainA2CGW();
-  /*
+  void trainA2CGW();  
   void testA2C();
   void showCriticOnMapGW(int argc,char* argv[]);
   void showActorOnMapGW(int argc,char* argv[]);
-  */
+  
   //Model Based Planning
   
   void generateDataSetGW();

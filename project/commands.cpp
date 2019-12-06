@@ -107,23 +107,22 @@ void Commands::trainA2CGW()
   GridWorld gw(FLAGS_mp,FLAGS_nmaps);
   int size = gw.getSize();
   ConvNetGW net(size,FLAGS_conv1,FLAGS_conv2,FLAGS_fc1);
-  ParametersA2C params(FLAGS_g, FLAGS_lr, FLAGS_beta, FLAGS_zeta, FLAGS_bs, FLAGS_n);
   ActorCritic<GridWorld,ConvNetGW> agent(gw,net);
   agent.train(FLAGS_n,FLAGS_g,FLAGS_beta,FLAGS_zeta,FLAGS_lr,FLAGS_bs);
   torch::save(agent.getModel(),"../temp/CNN_A2C_GW.pt");
 }
 
-/*
+
 
 void Commands::testA2C()
 {
-  ConvNetGW net(8,16,16,128);
-  torch::load(net,"../model.pt");
+  ConvNetGW net(8,32,32,128);
+  torch::load(net,"../temp/CNN_A2C_GW.pt");
   float tot=0;
   for (int i=0;i<FLAGS_nmaps;i++)
     {
       MapGW map;
-      map.load(FLAGS_dir+"map"+to_string(i));
+      map.load(FLAGS_mp+"map"+to_string(i));
       int size = map.getSize();
       vector<float> mapRewards;
       int emptySpaces=0;
@@ -135,9 +134,9 @@ void Commands::testA2C()
 	      if (map.getMap()[x][y] == 0)
 		{
 		  emptySpaces++;
-		  GridWorld gw(FLAGS_dir+"map"+to_string(i),x,y);
+		  GridWorld gw(FLAGS_mp+"map"+to_string(i),x,y);
 		  gw.generateVectorStates();
-		  ActorCritic<GridWorld,ConvNetGW> agent(gw,net,true);
+		  ActorCritic<GridWorld,ConvNetGW> agent(gw,net);
 		  agent.playOne();
 		  if (agent.takenReward()>0)
 		    {
@@ -158,12 +157,12 @@ void Commands::showCriticOnMapGW(int argc, char* argv[])
 {
   QApplication a(argc,argv);
   vector<vector<string>> toDisplay;
-  string filename = FLAGS_f;
+  string filename = FLAGS_map;
   MapGW map;
   map.load(filename);
   int size = map.getSize();
-  ConvNetGW net(8,16,16,128);
-  torch::load(net,"../model.pt");
+  ConvNetGW net(8,32,32,128);
+  torch::load(net,"../temp/CNN_A2C_GW.pt");
   for (int i=0;i<size;i++)
     {
       vector<string> line;
@@ -171,7 +170,7 @@ void Commands::showCriticOnMapGW(int argc, char* argv[])
 	{
 	  GridWorld gw(filename,i,j);
 	  gw.generateVectorStates();
-	  torch::Tensor output = net->criticOutput(gw.toRGBTensor(gw.getCurrentState().getStateVector()).to(net->getUsedDevice()));
+	  torch::Tensor output = net->criticOutput(torch::tensor(gw.getCurrentState().getStateVector())).to(net->getUsedDevice());
 	  string val = to_string(*output.to(torch::Device(torch::kCPU)).data<float>());
 	  string val2;
 	  val2+=val[0],val2+=val[1],val2+=val[2],val2+=val[3],val2+=val[4];
@@ -188,12 +187,12 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 {
   QApplication a(argc,argv);
   vector<vector<string>> toDisplay;
-  string filename = FLAGS_f;
+  string filename = FLAGS_map;
   MapGW map;
   map.load(filename);
   int size = map.getSize();
-  ConvNetGW net(8,16,16,128);
-  torch::load(net,"../model.pt");
+  ConvNetGW net(8,32,32,128);
+  torch::load(net,"../temp/CNN_A2C_GW.pt");
   for (int i=0;i<size;i++)
     {
       vector<string> line;
@@ -201,8 +200,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 	{
 	  GridWorld gw(filename,i,j);
 	  gw.generateVectorStates();
-	  gw.toRGBTensor(gw.getCurrentState().getStateVector());
-	  torch::Tensor output = net->actorOutput(gw.toRGBTensor(gw.getCurrentState().getStateVector()).to(net->getUsedDevice()));
+	  torch::Tensor output = net->actorOutput(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0));
 	  float max =0;
 	  int iDirection;
 	  string sDirection;
@@ -234,11 +232,11 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 	}
       toDisplay.push_back(line);
     }
-  EpisodePlayerGW ep(FLAGS_f);
+  EpisodePlayerGW ep(FLAGS_map);
   ep.displayOnGrid(toDisplay);
   a.exec();
 }
-*/
+
 void Commands::generateDataSetGW()
 {
   ToolsGW t;

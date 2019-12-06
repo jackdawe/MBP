@@ -28,6 +28,8 @@ private:
     std::shared_ptr<torch::nn::Conv2dImpl> conv1;
     std::shared_ptr<torch::nn::Conv2dImpl> conv2;
     std::shared_ptr<torch::nn::LinearImpl> fc;
+    std::shared_ptr<torch::nn::LinearImpl> fca;
+    std::shared_ptr<torch::nn::LinearImpl> fcc;
     std::shared_ptr<torch::nn::LinearImpl> actor;
     std::shared_ptr<torch::nn::LinearImpl> critic;
 };
