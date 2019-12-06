@@ -23,30 +23,26 @@ using namespace std;
 
 class MapSS
 {
-public:
-    MapSS();
-    MapSS(int size, string mapTag);
-    void generate(int nPlanets = N_PLANETS, int planetMinSize = PLANET_MIN_SIZE,
-                  int planetMaxSize = PLANET_MAX_SIZE,int nWaypoints = N_WAYPOINTS,
-                  int wpRadius = WAYPOINT_RADIUS,int shipW = SHIP_WIDTH, int shipH = SHIP_HEIGHT);
-    void save();
-    void load(string mapTag);
-
-    int getSize() const;
-    string getMapTag() const;
-
-    vector<Planet> getPlanets() const;
-
-    vector<Waypoint> getWaypoints() const;
-
-    Ship getShip() const;
-
-private:
-    int size;
-    string mapTag;
-    vector<Planet> planets;
-    vector<Waypoint> waypoints;
-    Ship ship;
+ public:
+  MapSS();
+  MapSS(int size = 800);
+  void generate(int nPlanets = N_PLANETS, int planetMinSize = PLANET_MIN_SIZE, int planetMaxSize = PLANET_MAX_SIZE,int nWaypoints = N_WAYPOINTS, int wpRadius = WAYPOINT_RADIUS,int shipW = SHIP_WIDTH, int shipH = SHIP_HEIGHT);
+  void save(string filename);
+  void load(string filename);
+  
+  int getSize() const;
+  
+  vector<Planet> getPlanets() const;
+  
+  vector<Waypoint> getWaypoints() const;
+  
+  Ship getShip() const;
+  
+ private:
+  int size;
+  vector<Planet> planets;
+  vector<Waypoint> waypoints;
+  Ship ship;
 };
 
 #endif // MAPSS_H

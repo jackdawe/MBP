@@ -424,3 +424,10 @@ void Commands::test2()
     }
   */
 }
+
+void Commands::generateMapSS()
+{
+  MapSS map;
+  map.generate();
+  map.save(FLAGS_map);
+}

@@ -41,6 +41,11 @@ class Commands
   void learnTransitionFunctionGW();
   void learnRewardFunctionGW();
   void learnForwardModelGW();
+
+  /////* Starship related commands */////
+
+  void generateMapSS();
+  void showMapGW(int argc, char* argv[]);
   
   //Other
   
