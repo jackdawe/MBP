@@ -7,6 +7,7 @@
 #include "Agents/modelbased.h"
 #include "Agents/modelbased2.h"
 #include "GridWorld/episodeplayergw.h"
+#include "Starship/episodeplayerss.h"
 
 class Commands
 {
@@ -45,7 +46,7 @@ class Commands
   /////* Starship related commands */////
 
   void generateMapSS();
-  void showMapGW(int argc, char* argv[]);
+  void showMapSS(int argc, char* argv[]);
   
   //Other
   

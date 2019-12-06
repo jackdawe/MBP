@@ -24,7 +24,7 @@ void MapSS::generate(int nPlanets, int planetMinSize,
         dist = uniform_int_distribution<int>(planetMinSize,planetMaxSize);
         int radius = dist(generator);
         planet.setRadius(radius);
-        dist = uniform_int_distribution<int>(radius,size-radius);
+        dist = uniform_int_distribution<int>(radius,size-radius);	
         planet.setCentre(Vect2d(dist(generator),dist(generator)));
         planets.push_back(planet);
     }

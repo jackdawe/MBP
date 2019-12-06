@@ -10,21 +10,20 @@
 
 class EpisodePlayerSS: public QWidget
 {
-    Q_OBJECT
-public:
-    EpisodePlayerSS();
-    EpisodePlayerSS(string mapTag);
-    EpisodePlayerSS(string mapTag, vector<vector<float>> actionSequence,vector<vector<float>> stateSequence,
-                    vector<float> parameters);
-    void initMap();
-    void showMap();
-    void playEpisode();
-    ~EpisodePlayerSS();
-
-public slots:
+  Q_OBJECT
+ public:
+  EpisodePlayerSS();
+  EpisodePlayerSS(string filename);
+  EpisodePlayerSS(string filename, vector<vector<float>> actionSequence,vector<vector<float>> stateSequence, vector<float> parameters);
+  void initMap();
+  void showMap();
+  void playEpisode();
+  ~EpisodePlayerSS();
+  
+  public slots:
     void update();
-
-private:
+    
+ private:
     vector<vector<float>> actionSequence;
     vector<vector<float>> stateSequence;
     vector<float> parameters;

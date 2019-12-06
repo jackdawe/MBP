@@ -78,8 +78,16 @@ int main(int argc, char *argv[])
     {
       c.test2();
     }
+  else if(FLAGS_cmd=="ssmgen")
+    {
+      c.generateMapSS();
+    }
+  else if(FLAGS_cmd=="ssmshow")
+    {
+      c.showMapSS(argc,argv);
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;
-    }
+    }      
 }
