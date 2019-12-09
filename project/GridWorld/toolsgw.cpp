@@ -73,7 +73,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
    
   //Making the agent wander randomly for n episodes 
-
+  
   int j=0;
   for (int i=0;i<n;i++)
     {
@@ -84,7 +84,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	{
 	  cout << "Your agent is crashing into walls for science... " + to_string(i/(n/100)) + "%" << endl;
 	}
-      
+
       //Swapping to test set generation when training set generation is done
       
       if (i==4*n/5)

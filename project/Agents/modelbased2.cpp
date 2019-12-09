@@ -64,7 +64,7 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
-      torch::Tensor sLoss = 25*torch::mse_loss(stateOutputs,slBatch);
+      torch::Tensor sLoss = 50*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
       torch::Tensor totalLoss = sLoss+rLoss;
       optimizer.zero_grad();
@@ -72,7 +72,7 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
       optimizer.step();
       sLossHistory.push_back(*sLoss.to(torch::Device(torch::kCPU)).data<float>());
       rLossHistory.push_back(*rLoss.to(torch::Device(torch::kCPU)).data<float>());
-      
+
       //Printing some stuff
       
       if (e%25 == 0)
@@ -90,10 +90,10 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
   torch::Tensor rewards = torch::zeros({nRollouts});
   torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
   
-  //torch::Tensor tokens = torch::full({nTimesteps,4},0.1).to(torch::kFloat32);
-  //      tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
+  //torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
+  //  tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
 
-  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.3);
+  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1);
   tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
   torch::Tensor qactionSequences = torch::softmax(tokens,2);
   for (int i=0;i<nGradsteps;i++)
@@ -120,7 +120,7 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
 	  forwardModel->forward(stateSequences[t].to(device),torch::softmax(tokens[t],1).to(device));
 	  totalReward+=forwardModel->predictedReward;
 	}
-      cout<<100*totalReward<<endl;
+      //  cout<<100*totalReward.mean()<<endl;
       totalReward.backward(torch::ones({nRollouts}).to(device));
       rewards = totalReward;
       torch::Tensor grads = tokens.grad();
@@ -138,11 +138,6 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
   cout<<actionSequences[maxRewardIdx] - qactionSequences[maxRewardIdx]<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<rewards[maxRewardIdx]<<endl;
-  for (int o=0;o<6;o++)
-    {
-      //      cout<<ToolsGW().toRGBTensor(stateSequences[maxRewardIdx])[o][0]<<endl;
-    }
-  //cout<<rewards<<endl;
 }
 
 template <class W, class F, class P>

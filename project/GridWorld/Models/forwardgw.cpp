@@ -160,7 +160,6 @@ torch::Tensor ForwardGWImpl::rewardForward(torch::Tensor x)
 
 void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-  
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
@@ -173,7 +172,8 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
     }
 
    vector<torch::Tensor> channels = torch::split(x,1,1);
-  
+   
+   
   //Forward Pass
 
   torch::Tensor encoderOut = this->encoderForward(x);
@@ -181,7 +181,7 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
   x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});
   x = torch::cat({encoderOut,x},1);
   x = decoderForward(x);
-
+  
   //Converting output into state vector if needed
   
   if(imState)
@@ -211,7 +211,7 @@ void ForwardGWImpl::saveParams(std::string filename)
 {
   std::ofstream f(filename);
   {
-    f<<"###PARAMETERS FOR LOADING A TRANSITION MODEL###"<<std::endl;
+    f<<"###PARAMETERS FOR LOADING A FORWARD MODEL###"<<std::endl;
     f<<std::to_string(size)<<std::endl;
     f<<std::to_string(nConv1)<<std::endl;
   }
