@@ -3,9 +3,8 @@
 #include <QApplication>
 #include "GridWorld/toolsgw.h"
 #include "Agents/qlearning.h"
-#include "Agents/A2C/actorcritic.h"
+#include "Agents/actorcritic.h"
 #include "Agents/modelbased.h"
-#include "Agents/modelbased2.h"
 #include "GridWorld/episodeplayergw.h"
 #include "Starship/episodeplayerss.h"
 
@@ -38,8 +37,6 @@ class Commands
   //Model Based Planning
   
   void generateDataSetGW();
-  void learnTransitionFunctionGW();
-  void learnRewardFunctionGW();
   void learnForwardModelGW();
 
   /////* Starship related commands */////
@@ -50,7 +47,6 @@ class Commands
   //Other
   
   void test();
-  void test2();
 };
 
 #endif // COMMANDS_H

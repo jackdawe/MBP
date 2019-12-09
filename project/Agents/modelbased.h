@@ -1,5 +1,5 @@
-#ifndef MODELBASED2_H
-#define MODELBASED2_H
+#ifndef MODELBASED_H
+#define MODELBASED_H
 #include "../agent.h"
 #include "../GridWorld/gridworld.h"
 #include "../GridWorld/Models/forwardgw.h"
@@ -7,12 +7,12 @@
 TORCH_MODULE(ForwardGW);
 
 template<class W, class F, class P>
-  class ModelBased2: public Agent<W>
+  class ModelBased: public Agent<W>
 {
  public:  
-  ModelBased2();
-  ModelBased2(W world, F forwardModel); 
-  ModelBased2(W world, F forwardModel, P planner);
+  ModelBased();
+  ModelBased(W world, F forwardModel); 
+  ModelBased(W world, F forwardModel, P planner);
   void learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize=32, float lr=0.001);
   void gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradientSteps, float lr);
   void saveTrainingData();

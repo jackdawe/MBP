@@ -55,14 +55,6 @@ int main(int argc, char *argv[])
     {
       c.generateDataSetGW();
     }
-  else if(FLAGS_cmd == "gwmbft")
-    {
-      c.learnTransitionFunctionGW();
-    }
-  else if(FLAGS_cmd == "gwmbfr")
-    {
-      c.learnRewardFunctionGW();
-    }
   else if(FLAGS_cmd == "gwmbfm")
     {
       c.learnForwardModelGW();
@@ -70,10 +62,6 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd == "test")
     {
       c.test();
-    }
-  else if(FLAGS_cmd =="test2")
-    {
-      c.test2();
     }
   else if(FLAGS_cmd=="ssmgen")
     {

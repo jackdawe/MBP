@@ -1,27 +1,27 @@
-#include "modelbased2.h"
+#include "modelbased.h"
 
 template <class W, class F, class P>
-ModelBased2<W,F,P>::ModelBased2():
+ModelBased<W,F,P>::ModelBased():
   device(torch::Device(torch::kCPU))
 {
 }
 
 template <class W, class F, class P>
-ModelBased2<W,F,P>::ModelBased2(W world, F forwardModel):
+ModelBased<W,F,P>::ModelBased(W world, F forwardModel):
   forwardModel(forwardModel), device(forwardModel->getUsedDevice())
 {
   this->world = world;
 }
 
 template <class W, class F, class P>
-ModelBased2<W,F,P>::ModelBased2(W world, F forwardModel, P planner):
+ModelBased<W,F,P>::ModelBased(W world, F forwardModel, P planner):
   forwardModel(forwardModel),planner(planner),device(forwardModel->getUsedDevice())
 {
   this->world = world;
 }
 
 template <class W, class F, class P>
-void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr)
+void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr)
 {
   int n = stateInputs.size(0);
   torch::optim::Adam optimizer(forwardModel->parameters(), lr);
@@ -83,7 +83,7 @@ void ModelBased2<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Te
 }
 
 template <class W, class F, class P>
-void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
+void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
 {
   torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,this->currentState().getStateVector().size()}); 
   torch::Tensor actionSequences = torch::zeros({nTimesteps,nRollouts,4});  
@@ -141,7 +141,7 @@ void ModelBased2<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int
 }
 
 template <class W, class F, class P>
-void ModelBased2<W,F,P>::saveTrainingData()
+void ModelBased<W,F,P>::saveTrainingData()
 {
   if (sLossHistory.size()!=0){
     ofstream s("../temp/transitionLoss");
@@ -163,13 +163,13 @@ void ModelBased2<W,F,P>::saveTrainingData()
 }
 
 template <class W, class F, class P>
-F ModelBased2<W,F,P>::getForwardModel()
+F ModelBased<W,F,P>::getForwardModel()
 {
   return forwardModel;
 }
 
 template <class W, class F, class P>
-vector<float> ModelBased2<W,F,P>::tensorToVector(torch::Tensor stateVector)
+vector<float> ModelBased<W,F,P>::tensorToVector(torch::Tensor stateVector)
 {
   vector<float> vec;
   for (int i=0;i<stateVector.size(0);i++)
@@ -179,4 +179,4 @@ vector<float> ModelBased2<W,F,P>::tensorToVector(torch::Tensor stateVector)
   return vec;
 }
 
-template class ModelBased2<GridWorld, ForwardGW, PlannerGW>;
+template class ModelBased<GridWorld, ForwardGW, PlannerGW>;

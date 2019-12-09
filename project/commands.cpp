@@ -3,6 +3,10 @@ DEFINE_double(eps,0.1,"Probability of exploring for agents using epsilon greedy 
 DEFINE_double(g,0.95,"Discount factor");
 DEFINE_string(map,"../GridWorld/Maps/Inter8x8/train/map0","Path to a map file");
 DEFINE_string(mp,"../GridWorld/Maps/Inter8x8/","Path to a directory containing your maps");
+DEFINE_int32(K,1,"Number of rollouts");
+DEFINE_int32(T,1,"Number of timesteps to unroll");
+DEFINE_int32(gs,1,"Number of gradient steps");
+DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encoder. Next layers have twice as many features maps and the NN is shaped accordingly");
 
 Commands::Commands(){}
 
@@ -243,103 +247,6 @@ void Commands::generateDataSetGW()
   t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_wp);
 }
 
-void Commands::learnTransitionFunctionGW()
-{
-  GridWorld gw;
-  ToolsGW t(gw);
-  string path = FLAGS_mp;
-  torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr;
-  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe;
-  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
-  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
-  torch::load(stateLabelsTr, path+"stateLabelsTrain.pt");
-  torch::load(stateInputsTe,path+"stateInputsTest.pt");
-  torch::load(actionInputsTe, path+"actionInputsTest.pt");
-  torch::load(stateLabelsTe, path+"stateLabelsTest.pt");
-
-  if (FLAGS_wn)
-    {
-      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
-      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
-    }
-  
-  TransitionGW ft(stateInputsTr.size(2),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
-  ft->to(torch::Device(torch::kCUDA));
-  ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,ft);
-  agent.learnTransitionFunction(actionInputsTr, stateInputsTr, stateLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
-  agent.saveTrainingData();
-  torch::save(agent.getTransitionFunction(),"../temp/TransitionGW.pt");
-  agent.getTransitionFunction()->saveParams("../temp/TransitionGW_Params");
-  
-  //Computing accuracy
-
-  {
-    torch::NoGradGuard no_grad;
-    auto model = agent.getTransitionFunction();
-    t.transitionAccuracy(model->predictState(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),stateLabelsTe);
-  } 
-}
-
-void Commands::learnRewardFunctionGW()
-{
-  GridWorld gw;
-  ToolsGW t(gw);
-  string path = FLAGS_dir;
-  torch::Tensor stateInputsTr, actionInputsTr, rewardLabelsTr;
-  torch::Tensor stateInputsTe, actionInputsTe, rewardLabelsTe;
-  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
-  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
-  torch::load(rewardLabelsTr, path+"rewardLabelsTrain.pt");
-  torch::load(stateInputsTe,path+"stateInputsTest.pt");
-  torch::load(actionInputsTe, path+"actionInputsTest.pt");
-  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-
-  if (FLAGS_wn)
-    {
-      actionInputsTe+=torch::zeros({actionInputsTe.size(0),actionInputsTe.size(1)}).normal_(0,FLAGS_sd);
-      actionInputsTr+=torch::zeros({actionInputsTr.size(0),actionInputsTr.size(1)}).normal_(0,FLAGS_sd);
-    }
-  RewardGW fr(stateInputsTr.size(3),FLAGS_sc1,FLAGS_afc1,FLAGS_afc2);
-  fr->to(torch::Device(torch::kCUDA));
-  ModelBased<GridWorld,TransitionGW,RewardGW, PlannerGW> agent(gw,fr);
-  agent.learnRewardFunction(actionInputsTr, stateInputsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
-  agent.saveTrainingData();
-  torch::save(agent.getRewardFunction(),"../temp/RewardGW.pt");
-  agent.getRewardFunction()->saveParams("../temp/RewardGW_Params");
-
-  //Computing accuracy
-
-  {
-    torch::NoGradGuard no_grad;
-    auto model = agent.getRewardFunction();
-    t.rewardAccuracy(model->predictReward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice())),rewardLabelsTe);
-  }
-
-
-}
-
-void Commands::test()
-{
-  TransitionGW ft("../temp/TransitionGW_Params");
-  torch::load(ft,"../temp/TransitionGW.pt");  
-  RewardGW fr("../temp/RewardGW_Params");
-  torch::load(fr,"../temp/RewardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/train/map3",3,5);
-  gw.generateVectorStates();
-  ModelBased<GridWorld,TransitionGW,RewardGW,PlannerGW> agent(gw,ft,fr,PlannerGW());
-  agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-
-  /*
-  ofstream f("../hello");
-  for (int i=0;i<10000;i++)
-    {
-      torch::Tensor a = torch::tensor({1-(i/10000.),i/10000.,0.,0.}).to(torch::kFloat32);
-      torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
-      torch::Tensor r = fr->predictReward(s.unsqueeze(0),a.unsqueeze(0).to(fr->getUsedDevice()))[0].to(torch::Device(torch::kCPU));
-      f<<*r.data<float>()<<endl;
-    }
-  */
-}
 
 void Commands::learnForwardModelGW()
 {
@@ -371,7 +278,7 @@ void Commands::learnForwardModelGW()
   //  actionInputsTr = torch::softmax(actionInputsTr,2);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
-  ModelBased2<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
+  ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
   agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
   agent.saveTrainingData();
   torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
@@ -388,13 +295,13 @@ void Commands::learnForwardModelGW()
 
 }
 
-void Commands::test2()
+void Commands::test()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
   GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",1,3);
   gw.generateVectorStates();
-  ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+  ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   /*
   for (int e=0;e<4001;e+=800)
@@ -403,7 +310,7 @@ void Commands::test2()
       torch::load(fm,"../temp/cp"+to_string(e)+".pt");
       GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",4,2);
       gw.generateVectorStates();
-      ModelBased2<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+      ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
       ofstream f("../temp/e"+to_string(e));
       for (int i=0;i<2000;i++)
 	{
