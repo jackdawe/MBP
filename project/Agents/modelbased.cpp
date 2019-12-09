@@ -93,7 +93,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   //torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
   //  tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
 
-  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.5);
+  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.1);
   tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
   torch::Tensor qactionSequences = torch::softmax(tokens,2);
   for (int i=0;i<nGradsteps;i++)
@@ -146,19 +146,41 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 }
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels,int n, int epochs, int batchSize, float lr)
+void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, int epochs, int batchSize, float lr)
 {
   //Building demonstration dataset
 
   cout << "Building demonstration dataset..." << endl;
-  
-  for (int i=0;i<n;i++)
-    {
-      
-    }
 
-  //Training the planner
+  torch::Tensor actions = torch::zeros(0);
+  torch::Tensor states = torch::zeros(0);
+  int n = batchSize*epochs;
+  int m = actionInputs.size(0);
+  for (int i=0;i<n/m;i++)
+    {
+      torch::Tensor perm = torch::randperm(m);
+      actions = torch::cat({actions,actionInputs[perm]});
+      states = torch::cat({states,stateInputs[perm]});
+    }
+  torch::Tensor perm = torch::randperm(m);
+  actions = torch::cat({actions, torch::split(actionInputs[perm],n%m,1)[0]});
+  states = torch::cat({states, torch::split(stateInputs[perm],n%m,1)[0]});
   
+  //Training the planner
+
+  vector<torch::Tensor> aBatches = torch::split(actions,batchSize,0);
+  vector<torch::Tensor> sBatches = torch::split(states,batchSize,0);
+  torch::optim::Adam optimizer(planner->parameters(),lr);
+  
+  for (int e=0;e<epochs;e++)
+    {
+      torch::Tensor aBatch = aBatches[e], sBatch = sBatch[e];
+      torch::Tensor output = planner->forward(sBatch);
+      torch::Tensor loss = torch::binary_cross_entropy(output,sBatch);
+      optimizer.zero_grad();
+      loss.backward();
+      optimizer.step();
+    }  
 }
 
 

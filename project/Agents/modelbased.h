@@ -16,7 +16,7 @@ template<class W, class F, class P>
   ModelBased(W world, F forwardModel, P planner);
   void learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize=32, float lr=0.001);
   void gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradientSteps, float lr);
-  void trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int n, int epochs, int batchSize=32, float lr=0.001);
+  void trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, int epochs, int batchSize=32, float lr=0.001);
   void playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr);
   void saveTrainingData();
   F getForwardModel();
