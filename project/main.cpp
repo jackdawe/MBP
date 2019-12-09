@@ -59,6 +59,10 @@ int main(int argc, char *argv[])
     {
       c.learnForwardModelGW();
     }
+  else if(FLAGS_cmd == "gwmbplay")
+    {
+      c.playModelBasedGW(argc,argv);
+    }
   else if(FLAGS_cmd == "test")
     {
       c.test();

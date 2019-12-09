@@ -14,34 +14,35 @@ EpisodePlayerGW::EpisodePlayerGW(string filename)
 
 void EpisodePlayerGW::initMap()
 {
-    gwView.setScene(&gwScene);
-    gwScene.setSceneRect(0,0,map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
-    gwView.setFixedSize(map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
-    agentShape = new QGraphicsRectItem(0,0,4*SQUARE_SIZE/5,4*SQUARE_SIZE/5);
-    startShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
-    arrivalShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
-    agentShape->setBrush(QBrush(Qt::magenta));
-    agentShape->setZValue(1);
-    gwScene.addItem(agentShape);
-    startShape->setBrush(QBrush(Qt::yellow));
-    gwScene.addItem(startShape);
-    arrivalShape->setBrush(QBrush(Qt::green));
-    gwScene.addItem(arrivalShape);
-    for (int i=0;i<map.getSize();i++)
+  connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
+  gwView.setScene(&gwScene);
+  gwScene.setSceneRect(0,0,map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
+  gwView.setFixedSize(map.getSize()*SQUARE_SIZE,map.getSize()*SQUARE_SIZE);
+  agentShape = new QGraphicsRectItem(0,0,4*SQUARE_SIZE/5.,4*SQUARE_SIZE/5.);
+  startShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
+  arrivalShape = new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE);
+  agentShape->setBrush(QBrush(Qt::magenta));
+  agentShape->setZValue(1);
+  gwScene.addItem(agentShape);
+  startShape->setBrush(QBrush(Qt::yellow));
+  gwScene.addItem(startShape);
+  arrivalShape->setBrush(QBrush(Qt::green));
+  gwScene.addItem(arrivalShape);
+  for (int i=0;i<map.getSize();i++)
     {
-        for (int j=0;j<map.getSize();j++)
+      for (int j=0;j<map.getSize();j++)
         {
-            switch(map.getMap()[i][j])
+	  switch(map.getMap()[i][j])
             {
-                case 1:
-                    obstacleShapes.append(new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE));
-                    obstacleShapes.last()->setBrush(QBrush(Qt::red));
-                    obstacleShapes.last()->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
-                    gwScene.addItem(obstacleShapes.last());
-                    break;
-                case 2:
-                    arrivalShape->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
-                    break;
+	    case 1:
+	      obstacleShapes.append(new QGraphicsRectItem(0,0,SQUARE_SIZE,SQUARE_SIZE));
+	      obstacleShapes.last()->setBrush(QBrush(Qt::red));
+	      obstacleShapes.last()->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
+	      gwScene.addItem(obstacleShapes.last());
+	      break;
+	    case 2:
+	      arrivalShape->setPos(SQUARE_SIZE*j,SQUARE_SIZE*i);
+	      break;
             }
         }
     }
@@ -70,6 +71,7 @@ void EpisodePlayerGW::displayOnGrid(vector<vector<string>> texts)
 void EpisodePlayerGW::playEpisode(vector<vector<float>> sequence)
 {
   this->sequence = sequence;
+  startShape->setPos(sequence[0][1]*SQUARE_SIZE,sequence[0][0]*SQUARE_SIZE);
   gwView.show();
   playClock.start(TIME_STEP);
   stepCount=0;
@@ -77,14 +79,15 @@ void EpisodePlayerGW::playEpisode(vector<vector<float>> sequence)
 
 void EpisodePlayerGW::update()
 {
-    if (stepCount == sequence.size()-1)
+  agentShape->show();
+  if (stepCount == sequence.size()-1)
     {
-        playClock.stop();
+      playClock.stop();
     }
-    else
+  else
     {
-        stepCount++;
-        agentShape->setPos((sequence[stepCount][1]+0.1)*SQUARE_SIZE,(sequence[stepCount][0]+0.1)*SQUARE_SIZE);
+      stepCount++;      
+      agentShape->setPos((sequence[stepCount][1]+0.1)*SQUARE_SIZE,(sequence[stepCount][0]+0.1)*SQUARE_SIZE);
     }
 }
 

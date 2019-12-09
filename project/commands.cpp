@@ -26,7 +26,7 @@ void Commands::generateMapPoolGW()
 void Commands::showMapGW(int argc, char* argv[])
 {
   QApplication a(argc,argv);
-  EpisodePlayerGW ep(FLAGS_f);
+  EpisodePlayerGW ep(FLAGS_map);
   ep.showMap();
   a.exec();
 }
@@ -291,9 +291,22 @@ void Commands::learnForwardModelGW()
     t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
     t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
   }
-
-
 }
+
+void Commands::playModelBasedGW(int argc, char* argv[])
+{
+  QApplication a(argc,argv);
+  ForwardGW fm("../temp/ForwardGW_Params");
+  torch::load(fm,"../temp/ForwardGW.pt");
+  GridWorld gw(FLAGS_map);
+  gw.generateVectorStates();  
+  ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  EpisodePlayerGW ep(FLAGS_map);
+  ep.playEpisode(agent.getWorld().getStateSequence());
+  a.exec();
+}
+
 
 void Commands::test()
 {

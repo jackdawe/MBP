@@ -93,7 +93,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   //torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
   //  tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
 
-  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1);
+  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.5);
   tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
   torch::Tensor qactionSequences = torch::softmax(tokens,2);
   for (int i=0;i<nGradsteps;i++)
@@ -138,7 +138,45 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   cout<<actionSequences[maxRewardIdx] - qactionSequences[maxRewardIdx]<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<rewards[maxRewardIdx]<<endl;
+
+  actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
+  trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
+  reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));
+  cout<<rewards<<endl;
 }
+
+template <class W, class F, class P>
+void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels,int n, int epochs, int batchSize, float lr)
+{
+  //Building demonstration dataset
+
+  cout << "Building demonstration dataset..." << endl;
+  
+  for (int i=0;i<n;i++)
+    {
+      
+    }
+
+  //Training the planner
+  
+}
+
+
+template <class W, class F, class P>
+void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
+{
+  while(!this->world.isTerminal(this->currentState().getStateVector()))
+    {
+      gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
+      for (int t=0;t<nTimesteps;t++)
+	{
+	  this->world.setTakenAction(vector<float>({*torch::argmax(actionSequence[t]).data<long>()}));
+	  this->world.transition();
+	}
+    }
+  cout<<this->rewardHistory()<<endl;
+}
+
 
 template <class W, class F, class P>
 void ModelBased<W,F,P>::saveTrainingData()
