@@ -5,6 +5,7 @@
 #include "../GridWorld/Models/forwardgw.h"
 #include "../GridWorld/Models/plannergw.h"
 TORCH_MODULE(ForwardGW);
+TORCH_MODULE(PlannerGW);
 
 template<class W, class F, class P>
   class ModelBased: public Agent<W>
