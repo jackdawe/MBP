@@ -3,11 +3,13 @@
 #include "world.h"
 #include "mapss.h"
 
-#define GRAVITY 0.01
+#define SHIP_WIDTH 20
+#define SHIP_HEIGHT 40
+#define GRAVITY 0
 #define DAMPING 0.1
 #define PLANET_DENSITY 1
 #define SHIP_MASS 2
-#define SHIP_MAX_THRUST 0.01
+#define SHIP_MAX_THRUST 10
 #define STEP_SIZE 0.5
 #define RIGHT_SIGNAL_ON_WAYPOINT_REWARD 1
 #define CRASH_REWARD -1

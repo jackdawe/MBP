@@ -32,7 +32,9 @@ void SpaceWorld::init()
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  currentState.setStateVector(vector<float>(5+3*(map.getPlanets(),size+map.getWaypoints().size(),0)));
+  currentState.setStateVector(vector<float>(5+3*(map.getPlanets().size()+map.getWaypoints().size()),0));
+  ship.setWidth(SHIP_WIDTH);
+  ship.setHeight(SHIP_HEIGHT);
   reset();
 }
 
@@ -156,7 +158,6 @@ void SpaceWorld::reset()
   if (planets.size() == 0 || mapPoolSize != -1)
     {
       planets = map.getPlanets();
-
       for (unsigned int i=0;i<planets.size();i++)
 	{
 	  planets[i].setMass(4*PLANET_DENSITY*pow(planets[i].getRadius(),3)*M_PI/3);
@@ -164,7 +165,7 @@ void SpaceWorld::reset()
       waypoints = map.getWaypoints();
       ship = map.getShip();
     }
-  placeShip();  
+  placeShip();
   ship.setSignalColor(waypoints.size());
 }
 

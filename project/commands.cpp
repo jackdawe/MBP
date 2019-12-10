@@ -371,3 +371,21 @@ void Commands::showMapSS(int argc, char* argv[])
   ep.showMap();
   a.exec();
 }
+
+void Commands::playRandomSS(int argc, char* argv[])
+{
+  MapSS map(800);
+  map.generate();
+  map.save("../Starship/Maps/test");
+  SpaceWorld sw("../Starship/Maps/test");
+  for (int i=0;i<FLAGS_n;i++)
+    {
+      sw.setTakenAction(sw.randomAction());
+      sw.updateTakenAction(2,i/20.);
+      sw.transition();
+    }
+  QApplication a(argc,argv);
+  EpisodePlayerSS ep("../Starship/Maps/test");
+  ep.playEpisode(sw.getActionSequence(), sw.getStateSequence());  
+  a.exec();
+}

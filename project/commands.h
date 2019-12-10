@@ -44,6 +44,7 @@ class Commands
 
   void generateMapSS();
   void showMapSS(int argc, char* argv[]);
+  void playRandomSS(int argc, char* argv[]);
   
   //Other
   

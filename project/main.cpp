@@ -84,6 +84,10 @@ int main(int argc, char *argv[])
     {
       c.showMapSS(argc,argv);
     }
+  else if(FLAGS_cmd=="sspr")
+    {
+      c.playRandomSS(argc,argv);
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;

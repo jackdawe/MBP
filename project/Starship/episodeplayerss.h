@@ -21,6 +21,7 @@ class EpisodePlayerSS: public QWidget
   
   public slots:
     void update();
+    void signalOff();
     
  private:
     vector<vector<float>> actionSequence;
