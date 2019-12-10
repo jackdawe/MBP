@@ -381,7 +381,6 @@ void Commands::playRandomSS(int argc, char* argv[])
   for (int i=0;i<FLAGS_n;i++)
     {
       sw.setTakenAction(sw.randomAction());
-      sw.updateTakenAction(2,i/20.);
       sw.transition();
     }
   QApplication a(argc,argv);
