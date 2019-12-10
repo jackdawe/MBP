@@ -63,11 +63,20 @@ int main(int argc, char *argv[])
     {
       c.playModelBasedGW(argc,argv);
     }
-  else if(FLAGS_cmd == "test")
+  else if(FLAGS_cmd == "tc1")
     {
-      c.test();
+      c.tc1();
     }
-  else if(FLAGS_cmd=="ssmgen")
+  else if(FLAGS_cmd == "tc2")
+    {
+      c.tc2();
+    }
+  else if(FLAGS_cmd == "tc3")
+    {
+      c.tc3();
+    }
+  
+  else if(FLAGS_cmd=="ssmgen")    
     {
       c.generateMapSS();
     }

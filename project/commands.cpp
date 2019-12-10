@@ -308,7 +308,7 @@ void Commands::playModelBasedGW(int argc, char* argv[])
 }
 
 
-void Commands::test()
+void Commands::tc1()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
@@ -334,6 +334,16 @@ void Commands::test()
 	}
     }
   */
+}
+
+void Commands::tc2()
+{
+
+}
+
+void Commands::tc3()
+{
+
 }
 
 void Commands::generateMapSS()

@@ -47,7 +47,9 @@ class Commands
   
   //Other
   
-  void test();
+  void tc1();
+  void tc2();
+  void tc3();
 };
 
 #endif // COMMANDS_H
