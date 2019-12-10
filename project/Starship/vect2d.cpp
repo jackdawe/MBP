@@ -1,6 +1,6 @@
 #include "vect2d.h"
 
-Vect2d::Vect2d()
+Vect2d::Vect2d(): x(0),y(0)
 {
 
 }
@@ -49,22 +49,3 @@ float Vect2d::distance(Vect2d v) //computes the distance between two vectors
     return (this->sum(v.dilate(-1)).norm());
 }
 
-float Vect2d::getX()
-{
-    return this->x;
-}
-
-float Vect2d::getY()
-{
-    return this->y;
-}
-
-void Vect2d::setX(float x)
-{
-    this->x=x;
-}
-
-void Vect2d::setY(float x)
-{
-    this->y = x;
-}

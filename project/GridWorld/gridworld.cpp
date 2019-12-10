@@ -48,7 +48,9 @@ float GridWorld::transition()
     previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
       {
-        switch (a)
+	//Transition Function
+	
+	switch (a)
 	  {
 	  case 0:
             agentX--;
@@ -64,8 +66,9 @@ float GridWorld::transition()
             break;
 	  }
         currentState.update(0,agentX), currentState.update(1,agentY);
-        actionSequence.push_back({a});
-        stateSequence.push_back(currentState.getStateVector());   
+
+	// Reward Function
+
 	if (obstacles[agentX][agentY] == 1)
 	  {
 	    r = LOSE_REWARD;
@@ -79,6 +82,8 @@ float GridWorld::transition()
 	    r = EMPTY_SQUARE_REWARD;
 	  }
       }
+    actionSequence.push_back({a});
+    stateSequence.push_back(currentState.getStateVector());   
     rewardHistory.back()+= r;
     return r;
 }
@@ -114,14 +119,11 @@ int GridWorld::stateId(State s)
 void GridWorld::reset()
 {  
   rewardHistory.push_back(0);
-  default_random_engine generator(std::random_device{}());
-  uniform_int_distribution<int> dist(0,mapPoolSize-1);
-  int mapId; 
   if (mapPoolSize != -1) 
     {
       default_random_engine generator(std::random_device{}());
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
-      mapId = dist(generator);
+      int mapId = dist(generator);
       map.load(mapPoolPath+"map"+to_string(mapId));
       size = map.getSize();
     }

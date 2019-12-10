@@ -14,11 +14,6 @@ class Vect2d
         float angle();
         float distance(Vect2d v);
 
-        float getX();
-        float getY();
-        void setX(float x);
-        void setY(float x);
-    private:
         float x;
         float y;
 };

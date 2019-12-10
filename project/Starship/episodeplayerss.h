@@ -14,10 +14,9 @@ class EpisodePlayerSS: public QWidget
  public:
   EpisodePlayerSS();
   EpisodePlayerSS(string filename);
-  EpisodePlayerSS(string filename, vector<vector<float>> actionSequence,vector<vector<float>> stateSequence, vector<float> parameters);
   void initMap();
   void showMap();
-  void playEpisode();
+  void playEpisode(vector<vector<float>> actionSequence,vector<vector<float>> stateSequence);
   ~EpisodePlayerSS();
   
   public slots:

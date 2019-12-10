@@ -9,87 +9,85 @@ MapSS::MapSS(int size): size(size)
 {
 }
 
-void MapSS::generate(int nPlanets, int planetMinSize,
-                     int planetMaxSize,int nWaypoints,
-                     int wpRadius,int shipW, int shipH)
+void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius,int shipW, int shipH)
 {
-    default_random_engine generator(random_device{}());
-    uniform_int_distribution<int> dist;
-
-    //GENERATING THE PLANETS
-
-    for (int i=0;i<nPlanets;i++)
+  default_random_engine generator(random_device{}());
+  uniform_int_distribution<int> dist;
+  
+  //GENERATING THE PLANETS
+  
+  for (int i=0;i<nPlanets;i++)
     {
-        Planet planet;
-        dist = uniform_int_distribution<int>(planetMinSize,planetMaxSize);
-        int radius = dist(generator);
-        planet.setRadius(radius);
-        dist = uniform_int_distribution<int>(radius,size-radius);	
-        planet.setCentre(Vect2d(dist(generator),dist(generator)));
-        planets.push_back(planet);
+      Planet planet;
+      dist = uniform_int_distribution<int>(planetMinSize,planetMaxSize);
+      int radius = dist(generator);
+      planet.setRadius(radius);
+      dist = uniform_int_distribution<int>(radius,size-radius);	
+      planet.setCentre(Vect2d(dist(generator),dist(generator)));
+      planets.push_back(planet);
     }
-
-    //GENERATING WAYPOINTS
-
-    dist = uniform_int_distribution<int>(wpRadius,size-wpRadius);
-    for (int k=0;k<nWaypoints;k++)
+  
+  //GENERATING WAYPOINTS
+  
+  dist = uniform_int_distribution<int>(wpRadius,size-wpRadius);
+  for (int k=0;k<nWaypoints;k++)
     {
-        Waypoint waypoint;
-        waypoint.setRadius(wpRadius);
-        bool invalidPosition = true;
-        while (invalidPosition)
+      Waypoint waypoint;
+      waypoint.setRadius(wpRadius);
+      bool invalidPosition = true;
+      while (invalidPosition)
         {
-            invalidPosition = false;
-            Vect2d spawn(dist(generator),dist(generator));
-            waypoint.setCentre(spawn);
-            for (int i=0;i<nPlanets;i++)
+	  invalidPosition = false;
+	  Vect2d spawn(dist(generator),dist(generator));
+	  waypoint.setCentre(spawn);
+	  for (int i=0;i<nPlanets;i++)
             {
-                if (spawn.distance(planets[i].getCentre()) < 1.1 * (wpRadius+planets[i].getRadius())) {
-                    invalidPosition = true;
-                    break;
-                }
+	      if (spawn.distance(planets[i].getCentre()) < 1.1 * (wpRadius+planets[i].getRadius())) {
+		invalidPosition = true;
+		break;
+	      }
             }
-            if (!invalidPosition)
+	  if (!invalidPosition)
             {
-                for (unsigned int i=0;i<waypoints.size();i++)
+	      for (unsigned int i=0;i<waypoints.size();i++)
                 {
-                    if (spawn.distance(waypoints[i].getCentre()) < 2.2 * wpRadius)
+		  if (spawn.distance(waypoints[i].getCentre()) < 2.2 * wpRadius)
                     {
-                        invalidPosition = true;
-                        break;
+		      invalidPosition = true;
+		      break;
                     }
                 }
             }
         }
-        waypoints.push_back(waypoint);
+      waypoints.push_back(waypoint);
     }
-
-    //GENERATING SHIP
-
-    dist = uniform_int_distribution<int>(shipH,size-shipH);
-    ship.setWidth(shipW);
-    ship.setHeight(shipH);
-    bool invalidPosition = true;
-    while (invalidPosition)
+  
+  //GENERATING SHIP
+  
+  dist = uniform_int_distribution<int>(shipH,size-shipH);
+  ship.setWidth(shipW);
+  ship.setHeight(shipH);
+  bool invalidPosition = true;
+  while (invalidPosition)
     {
-        invalidPosition = false;
-        Vect2d spawn(dist(generator),dist(generator));
-        ship.setP(spawn);
-        for (int i=0;i<nPlanets;i++)
+      invalidPosition = false;
+      Vect2d spawn(dist(generator),dist(generator));
+      ship.setP(spawn);
+      for (int i=0;i<nPlanets;i++)
         {
-            if (spawn.distance(planets[i].getCentre()) < 1.1 * (shipH+planets[i].getRadius())) {
-                invalidPosition = true;
-                break;
-            }
+	  if (spawn.distance(planets[i].getCentre()) < 1.1 * (shipH+planets[i].getRadius())) {
+	    invalidPosition = true;
+	    break;
+	  }
         }
-        if (!invalidPosition)
+      if (!invalidPosition)
         {
-            for (int i=0;i<nWaypoints;i++)
+	  for (int i=0;i<nWaypoints;i++)
             {
-                if (spawn.distance(waypoints[i].getCentre()) < 1.1 * (wpRadius + shipH))
+	      if (spawn.distance(waypoints[i].getCentre()) < 1.1 * (wpRadius + shipH))
                 {
-                    invalidPosition = true;
-                    break;
+		  invalidPosition = true;
+		  break;
                 }
             }
         }
@@ -105,18 +103,15 @@ void MapSS::save(string filename)
         f << "--- PLANETS ---" << endl;
         for (unsigned int i=0;i<planets.size();i++)
         {
-            f << to_string((int)planets[i].getRadius()) + " " + to_string((int)planets[i].getCentre().getX())
-                 + " " + to_string((int)planets[i].getCentre().getY())<<endl;
+            f << to_string((int)planets[i].getRadius()) + " " + to_string((int)planets[i].getCentre().x) + " " + to_string((int)planets[i].getCentre().y)<<endl;
         }
         f << "--- WAYPOINTS ---" << endl;
         for (unsigned int i=0;i<waypoints.size();i++)
         {
-            f << to_string((int)waypoints[i].getRadius()) + " " + to_string((int)waypoints[i].getCentre().getX())
-                 + " " + to_string((int)waypoints[i].getCentre().getY())<<endl;
+	  f << to_string((int)waypoints[i].getRadius()) + " " + to_string((int)waypoints[i].getCentre().x) + " " + to_string((int)waypoints[i].getCentre().y)<<endl;
         }
         f << "--- SHIP ---" << endl;
-        f << to_string(ship.getWidth()) + " " + to_string(ship.getHeight()) + " " + to_string((int)ship.getP().getX())
-             + " " + to_string((int)ship.getP().getY())<<endl;
+        f << to_string(ship.getWidth()) + " " + to_string(ship.getHeight()) + " " + to_string((int)ship.getP().x) + " " + to_string((int)ship.getP().y)<<endl;
     }
     else
     {
