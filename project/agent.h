@@ -28,8 +28,9 @@ public:
     float takenReward();
     State currentState();
     vector<float> rewardHistory();
+    void resetWorld();
     W getWorld() const;
-
+    
     void setWorld(const W &value);
 
     string getNameTag() const;

@@ -312,7 +312,7 @@ void Commands::tc1()
 {
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",1,3);
+  GridWorld gw("../GridWorld/Maps/Inter8x8/test/map5",4,5);
   gw.generateVectorStates();
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
@@ -338,7 +338,18 @@ void Commands::tc1()
 
 void Commands::tc2()
 {
-
+  ForwardGW fm("../temp/ForwardGW_Params");
+  torch::load(fm,"../temp/ForwardGW.pt");
+  ofstream f("../temp/gbpAcc");
+  GridWorld gw(FLAGS_map);
+  gw.generateVectorStates();  
+  ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+  for (int i=0;i<FLAGS_n;i++)
+    {      
+      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+      f<<agent.rewardHistory().back()<<endl;
+      agent.resetWorld();
+    }
 }
 
 void Commands::tc3()

@@ -90,8 +90,8 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   torch::Tensor rewards = torch::zeros({nRollouts});
   torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
   
-  //torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
-  //  tokens[0][0]=0.4,tokens[0][3]=0.5,tokens[1][3]=0.9,tokens[2][0]=0.9;      
+  //  torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
+  //  tokens[0][0][0]=40000;      
 
   torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.1);
   tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
@@ -142,7 +142,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));
-  cout<<rewards<<endl;
 }
 
 template <class W, class F, class P>

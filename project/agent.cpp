@@ -117,6 +117,12 @@ vector<float> Agent<W>::rewardHistory()
 }
 
 template<class W>
+void Agent<W>::resetWorld()
+{
+  world.reset();
+}
+
+template<class W>
 void Agent<W>::setWorld(const W &value)
 {
     world = value;
