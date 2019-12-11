@@ -32,27 +32,28 @@ SOURCES += main.cpp \
     discreteaction.cpp \
     continuousaction.cpp \
     state.cpp \
-    agent.cpp \
-    GridWorld/mapgw.cpp \
     actionspace.cpp \
-    Agents/qlearning.cpp \
-    GridWorld/episodeplayergw.cpp \
-    Starship/planet.cpp \
-    Starship/waypoint.cpp \
-    Starship/ship.cpp \
-    Starship/vect2d.cpp \
-    Starship/episodeplayerss.cpp \
-    Starship/mapss.cpp \
-    Starship/toolsss.cpp \
-    Agents/actorcritic.cpp \
-    Agents/modelbased.cpp \
     world.cpp \
-    GridWorld/gridworld.cpp \
-    Starship/spaceworld.cpp \
+    GridWorld/mapgw.cpp \
+    GridWorld/gridworld.cpp \    
+    GridWorld/episodeplayergw.cpp \    
+    GridWorld/toolsgw.cpp \
     GridWorld/Models/convnetgw.cpp \
     GridWorld/Models/forwardgw.cpp \
     GridWorld/Models/plannergw.cpp \
-    GridWorld/toolsgw.cpp \
+    Starship/vect2d.cpp \
+    Starship/planet.cpp \
+    Starship/waypoint.cpp \
+    Starship/ship.cpp \
+    Starship/mapss.cpp \
+    Starship/spaceworld.cpp \
+    Starship/episodeplayerss.cpp \
+    Starship/toolsss.cpp \
+    Starship/Models/forwardss.cpp \
+    agent.cpp \
+    Agents/qlearning.cpp \
+    Agents/actorcritic.cpp \
+    Agents/modelbased.cpp \
     commands.cpp
     
 HEADERS += \
@@ -60,27 +61,28 @@ HEADERS += \
     discreteaction.h \
     continuousaction.h \
     state.h \
-    agent.h \
-    GridWorld/mapgw.h \
     actionspace.h \
-    Agents/qlearning.h \
-    GridWorld/episodeplayergw.h \
-    Starship/planet.h \
-    Starship/waypoint.h \
-    Starship/ship.h \
-    Starship/vect2d.h \
-    Starship/episodeplayerss.h \
-    Starship/mapss.h \
-    Starship/toolsss.h \
-    Agents/actorcritic.h \
-    Agents/modelbased.h \
     world.h \
-    GridWorld/gridworld.h \
-    Starship/spaceworld.h \
+    GridWorld/mapgw.h \
+    GridWorld/gridworld.h \    
+    GridWorld/episodeplayergw.h \    
+    GridWorld/toolsgw.h \
     GridWorld/Models/convnetgw.h \
     GridWorld/Models/forwardgw.h \
     GridWorld/Models/plannergw.h \
-    GridWorld/toolsgw.h \
+    Starship/vect2d.h \
+    Starship/planet.h \
+    Starship/waypoint.h \
+    Starship/ship.h \
+    Starship/mapss.h \
+    Starship/spaceworld.h \
+    Starship/episodeplayerss.h \
+    Starship/toolsss.h \
+    Starship/Models/forwardss.h \
+    agent.h \
+    Agents/qlearning.h \
+    Agents/actorcritic.h \
+    Agents/modelbased.h \
     commands.h
     
 

@@ -31,12 +31,12 @@ void ForwardGWImpl::init()
 {
   if (torch::cuda::is_available())
     {
-      std::cout << "CUDA detected for TransitionGW: training and inference will be done using CUDA." << std::endl;
+      std::cout << "CUDA detected for ForwardGW: training and inference will be done using CUDA." << std::endl;
       usedDevice = torch::Device(torch::kCUDA);
     }
     else
     {
-      std::cout << "CUDA not available for TransitionGW: training and inference will be done using CPU." << std::endl;
+      std::cout << "CUDA not available for ForwardGW: training and inference will be done using CPU." << std::endl;
     }
     this->to(usedDevice);
 
@@ -221,7 +221,7 @@ void ForwardGWImpl::loadParams(std::string filename)
   std::ifstream f(filename);
   if (!f)
     {
-      std::cout<<"An error has occured while trying to load the Transition model." << std::endl;
+      std::cout<<"An error has occured while trying to load the ForwardGW model." << std::endl;
     }
   else {
     std::string line;

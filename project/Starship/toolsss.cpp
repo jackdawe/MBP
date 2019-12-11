@@ -12,7 +12,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
   int size = sw.getSvSize();
   torch::Tensor stateInputs = torch::zeros({4*n/5,nTimesteps,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,3});
+  torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,6});
   torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,size});
   torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
 
@@ -51,9 +51,11 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       
 	  //Building the dataset tensors
       
-	  stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());
+	  stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
 	  sw.setTakenAction(sw.randomAction());
-	  actionInputs[j][t] = torch::tensor(sw.getTakenAction());
+	  actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
+	  actionInputs[j][t][4]=sw.getTakenAction()[1];
+	  actionInputs[j][t][5]=sw.getTakenAction()[2];
 	  rewardLabels[j][t] = sw.transition();
 	  stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());
 	}
