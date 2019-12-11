@@ -6,8 +6,8 @@
 #include <vector>
 #include "planet.h"
 #include "waypoint.h"
-#include "ship.h"
 #include "random"
+#include <experimental/filesystem>
 
 using namespace std;
 
@@ -26,23 +26,19 @@ class MapSS
  public:
   MapSS();
   MapSS(int size);
-  void generate(int nPlanets = N_PLANETS, int planetMinSize = PLANET_MIN_SIZE, int planetMaxSize = PLANET_MAX_SIZE,int nWaypoints = N_WAYPOINTS, int wpRadius = WAYPOINT_RADIUS,int shipW = SHIP_WIDTH, int shipH = SHIP_HEIGHT);
+  void generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius);
+  void generateMapPool(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius, string path, int nMaps);
   void save(string filename);
   void load(string filename);
   
-  int getSize() const;
-  
-  vector<Planet> getPlanets() const;
-  
+  int getSize() const;  
+  vector<Planet> getPlanets() const;  
   vector<Waypoint> getWaypoints() const;
-  
-  Ship getShip() const;
   
  private:
   int size;
   vector<Planet> planets;
   vector<Waypoint> waypoints;
-  Ship ship;
 };
 
 #endif // MAPSS_H

@@ -2,6 +2,7 @@
 #define COMMANDS_H
 #include <QApplication>
 #include "GridWorld/toolsgw.h"
+#include "Starship/toolsss.h"
 #include "Agents/qlearning.h"
 #include "Agents/actorcritic.h"
 #include "Agents/modelbased.h"
@@ -43,8 +44,14 @@ class Commands
   /////* Starship related commands */////
 
   void generateMapSS();
+  void generateMapPoolSS();
   void showMapSS(int argc, char* argv[]);
   void playRandomSS(int argc, char* argv[]);
+
+  //ModelBased Planning
+
+  void generateDataSetSS();
+  
   
   //Other
   

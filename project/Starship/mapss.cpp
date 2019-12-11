@@ -9,10 +9,12 @@ MapSS::MapSS(int size): size(size)
 {
 }
 
-void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius,int shipW, int shipH)
+void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius)
 {
   default_random_engine generator(random_device{}());
   uniform_int_distribution<int> dist;
+
+  planets = vector<Planet>(); waypoints = vector<Waypoint>();
   
   //GENERATING THE PLANETS
   
@@ -61,37 +63,21 @@ void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWay
         }
       waypoints.push_back(waypoint);
     }
-  
-  //GENERATING SHIP
-  
-  dist = uniform_int_distribution<int>(shipH,size-shipH);
-  ship.setWidth(shipW);
-  ship.setHeight(shipH);
-  bool invalidPosition = true;
-  while (invalidPosition)
+}
+
+void MapSS::generateMapPool(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius, string path, int nMaps)
+{
+  experimental::filesystem::create_directory(path);
+  experimental::filesystem::create_directory(path+"train");
+  experimental::filesystem::create_directory(path+"test");
+  for (int i=0;i<nMaps;i++)
     {
-      invalidPosition = false;
-      Vect2d spawn(dist(generator),dist(generator));
-      ship.setP(spawn);
-      for (int i=0;i<nPlanets;i++)
-        {
-	  if (spawn.distance(planets[i].getCentre()) < 1.1 * (shipH+planets[i].getRadius())) {
-	    invalidPosition = true;
-	    break;
-	  }
-        }
-      if (!invalidPosition)
-        {
-	  for (int i=0;i<nWaypoints;i++)
-            {
-	      if (spawn.distance(waypoints[i].getCentre()) < 1.1 * (wpRadius + shipH))
-                {
-		  invalidPosition = true;
-		  break;
-                }
-            }
-        }
+      generate(nPlanets, planetMinSize, planetMaxSize, nWaypoints, wpRadius);
+      save(path+"/train/map"+to_string(i));
+      generate(nPlanets, planetMinSize, planetMaxSize, nWaypoints, wpRadius);
+      save(path+"/test/map"+to_string(i));
     }
+  
 }
 
 void MapSS::save(string filename)
@@ -110,8 +96,7 @@ void MapSS::save(string filename)
         {
 	  f << to_string((int)waypoints[i].getRadius()) + " " + to_string((int)waypoints[i].getCentre().x) + " " + to_string((int)waypoints[i].getCentre().y)<<endl;
         }
-        f << "--- SHIP ---" << endl;
-        f << to_string(ship.getWidth()) + " " + to_string(ship.getHeight()) + " " + to_string((int)ship.getP().x) + " " + to_string((int)ship.getP().y)<<endl;
+	f <<"--- END ---" <<endl;
     }
     else
     {
@@ -121,8 +106,10 @@ void MapSS::save(string filename)
 
 void MapSS::load(string filename)
 {
+  planets=vector<Planet>();
+  waypoints=vector<Waypoint>();
   ifstream f(filename);
-    if (f)
+  if (f)
     {
         string line;
         getline(f,line);
@@ -161,8 +148,8 @@ void MapSS::load(string filename)
             planets.push_back(p);
             getline(f,line);
         }
-        getline(f,line);
-        while(line != "--- SHIP ---")
+	getline(f,line);
+        while(line != "--- END ---")
         {
             unsigned int i=0;
             Waypoint wp;
@@ -193,41 +180,6 @@ void MapSS::load(string filename)
             waypoints.push_back(wp);
             getline(f,line);
         }
-        getline(f,line);
-        unsigned int i=0;
-        string num;
-        while(line[i]!=' ')
-        {
-            num+=line[i];
-            i++;
-        }
-        i++;
-        ship.setWidth(stoi(num));
-        num = "";
-        while(line[i]!=' ')
-        {
-            num+=line[i];
-            i++;
-        }
-        i++;
-        ship.setHeight(stoi(num));
-        num = "";
-        while(line[i]!=' ')
-        {
-            num+=line[i];
-            i++;
-        }
-        i++;
-        int x = stoi(num);
-        num = "";
-        while(i != line.size())
-        {
-            num+=line[i];
-            i++;
-        }
-        int y = stoi(num);
-        ship.setP(Vect2d(x,y));
-        getline(f,line);
     }
 }
 
@@ -244,9 +196,4 @@ vector<Planet> MapSS::getPlanets() const
 vector<Waypoint> MapSS::getWaypoints() const
 {
     return waypoints;
-}
-
-Ship MapSS::getShip() const
-{
-    return ship;
 }

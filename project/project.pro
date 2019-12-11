@@ -43,6 +43,7 @@ SOURCES += main.cpp \
     Starship/vect2d.cpp \
     Starship/episodeplayerss.cpp \
     Starship/mapss.cpp \
+    Starship/toolsss.cpp \
     Agents/actorcritic.cpp \
     Agents/modelbased.cpp \
     world.cpp \
@@ -70,6 +71,7 @@ HEADERS += \
     Starship/vect2d.h \
     Starship/episodeplayerss.h \
     Starship/mapss.h \
+    Starship/toolsss.h \
     Agents/actorcritic.h \
     Agents/modelbased.h \
     world.h \

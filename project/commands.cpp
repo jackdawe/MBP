@@ -8,6 +8,14 @@ DEFINE_int32(T,1,"Number of timesteps to unroll");
 DEFINE_int32(gs,1,"Number of gradient steps");
 DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encoder. Next layers have twice as many features maps and the NN is shaped accordingly");
 
+//Starship flags
+
+DEFINE_int32(nplan,1,"Number of planets for mapss generation");
+DEFINE_int32(pmin,50,"Planet minimum radius for mapss generation");
+DEFINE_int32(pmax,100,"Planet maximum radius for mapss generation");
+DEFINE_int32(nwp,3,"Number of waypoints for mapss generation");
+DEFINE_int32(rwp,30,"Waypoint radius for mapss generation");
+
 Commands::Commands(){}
 
 void Commands::generateMapGW()
@@ -359,10 +367,17 @@ void Commands::tc3()
 
 void Commands::generateMapSS()
 {
-  MapSS map(1000);
-  map.generate();
+  MapSS map(800);
+  map.generate(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp);
   map.save(FLAGS_map);
 }
+
+void Commands::generateMapPoolSS()
+{
+  MapSS map(800); 
+  map.generateMapPool(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp,FLAGS_dir,FLAGS_nmaps);
+}
+
 
 void Commands::showMapSS(int argc, char* argv[])
 {
@@ -375,7 +390,7 @@ void Commands::showMapSS(int argc, char* argv[])
 void Commands::playRandomSS(int argc, char* argv[])
 {
   MapSS map(800);
-  map.generate();
+  map.generate(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp);
   map.save("../Starship/Maps/test");
   SpaceWorld sw("../Starship/Maps/test");
   for (int i=0;i<FLAGS_n;i++)
@@ -387,4 +402,10 @@ void Commands::playRandomSS(int argc, char* argv[])
   EpisodePlayerSS ep("../Starship/Maps/test");
   ep.playEpisode(sw.getActionSequence(), sw.getStateSequence());  
   a.exec();
+}
+
+void Commands::generateDataSetSS()
+{
+  ToolsSS t;
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_wp);
 }

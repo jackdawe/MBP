@@ -1,6 +1,7 @@
 #ifndef SPACEWORLD_H
 #define SPACEWORLD_H
 #include "world.h"
+#include "ship.h"
 #include "mapss.h"
 
 #define SHIP_WIDTH 20
@@ -35,8 +36,12 @@ public:
 
     void placeShip();
     bool isCrashed();
+
+    int getSvSize();
     
     int size;
+    int svSize;
+    int epCount;
     MapSS map;
     bool randomStart;
     string mapPoolPath;

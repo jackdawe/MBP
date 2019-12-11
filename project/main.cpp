@@ -80,6 +80,10 @@ int main(int argc, char *argv[])
     {
       c.generateMapSS();
     }
+  else if(FLAGS_cmd=="ssmpgen")
+    {
+      c.generateMapPoolSS();
+    }
   else if(FLAGS_cmd=="ssmshow")
     {
       c.showMapSS(argc,argv);
@@ -87,6 +91,10 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd=="sspr")
     {
       c.playRandomSS(argc,argv);
+    }
+  else if(FLAGS_cmd=="ssdsgen")
+    {
+      c.generateDataSetSS();
     }
   else
     {

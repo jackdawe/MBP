@@ -63,17 +63,17 @@ void MapGW::generate(int obstacleMaxNumber)
 
 void MapGW::generateMapPool(int obstacleMaxNumber, string path, int nMaps)
 {
-    default_random_engine g(random_device{}());
-    uniform_int_distribution<int> dist(1,obstacleMaxNumber);
-    experimental::filesystem::create_directory(path);
-    experimental::filesystem::create_directory(path+"train");
-    experimental::filesystem::create_directory(path+"test");
-    for (int i=0;i<nMaps;i++)
+  default_random_engine g(random_device{}());
+  uniform_int_distribution<int> dist(1,obstacleMaxNumber);
+  experimental::filesystem::create_directory(path);
+  experimental::filesystem::create_directory(path+"train");
+  experimental::filesystem::create_directory(path+"test");
+  for (int i=0;i<nMaps;i++)
     {
-        generate(dist(g));
-        save(path+"/train/map"+to_string(i));
-	generate(dist(g));
-	save(path+"/test/map"+to_string(i));
+      generate(dist(g));
+      save(path+"/train/map"+to_string(i));
+      generate(dist(g));
+      save(path+"/test/map"+to_string(i));
     }
 }
 

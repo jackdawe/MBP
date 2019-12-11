@@ -61,8 +61,7 @@ cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
 
 void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp)
 {
-  gw = GridWorld(path+"train/",nmaps);
-  gw.generateVectorStates();
+  gw = GridWorld(path+"train/",nmaps);  
   
   //Initialising the tensors that will contain the training set
 
@@ -90,7 +89,6 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       if (i==4*n/5)
 	{
 	  gw = GridWorld(path+"test/",nmaps);
-	  gw.generateVectorStates();
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
 	  torch::save(stateInputs,path+"stateInputsTrain.pt");

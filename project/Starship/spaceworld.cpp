@@ -27,27 +27,30 @@ SpaceWorld::SpaceWorld(string pathToDir, int mapPoolSize):
 
 void SpaceWorld::init()
 {
-  vector<DiscreteAction> dactions = {DiscreteAction(waypoints.size()+1)};
+  epCount=0;
+  vector<DiscreteAction> dactions = {DiscreteAction(map.getWaypoints().size()+1)};
   vector<ContinuousAction> cactions {ContinuousAction(0,SHIP_MAX_THRUST), ContinuousAction(0,2*M_PI)};
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  currentState.setStateVector(vector<float>(5+3*(map.getPlanets().size()+map.getWaypoints().size()),0));
-  ship.setWidth(SHIP_WIDTH);
-  ship.setHeight(SHIP_HEIGHT);
+  svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
+  currentState.setStateVector(vector<float>(svSize,0));
   reset();
+  ship.setWidth(waypoints[0].getRadius()/4.);
+  ship.setHeight(waypoints[0].getRadius()/2.);
 }
 
 
 float SpaceWorld::transition()
 {
+  epCount++;
   previousState.update(0,ship.getP().x),previousState.update(1,ship.getP().y);
   previousState.update(2,ship.getV().x), previousState.update(3,ship.getV().y);
   
   int signal = (int)takenAction[0];
   float thrustPow = takenAction[1];
   float thrustOri = takenAction[2];
-  float r;  
+  float r = 0;  
   if (!isTerminal(currentState))
     {
       //Transition function
@@ -74,23 +77,29 @@ float SpaceWorld::transition()
       if (isCrashed())
 	{
 	  r = CRASH_REWARD;
-	}            
-      if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize())
+	}
+      else
 	{
-	  for (unsigned int i=0;i<waypoints.size();i++)
+	  if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize()-1)
 	    {
-	      if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
+	      for (unsigned int i=0;i<waypoints.size();i++)
 		{
-		  if (ship.getSignalColor() == i)
+		  if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
 		    {
-		      r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
+		      if (ship.getSignalColor() == i)
+			{
+			  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
+			}
+		      else
+			{
+			  r = WRONG_SIGNAL_ON_WAYPOINT_REWARD;
+			}
 		    }
 		  else
 		    {
-		      r = WRONG_SIGNAL_ON_WAYPOINT_REWARD;
+		      r = SIGNAL_OFF_WAYPOINT_REWARD;	  		      
 		    }
 		}
-	      r = SIGNAL_OFF_WAYPOINT_REWARD;	  
 	    }
 	}
     }
@@ -102,7 +111,7 @@ float SpaceWorld::transition()
 
 bool SpaceWorld::isTerminal(State s)
 {
-    for (unsigned int i=0;i<planets.size();i++)
+  /*    for (unsigned int i=0;i<planets.size();i++)
     {
         if (ship.getP().distance(planets[i].getCentre()) < ship.getWidth()+planets[i].getRadius())
         {
@@ -122,7 +131,8 @@ bool SpaceWorld::isTerminal(State s)
             }
         }
     }
-    return false;
+    return false; */
+  return epCount==EPISODE_LENGTH;
 }
 
 void SpaceWorld::generateVectorStates()
@@ -146,7 +156,7 @@ void SpaceWorld::generateVectorStates()
 
 void SpaceWorld::reset()
 {
-  rewardHistory.push_back(0);  
+  rewardHistory.push_back(0);
   if (mapPoolSize!=-1)
     {
       default_random_engine generator(std::random_device{}());
@@ -154,7 +164,7 @@ void SpaceWorld::reset()
       int mapId = dist(generator);
       map.load(mapPoolPath+"map"+to_string(mapId));
       size = map.getSize();      
-    }
+    }  
   if (planets.size() == 0 || mapPoolSize != -1)
     {
       planets = map.getPlanets();
@@ -163,10 +173,12 @@ void SpaceWorld::reset()
 	  planets[i].setMass(4*PLANET_DENSITY*pow(planets[i].getRadius(),3)*M_PI/3);
 	}
       waypoints = map.getWaypoints();
-      ship = map.getShip();
     }
   placeShip();
   ship.setSignalColor(waypoints.size());
+  ship.setV(Vect2d(0,0));
+  ship.setA(Vect2d(0,0));
+  ship.setThrust(Vect2d(0,0));
 }
 
 void SpaceWorld::placeShip()
@@ -221,5 +233,8 @@ void SpaceWorld::placeShip()
    return false;
  }
 
- 
+ int SpaceWorld::getSvSize()
+ {
+   return svSize;
+ }
  
