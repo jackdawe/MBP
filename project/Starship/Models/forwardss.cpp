@@ -129,7 +129,7 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
     {
       predictedState = torch::cat({predictedState,split[i]},1);
     }
-  predictedReward = rewardDecoderForward(x).squeeze();
+  predictedReward = rewardDecoderForward().squeeze();
 }
 
 void ForwardSSImpl::saveParams(std::string filename)

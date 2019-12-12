@@ -11,8 +11,8 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x)
   y/=sw.getSize();
   y = y.reshape({n*T,s}).transpose(0,1);
   torch::Tensor vmax = torch::max(y[2]*sw.getSize());
-  y[2]=y[2]*sw.getSize()/vmax;
-  y[3]=y[3]*sw.getSize()/vmax;
+  y[2]=10*y[2]*sw.getSize()/vmax;
+  y[3]=10*y[3]*sw.getSize()/vmax;
   y = y.transpose(0,1).reshape({n,T,s});
   return y;
 }
@@ -75,6 +75,15 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       sw.reset();
       j++;
 
+      //Adding waypoint collision situations to the dataset as they occur more rarely
+      
+      if (i<winProp*4*n/5 || i>n-winProp*n/5)
+	{
+	  default_random_engine generator(random_device{}());
+	  uniform_int_distribution<int> dist(0,sw.getWaypoints().size()-1);
+	  int wpIdx = dist(generator);
+	  sw.repositionShip(sw.getWaypoints()[wpIdx].getCentre());	        
+	}
     }
       
   //Saving the test set
@@ -126,7 +135,7 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 	{
 	  rCounts[0]++;
 	}
-      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001)
+      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001) //had to do this because of -0.1 float approximation
 	{
 	  rCounts[1]++;
 	}
@@ -143,7 +152,7 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 	{
 	  scores[0]++;
 	}
-      else if (rl == SIGNAL_OFF_WAYPOINT_REWARD && precision<0.05)
+      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001 && precision<0.05)
 	{
 	  scores[1]++;
 	}

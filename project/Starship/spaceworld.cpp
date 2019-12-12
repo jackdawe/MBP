@@ -242,4 +242,13 @@ int SpaceWorld::getSize()
  {
    return svSize;
  }
- 
+
+vector<Waypoint> SpaceWorld::getWaypoints()
+{
+  return waypoints;
+}
+
+void SpaceWorld::repositionShip(Vect2d p)
+{
+  ship.setP(p);
+}

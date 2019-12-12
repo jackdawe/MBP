@@ -375,7 +375,7 @@ void Commands::generateMapSS()
 void Commands::generateMapPoolSS()
 {
   MapSS map(800); 
-  map.generateMapPool(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp,FLAGS_dir,FLAGS_nmaps);
+  map.generateMapPool(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp,FLAGS_mp,FLAGS_nmaps);
 }
 
 
@@ -450,7 +450,6 @@ void Commands::learnForwardModelSS()
     auto model = agent.getForwardModel();
     model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
     ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);     
-    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
+    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);   
   }
- 
 }

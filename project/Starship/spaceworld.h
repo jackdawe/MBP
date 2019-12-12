@@ -39,6 +39,8 @@ public:
 
     int getSvSize();
     int getSize();
+    vector<Waypoint> getWaypoints();
+    void repositionShip(Vect2d p);
     
     int size;
     int svSize;

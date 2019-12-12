@@ -66,7 +66,15 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	}
       torch::Tensor sLoss = beta*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
-      torch::Tensor totalLoss = sLoss;
+      torch::Tensor totalLoss = 100*(sLoss+rLoss);
+
+      if (e == 5000)
+	{
+	  cout<<stateOutputs[0]<<endl;
+	  cout<<slBatch[0]<<endl;
+	  cout<<rewardOutputs.transpose(0,1)[0]<<endl;
+	  cout<<rlBatch[0]<<endl;
+	}
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();
