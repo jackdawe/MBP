@@ -41,7 +41,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
 	  stateInputs = torch::zeros({n/5,nTimesteps,size});
-	  actionInputs = torch::zeros({n/5,nTimesteps,3});
+	  actionInputs = torch::zeros({n/5,nTimesteps,6});
 	  stateLabels = torch::zeros({n/5,nTimesteps,size});
 	  rewardLabels = torch::zeros({n/5,nTimesteps});
 	}
@@ -65,7 +65,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
     }
       
   //Saving the test set
-  
+
   cout<< "Test set generation is complete!"<<endl;
   torch::save(stateInputs,path+"stateInputsTest.pt");
   torch::save(actionInputs,path+"actionInputsTest.pt");

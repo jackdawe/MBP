@@ -51,7 +51,7 @@ class Commands
   //ModelBased Planning
 
   void generateDataSetSS();
-  
+  void learnForwardModelSS();
   
   //Other
   

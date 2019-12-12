@@ -4,8 +4,11 @@
 #include "../GridWorld/gridworld.h"
 #include "../GridWorld/Models/forwardgw.h"
 #include "../GridWorld/Models/plannergw.h"
+#include "../Starship/spaceworld.h"
+#include "../Starship/Models/forwardss.h"
 TORCH_MODULE(ForwardGW);
 TORCH_MODULE(PlannerGW);
+TORCH_MODULE(ForwardSS);
 
 template<class W, class F, class P>
   class ModelBased: public Agent<W>

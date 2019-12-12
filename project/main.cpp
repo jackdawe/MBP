@@ -96,6 +96,10 @@ int main(int argc, char *argv[])
     {
       c.generateDataSetSS();
     }
+  else if(FLAGS_cmd=="ssmbfm")
+    {
+      c.learnForwardModelSS();
+    }
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;

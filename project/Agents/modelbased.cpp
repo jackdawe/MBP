@@ -54,11 +54,11 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       rlBatch = rlBatch.to(device);
       
       //Forward and backward pass
-
+      
       torch::Tensor stateOutputs = torch::zeros(0).to(device);
       torch::Tensor rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);
       for (int t=0;t<nTimesteps;t++)
-	{	  
+	{
 	  forwardModel->forward(siBatch.squeeze(),aiBatch.transpose(0,1)[t]);
 	  siBatch = forwardModel->predictedState;
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
@@ -66,6 +66,8 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	}
       torch::Tensor sLoss = 50*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
+      cout<<sLoss<<endl;
+      cout<<rLoss<<endl;
       torch::Tensor totalLoss = sLoss+rLoss;
       optimizer.zero_grad();
       totalLoss.backward();
@@ -239,3 +241,4 @@ vector<float> ModelBased<W,F,P>::tensorToVector(torch::Tensor stateVector)
 }
 
 template class ModelBased<GridWorld, ForwardGW, PlannerGW>;
+template class ModelBased<SpaceWorld, ForwardSS, PlannerGW>;

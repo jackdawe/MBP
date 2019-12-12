@@ -260,7 +260,7 @@ void Commands::learnForwardModelGW()
 {
   GridWorld gw;
   ToolsGW t(gw);
-  string path = FLAGS_dir;
+  string path = FLAGS_mp;
   torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr, rewardLabelsTr;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
   torch::load(stateInputsTr,path+"stateInputsTrain.pt");
@@ -274,6 +274,7 @@ void Commands::learnForwardModelGW()
 
   int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);
 
+  cout<<stateInputsTe.size(0)<<endl;
   stateInputsTe = stateInputsTe.reshape({nTe*T,3,s,s});
   stateLabelsTe = stateLabelsTe.reshape({nTe*T,3,s,s});
   actionInputsTe = actionInputsTe.reshape({nTe*T,4});
@@ -408,4 +409,50 @@ void Commands::generateDataSetSS()
 {
   ToolsSS t;
   t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_wp);
+}
+
+void Commands::learnForwardModelSS()
+{
+  SpaceWorld sw;
+  string path = FLAGS_mp;
+  torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr, rewardLabelsTr;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
+  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
+  torch::load(stateLabelsTr,path+"stateLabelsTrain.pt");
+  torch::load(rewardLabelsTr, path+"rewardLabelsTrain.pt");
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+
+  int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
+
+  stateInputsTe = stateInputsTe.reshape({nTe*T,s});
+  stateLabelsTe = stateLabelsTe.reshape({nTe*T,s});
+  actionInputsTe = actionInputsTe.reshape({nTe*T,6});
+  rewardLabelsTe = rewardLabelsTe.reshape({nTe*T});
+  
+  if (FLAGS_wn)
+    {
+      actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
+    }
+  ForwardSS forwardModel(stateInputsTr.size(2),512,2);  
+  forwardModel->to(torch::Device(torch::kCUDA));
+  ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
+  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
+  agent.saveTrainingData();
+  torch::save(agent.getForwardModel(),"../temp/ForwardSS.pt");
+  agent.getForwardModel()->saveParams("../temp/ForwardSS_Params");
+
+  /*
+  //Computing accuracy
+  {
+    torch::NoGradGuard no_grad;
+    auto model = agent.getForwardModel();
+    model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
+    t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
+  }
+  */
 }
