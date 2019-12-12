@@ -21,7 +21,7 @@ ModelBased<W,F,P>::ModelBased(W world, F forwardModel, P planner):
 }
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr)
+void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr, float beta)
 {
   int n = stateInputs.size(0);
   torch::optim::Adam optimizer(forwardModel->parameters(), lr);
@@ -64,11 +64,9 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
-      torch::Tensor sLoss = 50*torch::mse_loss(stateOutputs,slBatch);
+      torch::Tensor sLoss = beta*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
-      cout<<sLoss<<endl;
-      cout<<rLoss<<endl;
-      torch::Tensor totalLoss = sLoss+rLoss;
+      torch::Tensor totalLoss = sLoss;
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();

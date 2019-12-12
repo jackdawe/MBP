@@ -4,6 +4,19 @@ ToolsSS::ToolsSS(){}
 
 ToolsSS::ToolsSS(SpaceWorld sw): sw(sw){}
 
+torch::Tensor ToolsSS::normalize(torch::Tensor x)
+{
+  int n = x.size(0), T = x.size(1), s = x.size(2);
+  torch::Tensor y = x.clone();
+  y/=sw.getSize();
+  y = y.reshape({n*T,s}).transpose(0,1);
+  torch::Tensor vmax = torch::max(y[2]*sw.getSize());
+  y[2]=y[2]*sw.getSize()/vmax;
+  y[3]=y[3]*sw.getSize()/vmax;
+  y = y.transpose(0,1).reshape({n,T,s});
+  return y;
+}
+
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp)
 {
   sw = SpaceWorld(path+"train/",nmaps);
@@ -36,10 +49,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw = SpaceWorld(path+"test/",nmaps);
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
-	  torch::save(stateInputs,path+"stateInputsTrain.pt");
+	  torch::save(normalize(stateInputs),path+"stateInputsTrain.pt");
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
-	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
+	  torch::save(normalize(stateLabels),path+"stateLabelsTrain.pt");
 	  stateInputs = torch::zeros({n/5,nTimesteps,size});
 	  actionInputs = torch::zeros({n/5,nTimesteps,6});
 	  stateLabels = torch::zeros({n/5,nTimesteps,size});
@@ -54,8 +67,8 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
 	  sw.setTakenAction(sw.randomAction());
 	  actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
-	  actionInputs[j][t][4]=sw.getTakenAction()[1];
-	  actionInputs[j][t][5]=sw.getTakenAction()[2];
+	  actionInputs[j][t][4]=sw.getTakenAction()[1]/SHIP_MAX_THRUST;
+	  actionInputs[j][t][5]=sw.getTakenAction()[2]/SHIP_MAX_THRUST;
 	  rewardLabels[j][t] = sw.transition();
 	  stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());
 	}
@@ -67,8 +80,87 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Saving the test set
 
   cout<< "Test set generation is complete!"<<endl;
-  torch::save(stateInputs,path+"stateInputsTest.pt");
+  torch::save(normalize(stateInputs),path+"stateInputsTest.pt");
   torch::save(actionInputs,path+"actionInputsTest.pt");
   torch::save(rewardLabels,path+"rewardLabelsTest.pt");
-  torch::save(stateLabels,path+"stateLabelsTest.pt");  
+  torch::save(normalize(stateLabels),path+"stateLabelsTest.pt");  
+}
+
+void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
+{
+  int s = testData.size(1);
+  int n = testData.size(0);
+  testData = testData.to(torch::Device(torch::kCPU));
+  vector<int> scores(4,0);
+
+  for (int i=0;i<n;i++)
+    {
+      for (int j=0;j<4;j++)
+	{
+	  if (abs(*(testData[i][j]-labels[i][j]).data<float>())<0.05*(*labels[i][j].data<float>()))
+	    {
+	      scores[j]++;
+	    }
+	}
+    }
+  cout<<"\n########## TRANSITION FUNCTION EVALUATION (5% tolerance) ##########\n"<<endl;
+  vector<string> names = {"x", "y", "Vx", "Vy"};
+  for (int j=0;j<4;j++)
+    {
+      cout<<"Correctly classified " + names[j] + ": " + to_string(scores[j])+"/"+to_string(n) + " (" + to_string(100.*scores[j]/n) + "%)" << endl;
+    }
+  cout<<endl;
+}
+
+void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
+{
+  vector<int> rCounts(4,0);
+  vector<int> scores(4,0);
+  testData = testData.flatten().to(torch::Device(torch::kCPU));
+  labels = labels.flatten();
+  int m = testData.size(0);
+  for (int s=0;s<m;s++)
+    {
+      float rl = *labels[s].data<float>();
+      if (rl==CRASH_REWARD)
+	{
+	  rCounts[0]++;
+	}
+      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001)
+	{
+	  rCounts[1]++;
+	}
+      else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD)
+	{
+	  rCounts[2]++;
+	}
+      else if (rl==0)
+	{
+	  rCounts[3]++;
+	}
+      float precision = abs(*testData[s].data<float>()-rl);
+      if (rl==CRASH_REWARD && precision<0.1)
+	{
+	  scores[0]++;
+	}
+      else if (rl == SIGNAL_OFF_WAYPOINT_REWARD && precision<0.05)
+	{
+	  scores[1]++;
+	}
+      else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.1)
+	{
+	  scores[2]++;
+	}
+      else if (rl == 0 && precision<0.05)
+	{
+	  scores[3]++;
+	}
+    }
+  vector<string> text = {"CRASH OR WRONG SIGNAL ON WAYPOINT","SIGNAL OFF WAYPOINT","RIGHT SIGNAL ON WAYPOINT","DID NOTHING"};
+  cout<<"\n########## REWARD FUNCTION EVALUATION ##########\n " << endl;
+  for (int i=0;i<4;i++)
+    {
+      cout<<text[i]+": "+ to_string(scores[i]) + "/" + to_string(rCounts[i]) + " (" + to_string(100.*scores[i]/rCounts[i]) + "%)"<<endl;
+    }
+  cout<<endl;
 }

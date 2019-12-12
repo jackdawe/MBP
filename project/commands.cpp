@@ -274,7 +274,6 @@ void Commands::learnForwardModelGW()
 
   int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);
 
-  cout<<stateInputsTe.size(0)<<endl;
   stateInputsTe = stateInputsTe.reshape({nTe*T,3,s,s});
   stateLabelsTe = stateLabelsTe.reshape({nTe*T,3,s,s});
   actionInputsTe = actionInputsTe.reshape({nTe*T,4});
@@ -288,7 +287,7 @@ void Commands::learnForwardModelGW()
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
-  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
+  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
   agent.saveTrainingData();
   torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
   agent.getForwardModel()->saveParams("../temp/ForwardGW_Params");
@@ -440,19 +439,18 @@ void Commands::learnForwardModelSS()
   ForwardSS forwardModel(stateInputsTr.size(2),512,2);  
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
-  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
+  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
   agent.saveTrainingData();
   torch::save(agent.getForwardModel(),"../temp/ForwardSS.pt");
   agent.getForwardModel()->saveParams("../temp/ForwardSS_Params");
-
-  /*
+  
   //Computing accuracy
   {
     torch::NoGradGuard no_grad;
     auto model = agent.getForwardModel();
     model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
-    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
-    t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
+    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);     
+    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
   }
-  */
+ 
 }

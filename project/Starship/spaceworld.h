@@ -38,6 +38,7 @@ public:
     bool isCrashed();
 
     int getSvSize();
+    int getSize();
     
     int size;
     int svSize;

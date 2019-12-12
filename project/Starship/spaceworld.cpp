@@ -33,11 +33,11 @@ void SpaceWorld::init()
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
+  svSize = 4+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
+  ship.setWidth(map.getWaypoints()[0].getRadius()/4.);
+  ship.setHeight(map.getWaypoints()[0].getRadius()/2.);
   reset();
-  ship.setWidth(waypoints[0].getRadius()/4.);
-  ship.setHeight(waypoints[0].getRadius()/2.);
 }
 
 
@@ -175,14 +175,16 @@ void SpaceWorld::reset()
       waypoints = map.getWaypoints();
     }
   placeShip();
-  ship.setSignalColor(waypoints.size());
-  ship.setV(Vect2d(0,0));
-  ship.setA(Vect2d(0,0));
-  ship.setThrust(Vect2d(0,0));
+  generateVectorStates();
+  stateSequence = {currentState.getStateVector()};  
 }
 
 void SpaceWorld::placeShip()
 {
+  ship.setSignalColor(waypoints.size());
+  ship.setV(Vect2d(0,0));
+  ship.setA(Vect2d(0,0));
+  ship.setThrust(Vect2d(0,0));
   default_random_engine generator(std::random_device{}());
   uniform_int_distribution<int> dist(0,size-ship.getHeight());
   if (randomStart)
@@ -217,8 +219,6 @@ void SpaceWorld::placeShip()
     {
       ship = initShip;
     }
-  generateVectorStates();
-  stateSequence = {currentState.getStateVector()};
 }
 
  bool SpaceWorld::isCrashed()
@@ -232,6 +232,11 @@ void SpaceWorld::placeShip()
      }
    return false;
  }
+
+int SpaceWorld::getSize()
+{
+  return size;
+}
 
  int SpaceWorld::getSvSize()
  {
