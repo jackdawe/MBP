@@ -1,5 +1,4 @@
 #include "modelbased.h"
-
 template <class W, class F, class P>
 ModelBased<W,F,P>::ModelBased():
   device(torch::Device(torch::kCPU))
@@ -47,7 +46,6 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	  slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
 	  rlBatch[i] = rewardLabels[index]; 
 	}
-
       siBatch = siBatch.to(device);
       aiBatch = aiBatch.to(device);
       slBatch = slBatch.to(device);
@@ -60,21 +58,15 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       for (int t=0;t<nTimesteps;t++)
 	{
 	  forwardModel->forward(siBatch.squeeze(),aiBatch.transpose(0,1)[t]);
-	  siBatch = forwardModel->predictedState;
-	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);
+	  siBatch = forwardModel->predictedState;	  
+	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
+
       torch::Tensor sLoss = beta*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
-      torch::Tensor totalLoss = 100*(sLoss+rLoss);
+      torch::Tensor totalLoss = sLoss + rLoss;
 
-      if (e == 5000)
-	{
-	  cout<<stateOutputs[0]<<endl;
-	  cout<<slBatch[0]<<endl;
-	  cout<<rewardOutputs.transpose(0,1)[0]<<endl;
-	  cout<<rlBatch[0]<<endl;
-	}
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();

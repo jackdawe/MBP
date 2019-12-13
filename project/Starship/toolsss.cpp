@@ -49,6 +49,9 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw = SpaceWorld(path+"test/",nmaps);
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
+	  cout<<stateInputs[10]<<endl;
+	  //	  cout<<actionInputs[10]<<endl;
+	  cout<<rewardLabels[10]<<endl;
 	  torch::save(normalize(stateInputs),path+"stateInputsTrain.pt");
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
@@ -65,10 +68,14 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  //Building the dataset tensors
       
 	  stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
-	  sw.setTakenAction(sw.randomAction());
+	  vector<float> a = sw.randomAction();
+	  a[1]=0,a[2]=0;
+	  sw.setTakenAction(a);
 	  actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
 	  actionInputs[j][t][4]=sw.getTakenAction()[1]/SHIP_MAX_THRUST;
-	  actionInputs[j][t][5]=sw.getTakenAction()[2]/SHIP_MAX_THRUST;
+	  actionInputs[j][t][5]=sw.getTakenAction()[2]/(2*M_PI);
+	  actionInputs[j][t][4]=0;
+	  actionInputs[j][t][5]=0;
 	  rewardLabels[j][t] = sw.transition();
 	  stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());
 	}

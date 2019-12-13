@@ -33,7 +33,7 @@ void SpaceWorld::init()
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  svSize = 4+3*(map.getPlanets().size()+map.getWaypoints().size());
+  svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
   ship.setWidth(map.getWaypoints()[0].getRadius()/4.);
   ship.setHeight(map.getWaypoints()[0].getRadius()/2.);
@@ -69,9 +69,15 @@ float SpaceWorld::transition()
 	      ship.setP(ship.getP().sum(ship.getV().dilate(STEP_SIZE)));
 	      ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
 	    }
-	  currentState.update(0,ship.getP().x),currentState.update(1,ship.getP().y);
-	  currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);	  
-	}            
+	}
+      else
+	{
+	  ship.setA(Vect2d(0,0));
+	  ship.setV(Vect2d(0,0));
+	}
+      currentState.update(0,ship.getP().x),currentState.update(1,ship.getP().y);
+      currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);	  
+      
       //Reward function
       
       if (isCrashed())
@@ -137,7 +143,7 @@ bool SpaceWorld::isTerminal(State s)
 
 void SpaceWorld::generateVectorStates()
 {
-  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);    
+  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y), currentState.update(4,ship.getWidth());    
   
   for (unsigned int i=0;i<waypoints.size();i++)
     {
