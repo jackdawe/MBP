@@ -791,6 +791,7 @@ main.o: main.cpp commands.h \
 		Agents/modelbased.h \
 		GridWorld/Models/forwardgw.h \
 		GridWorld/Models/plannergw.h \
+		Starship/Models/forwardss.h \
 		GridWorld/episodeplayergw.h \
 		Starship/episodeplayerss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
@@ -4476,7 +4477,8 @@ modelbased.o: Agents/modelbased.cpp Agents/modelbased.h \
 		Starship/waypoint.h \
 		GridWorld/Models/forwardgw.h \
 		GridWorld/toolsgw.h \
-		GridWorld/Models/plannergw.h
+		GridWorld/Models/plannergw.h \
+		Starship/Models/forwardss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o modelbased.o Agents/modelbased.cpp
 
 commands.o: commands.cpp commands.h \
@@ -4817,6 +4819,7 @@ commands.o: commands.cpp commands.h \
 		Agents/modelbased.h \
 		GridWorld/Models/forwardgw.h \
 		GridWorld/Models/plannergw.h \
+		Starship/Models/forwardss.h \
 		GridWorld/episodeplayergw.h \
 		Starship/episodeplayerss.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o commands.o commands.cpp

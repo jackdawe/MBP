@@ -36,6 +36,7 @@ template<class W, class F, class P>
   
   vector<float> rLossHistory;
   vector<float> sLossHistory;
+  vector<float> pLossHistory;
 };
 
 #endif //MODELBASED2_H

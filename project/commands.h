@@ -39,6 +39,7 @@ class Commands
   
   void generateDataSetGW();
   void learnForwardModelGW();
+  void trainPolicyNetGW();
   void playModelBasedGW(int argc, char* argv[]);
   
   /////* Starship related commands */////
