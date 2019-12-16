@@ -62,11 +62,9 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
-
       torch::Tensor sLoss = beta*torch::mse_loss(stateOutputs,slBatch);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
-      torch::Tensor totalLoss = sLoss + rLoss;
-
+      torch::Tensor totalLoss = sLoss;
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();

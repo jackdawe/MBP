@@ -436,7 +436,7 @@ void Commands::learnForwardModelSS()
     {
       actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
     }
-  ForwardSS forwardModel(stateInputsTr.size(2),512,2);
+  ForwardSS forwardModel(stateInputsTr.size(2),512,3);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
   agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
@@ -449,7 +449,7 @@ void Commands::learnForwardModelSS()
     torch::NoGradGuard no_grad;
     auto model = agent.getForwardModel();
     model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
-    //    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);     
+    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);     
     ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);   
   }
 }

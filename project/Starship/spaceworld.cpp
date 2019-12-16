@@ -95,10 +95,12 @@ float SpaceWorld::transition()
 		      if (ship.getSignalColor() == i)
 			{
 			  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
+			  break;
 			}
 		      else
 			{
 			  r = WRONG_SIGNAL_ON_WAYPOINT_REWARD;
+			  break;
 			}
 		    }
 		  else
@@ -143,19 +145,18 @@ bool SpaceWorld::isTerminal(State s)
 
 void SpaceWorld::generateVectorStates()
 {
-  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y), currentState.update(4,ship.getWidth());    
-  
+  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y), currentState.update(4,ship.getHeight());    
   for (unsigned int i=0;i<waypoints.size();i++)
     {
-      currentState.update(3*i+4,waypoints[i].getCentre().x);
-      currentState.update(3*i+5,waypoints[i].getCentre().y);
-      currentState.update(3*i+6,waypoints[i].getRadius());
+      currentState.update(3*i+5,waypoints[i].getCentre().x);
+      currentState.update(3*i+6,waypoints[i].getCentre().y);
+      currentState.update(3*i+7,waypoints[i].getRadius());
     }
   for (unsigned int i=0;i<planets.size();i++)
     {
-      currentState.update(3*i+3*waypoints.size()+4,planets[i].getCentre().x);
-      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().y);
-      currentState.update(3*i+3*waypoints.size()+6,planets[i].getRadius());
+      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().x);
+      currentState.update(3*i+3*waypoints.size()+6,planets[i].getCentre().y);
+      currentState.update(3*i+3*waypoints.size()+7,planets[i].getRadius());
     }
   previousState = currentState;
 }

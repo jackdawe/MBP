@@ -55,22 +55,22 @@ void Ship::setSignalColor(int signalColor)
     this->signalColor=signalColor;
 }
 
-int Ship::getWidth() const
+float Ship::getWidth() const
 {
     return width;
 }
 
-void Ship::setWidth(int value)
+void Ship::setWidth(float value)
 {
     width = value;
 }
 
-int Ship::getHeight() const
+float Ship::getHeight() const
 {
     return height;
 }
 
-void Ship::setHeight(int value)
+void Ship::setHeight(float value)
 {
     height = value;
 }

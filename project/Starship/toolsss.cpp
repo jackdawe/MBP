@@ -11,8 +11,11 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x)
   y/=sw.getSize();
   y = y.reshape({n*T,s}).transpose(0,1);
   torch::Tensor vmax = torch::max(y[2]*sw.getSize());
-  y[2]=10*y[2]*sw.getSize()/vmax;
-  y[3]=10*y[3]*sw.getSize()/vmax;
+  if (*vmax.data<float>() !=0)
+    {
+      y[2]=10*y[2]*sw.getSize()/vmax;
+      y[3]=10*y[3]*sw.getSize()/vmax;
+    }
   y = y.transpose(0,1).reshape({n,T,s});
   return y;
 }
@@ -49,9 +52,6 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw = SpaceWorld(path+"test/",nmaps);
 	  j = 0;
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
-	  cout<<stateInputs[10]<<endl;
-	  //	  cout<<actionInputs[10]<<endl;
-	  cout<<rewardLabels[10]<<endl;
 	  torch::save(normalize(stateInputs),path+"stateInputsTrain.pt");
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
