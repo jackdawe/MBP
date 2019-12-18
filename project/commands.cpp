@@ -429,7 +429,9 @@ void Commands::playRandomSS(int argc, char* argv[])
   SpaceWorld sw("../Starship/Maps/test");
   for (int i=0;i<FLAGS_n;i++)
     {
-      sw.setTakenAction(sw.randomAction());
+      vector<float> a = sw.randomAction();
+      a[2] = 1.5;
+      sw.setTakenAction(a);
       sw.transition();
     }
   QApplication a(argc,argv);

@@ -6,17 +6,17 @@
 
 #define SHIP_WIDTH 20
 #define SHIP_HEIGHT 40
-#define GRAVITY 0.015
+#define GRAVITY 0.01
 #define DAMPING 0.1
 #define PLANET_DENSITY 1
 #define SHIP_MASS 2
-#define SHIP_MAX_THRUST 5
+#define SHIP_MAX_THRUST 3
 #define STEP_SIZE 2
 #define RIGHT_SIGNAL_ON_WAYPOINT_REWARD 1
 #define CRASH_REWARD -1
 #define WRONG_SIGNAL_ON_WAYPOINT_REWARD -1
 #define SIGNAL_OFF_WAYPOINT_REWARD -0.1
-#define EPISODE_LENGTH 80
+#define EPISODE_LENGTH 200
 
 class SpaceWorld: public World
 {

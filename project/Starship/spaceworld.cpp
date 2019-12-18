@@ -35,8 +35,8 @@ void SpaceWorld::init()
   size = map.getSize();
   svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
-  ship.setWidth(map.getWaypoints()[0].getRadius()/4.);
-  ship.setHeight(map.getWaypoints()[0].getRadius()/2.);
+  ship.setWidth(map.getWaypoints()[0].getRadius()/2.);
+  ship.setHeight(map.getWaypoints()[0].getRadius());
   reset();
 }
 
@@ -66,8 +66,26 @@ float SpaceWorld::transition()
 	      Vect2d vectPS = p.getCentre().sum(ship.getP().dilate(-1));
 	      gravForce = gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),3)));
 	      ship.setA(Vect2d(gravForce.x-DAMPING*ship.getV().x-ship.getThrust().x,gravForce.y-DAMPING*ship.getV().y-ship.getThrust().y).dilate(1./SHIP_MASS));
-	      ship.setP(ship.getP().sum(ship.getV().dilate(STEP_SIZE)));
+	      Vect2d newP = ship.getP().sum(ship.getV().dilate(STEP_SIZE));
+	      if (newP.x>size)
+		{
+		  newP.x-=size;
+		}
+	      if (newP.x<0)
+		{
+		  newP.x+=size;
+		}
+	      if (newP.y>size)
+		{
+		  newP.y-=size;
+		}
+	      if (newP.y<0)
+		{
+		  newP.y+=size;
+		}
+	      ship.setP(newP);
 	      ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
+	      
 	    }
 	}
       else

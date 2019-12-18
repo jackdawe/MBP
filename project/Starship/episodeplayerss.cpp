@@ -18,8 +18,8 @@ void EpisodePlayerSS::initMap()
 {
   connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
   connect(&signalClock,SIGNAL(timeout()),this,SLOT(signalOff()));
-  ship.setWidth(map.getWaypoints()[0].getRadius()/4.);
-  ship.setHeight(map.getWaypoints()[0].getRadius()/2.);
+  ship.setWidth(map.getWaypoints()[0].getRadius()/2.);
+  ship.setHeight(map.getWaypoints()[0].getRadius());
   ssView.setScene(&ssScene);
   ssScene.setSceneRect(0,0,map.getSize(),map.getSize());
   ssView.setFixedSize(map.getSize(),map.getSize());
