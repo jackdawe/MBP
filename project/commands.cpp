@@ -283,57 +283,22 @@ void Commands::learnForwardModelGW()
     {
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);
     }
-  actionInputsTr = torch::softmax(actionInputsTr,2);
+  //  actionInputsTr = torch::softmax(actionInputsTr,2);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
-
-  while(true)
-    {
-      agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
-      agent.saveTrainingData();
-      torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
-      agent.getForwardModel()->saveParams("../temp/ForwardGW_Params");
-      //Computing accuracy
-      {
-	torch::NoGradGuard no_grad;
-	auto model = agent.getForwardModel();
-	model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
-	t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
-	t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
-      }
-    }
-}
-
-void Commands::trainPolicyNetGW()
-{
-  GridWorld gw;
-  ToolsGW t(gw);
-  string path = FLAGS_mp;
-  torch::Tensor stateInputsTr, actionInputsTr;
-  torch::Tensor stateInputsTe, actionInputsTe;
-  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
-  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
-  torch::load(stateInputsTe,path+"stateInputsTest.pt");
-  torch::load(actionInputsTe, path+"actionInputsTest.pt");
-
-  int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);
-
-  stateInputsTe = stateInputsTe.reshape({nTe*T,3,s,s});
-  actionInputsTe = actionInputsTe.reshape({nTe*T,4});
-  
-  ForwardGW fm("../temp/ForwardGW_Params");
-  torch::load(fm,"../temp/ForwardGW.pt");
-  PlannerGW planner(s,16,16);
-  ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,fm,planner);
-
-  while(true)
-    {
-      agent.trainPolicyNetwork(actionInputsTr, stateInputsTr,FLAGS_n,FLAGS_bs,FLAGS_lr);
-      agent.saveTrainingData();
-      torch::save(agent.getForwardModel(),"../temp/PlannerGW.pt");
-      agent.getForwardModel()->saveParams("../temp/PlannerGW_Params");
-    }
+  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
+  agent.saveTrainingData();
+  torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
+  agent.getForwardModel()->saveParams("../temp/ForwardGW_Params");
+  //Computing accuracy
+  {
+    torch::NoGradGuard no_grad;
+    auto model = agent.getForwardModel();
+    model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
+    t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
+  }
 }
 
 void Commands::playModelBasedGW(int argc, char* argv[])
@@ -397,7 +362,41 @@ void Commands::tc2()
 
 void Commands::tc3()
 {
+  SpaceWorld sw;
+  string path = "../Starship/Maps/One_Planet/";
+  torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr, rewardLabelsTr;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTr,path+"stateInputsTrain.pt");
+  torch::load(actionInputsTr, path+"actionInputsTrain.pt");
+  torch::load(stateLabelsTr,path+"stateLabelsTrain.pt");
+  torch::load(rewardLabelsTr, path+"rewardLabelsTrain.pt");
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
+  int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
+
+  stateInputsTe = stateInputsTe.reshape({nTe*T,s});
+  stateLabelsTe = stateLabelsTe.reshape({nTe*T,s});
+  actionInputsTe = actionInputsTe.reshape({nTe*T,6});
+  rewardLabelsTe = rewardLabelsTe.reshape({nTe*T});
+  
+  ForwardSS forwardModel(stateInputsTr.size(2),512,2);
+  forwardModel->to(torch::Device(torch::kCUDA));
+  torch::load(forwardModel,"../temp/ForwardSS.pt");
+  {
+    torch::NoGradGuard no_grad;
+    auto model = forwardModel;
+    model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);	
+    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);
+    
+    model->forward(stateInputsTr.reshape({4*nTe*T,s}).to(model->getUsedDevice()),actionInputsTr.reshape({4*nTe*T,6}).to(model->getUsedDevice()));
+    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTr.reshape({4*nTe*T}));	
+    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTr.reshape({4*nTe*T,s}));
+
+  }
 }
 
 void Commands::generateMapSS()
@@ -471,20 +470,32 @@ void Commands::learnForwardModelSS()
     {
       actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
     }
-  ForwardSS forwardModel(stateInputsTr.size(2),512,3);
+  ForwardSS forwardModel(stateInputsTr.size(2),512,2);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
-  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
-  agent.saveTrainingData();
-  torch::save(agent.getForwardModel(),"../temp/ForwardSS.pt");
-  agent.getForwardModel()->saveParams("../temp/ForwardSS_Params");
-  
-  //Computing accuracy
-  {
-    torch::NoGradGuard no_grad;
-    auto model = agent.getForwardModel();
-    model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
-    ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);     
-    ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);   
-  }
+  int l=0;
+  while(l!=1000)
+    {
+      l++;
+      agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta);
+      agent.saveTrainingData();
+      torch::save(agent.getForwardModel(),"../temp/ForwardSS.pt");
+      agent.getForwardModel()->saveParams("../temp/ForwardSS_Params");
+      
+      //Computing accuracy
+      {
+	torch::NoGradGuard no_grad;
+	auto model = agent.getForwardModel();
+	model->forward(stateInputsTr.reshape({4*nTe*T,s}).to(model->getUsedDevice()),actionInputsTr.reshape({4*nTe*T,6}).to(model->getUsedDevice()));
+	cout<< "TRAINING SET POSITION MSE (TARGET: 0.00004): ";
+	cout<<*torch::mse_loss(torch::split(model->predictedState.to(torch::Device(torch::kCPU)),2,1)[0],torch::split(stateLabelsTr.reshape({4*nTe*T,s}),2,1)[0]).data<float>()<<endl;
+	cout<< "TRAINING SET VELOCITY MSE (TARGET: 0.0001): ";
+	cout<<*torch::mse_loss(torch::split(model->predictedState.to(torch::Device(torch::kCPU)),2,1)[1],torch::split(stateLabelsTr.reshape({4*nTe*T,s}),2,1)[1]).data<float>()<<endl;
+	cout<< "TRAINING SET REWARD MSE : ";
+	cout<<*torch::mse_loss(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTr.reshape({4*nTe*T})).data<float>()<<endl;
+	model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+	ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);	
+	ToolsSS().transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);
+      }
+    }
 }

@@ -13,8 +13,8 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x)
   torch::Tensor vmax = torch::max(y[2]*sw.getSize());
   if (*vmax.data<float>() !=0)
     {
-      y[2]=10*y[2]*sw.getSize()/vmax;
-      y[3]=10*y[3]*sw.getSize()/vmax;
+      y[2]=y[2]*sw.getSize()/vmax;
+      y[3]=y[3]*sw.getSize()/vmax;
     }
   y = y.transpose(0,1).reshape({n,T,s});
   return y;
@@ -33,54 +33,83 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
-  
+
+  int i=0;
   int j=0;
-  for (int i=0;i<n;i++)
-    {
-      
-      //Displaying a progression bar in the terminal
-      
-      if (n > 100 && i%(5*n/100) == 0)
-	{
-	  cout << "Your agent is crashing into planets for science... " + to_string(i/(n/100)) + "%" << endl;
-	}
 
-      //Swapping to test set generation when training set generation is done
-      
-      if (i==4*n/5)
+  while(i<n)
+    {      
+      while(i<n && sw.epCount<EPISODE_LENGTH)
 	{
-	  sw = SpaceWorld(path+"test/",nmaps);
-	  j = 0;
-	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
-	  torch::save(normalize(stateInputs),path+"stateInputsTrain.pt");
-	  torch::save(actionInputs,path+"actionInputsTrain.pt");
-	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
-	  torch::save(normalize(stateLabels),path+"stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,nTimesteps,size});
-	  actionInputs = torch::zeros({n/5,nTimesteps,6});
-	  stateLabels = torch::zeros({n/5,nTimesteps,size});
-	  rewardLabels = torch::zeros({n/5,nTimesteps});
-	}
 
-      for (int t=0;t<nTimesteps;t++)
-	{
-      
-	  //Building the dataset tensors
-      
-	  stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
-	  vector<float> a = sw.randomAction();
-	  a[1]=0,a[2]=0;
-	  sw.setTakenAction(a);
-	  actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
-	  actionInputs[j][t][4]=sw.getTakenAction()[1]/SHIP_MAX_THRUST;
-	  actionInputs[j][t][5]=sw.getTakenAction()[2]/(2*M_PI);
-	  actionInputs[j][t][4]=0;
-	  actionInputs[j][t][5]=0;
-	  rewardLabels[j][t] = sw.transition();
-	  stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());
+	  //Displaying a progression bar in the terminal
+	  
+	  if (n > 100 && i%(5*n/100) == 0)
+	    {
+	      cout << "Your agent is crashing into planets for science... " + to_string(i/(n/100)) + "%" << endl;
+	    }	  
+	  
+	  //Swapping to test set generation when training set generation is done
+	  
+	  if (i==4*n/5)
+	    {
+	      sw = SpaceWorld(path+"test/",nmaps);
+	      j = 0;
+	      cout<< "Training set generation is complete! Now generating test set..."<<endl; 
+	      torch::save(normalize(stateInputs),path+"stateInputsTrain.pt");
+	      torch::save(actionInputs,path+"actionInputsTrain.pt");
+	      torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
+	      torch::save(normalize(stateLabels),path+"stateLabelsTrain.pt");
+	      stateInputs = torch::zeros({n/5,nTimesteps,size});
+	      actionInputs = torch::zeros({n/5,nTimesteps,6});
+	      stateLabels = torch::zeros({n/5,nTimesteps,size});
+	      rewardLabels = torch::zeros({n/5,nTimesteps});
+	    }
+	  	
+	  for (int t=0;t<nTimesteps;t++)
+	    {	    
+	      //Building the dataset tensors
+	      
+	      stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
+	      vector<float> a = sw.randomAction();	      
+	      if (t!=0)
+		{
+		  vector<float> previousAction = sw.getTakenAction();
+		  default_random_engine generator(random_device{}());
+		  normal_distribution<float> dist(previousAction[1],SHIP_MAX_THRUST/10.);
+		  float thrustPow = dist(generator);
+		  if(thrustPow > SHIP_MAX_THRUST)
+		    {
+		      thrustPow = SHIP_MAX_THRUST;
+		    }
+		  if (thrustPow < 0)
+		    {
+		      thrustPow = 0;
+		    }
+		  a[1] = thrustPow;
+		  dist = normal_distribution<float>(previousAction[2],M_PI/5);
+		  float thrustOri = dist(generator);
+		  if(thrustOri > 2*M_PI)
+		    {
+		      thrustOri -= 2*M_PI;
+		    }
+		  if (thrustOri < 0)
+		    {
+		      thrustOri += 2*M_PI;
+		    }
+		  a[2]=thrustOri;
+		}
+	      sw.setTakenAction(a);
+	      actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
+	      actionInputs[j][t][4]=sw.getTakenAction()[1];
+	      actionInputs[j][t][5]=sw.getTakenAction()[2];
+	      rewardLabels[j][t] = sw.transition();
+	      stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	     
+	    }
+	  i++;
+	  j++;
 	}
       sw.reset();
-      j++;
 
       //Adding waypoint collision situations to the dataset as they occur more rarely
       
@@ -108,18 +137,28 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
   int n = testData.size(0);
   testData = testData.to(torch::Device(torch::kCPU));
   vector<int> scores(4,0);
-
+  //  cout<<torch::split(torch::split(testData,4,1)[0],20,0)[0]<<endl;
+  //  cout<<torch::split(torch::split(labels,4,1)[0],20,0)[0]<<endl;
+  cout<<endl;  
+  cout<< "POSITION MSE (TARGET: 0.00004): ";
+  cout<<*torch::mse_loss(torch::split(testData,2,1)[0],torch::split(labels,2,1)[0]).data<float>()<<endl;
+  cout<< "VELOCITY MSE (TARGET: 0.0001): ";
+  cout<<*torch::mse_loss(torch::split(testData,2,1)[1],torch::split(labels,2,1)[1]).data<float>()<<endl;
   for (int i=0;i<n;i++)
     {
-      for (int j=0;j<4;j++)
+      for (int j=0;j<2;j++)
 	{
-	  if (abs(*(testData[i][j]-labels[i][j]).data<float>())<0.05*(*labels[i][j].data<float>()))
+	  if (abs(*(testData[i][j]-labels[i][j]).data<float>())<5/800.)
 	    {
 	      scores[j]++;
 	    }
+	  if (abs(*(testData[i][j+2]-labels[i][j+2]).data<float>())<0.01)
+	    {
+	      scores[j+2]++;
+	    }
 	}
     }
-  cout<<"\n########## TRANSITION FUNCTION EVALUATION (5% tolerance) ##########\n"<<endl;
+  cout<<"\n########## TRANSITION FUNCTION EVALUATION (5 pixel tolerance) ##########\n"<<endl;
   vector<string> names = {"x", "y", "Vx", "Vy"};
   for (int j=0;j<4;j++)
     {
@@ -130,6 +169,8 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 
 void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 {
+  //  cout<<torch::split(testData,10,0)[1]<<endl;
+  //  cout<<torch::split(labels,10,0)[1]<<endl;
   vector<int> rCounts(4,0);
   vector<int> scores(4,0);
   testData = testData.flatten().to(torch::Device(torch::kCPU));

@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     }
   else if(FLAGS_cmd == "gwmbpn")
     {
-      c.trainPolicyNetGW();
+      //      c.trainPolicyNetGW();
     }
   else if(FLAGS_cmd == "gwmbplay")
     {

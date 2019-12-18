@@ -6,7 +6,7 @@
 
 #define SHIP_WIDTH 20
 #define SHIP_HEIGHT 40
-#define GRAVITY 0.05
+#define GRAVITY 0.015
 #define DAMPING 0.1
 #define PLANET_DENSITY 1
 #define SHIP_MASS 2
@@ -41,10 +41,11 @@ public:
     int getSize();
     vector<Waypoint> getWaypoints();
     void repositionShip(Vect2d p);
+    int epCount;
     
+ private:
     int size;
     int svSize;
-    int epCount;
     MapSS map;
     bool randomStart;
     string mapPoolPath;

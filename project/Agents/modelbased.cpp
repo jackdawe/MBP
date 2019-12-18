@@ -50,32 +50,44 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       aiBatch = aiBatch.to(device);
       slBatch = slBatch.to(device);
       rlBatch = rlBatch.to(device);
-      
+
       //Forward and backward pass
       
       torch::Tensor stateOutputs = torch::zeros(0).to(device);
       torch::Tensor rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);
       for (int t=0;t<nTimesteps;t++)
 	{
-	  forwardModel->forward(siBatch.squeeze(),aiBatch.transpose(0,1)[t]);
+	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[t]);
 	  siBatch = forwardModel->predictedState;	  
 	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
 	  rewardOutputs[t] = forwardModel->predictedReward;
 	}
-      torch::Tensor sLoss = beta*torch::mse_loss(stateOutputs,slBatch);
+      torch::Tensor sLoss = beta*torch::mse_loss(torch::split(stateOutputs,4,2)[0],torch::split(slBatch,4,2)[0]);
       torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
-      torch::Tensor totalLoss = sLoss;
+      torch::Tensor totalLoss = sLoss+rLoss;
+      if (e==epochs-10)
+	{
+	  //	  cout<<torch::split(stateOutputs,10,0)[0].squeeze()<<endl;
+	  //	  cout<<torch::split(slBatch,10,0)[0].squeeze()<<endl;	 
+	}	
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();
       sLossHistory.push_back(*sLoss.to(torch::Device(torch::kCPU)).data<float>());
       rLossHistory.push_back(*rLoss.to(torch::Device(torch::kCPU)).data<float>());
 
+      if (*totalLoss.to(torch::Device(torch::kCPU)).data<float>()>1000)
+	{
+	  cout<<stateOutputs<<endl;
+	  cout<<slBatch<<endl;
+	  cout<<aiBatch<<endl;
+	}      
+      
       //Printing some stuff
       
       if (e%25 == 0)
-	{
-	  cout<< "Training loss at epoch " + to_string(e)+"/"+to_string(epochs)+" : " + to_string(*totalLoss.to(torch::Device(torch::kCPU)).data<float>())<<endl; 
+	{	  
+	  cout<< "Training loss at iteration " + to_string(e)+"/"+to_string(epochs)+" : " + to_string(*totalLoss.to(torch::Device(torch::kCPU)).data<float>())<<endl; 
 	}
     }  
 }

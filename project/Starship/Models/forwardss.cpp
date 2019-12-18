@@ -42,24 +42,26 @@ void ForwardSSImpl::init()
 
   //Adding the layers of the state encoder
 
-  encoderLayers.push_back(register_module("State Encoder FC1",torch::nn::Linear(size,nfc)));
-  for (int i=1;i<depth;i++)
+  encoderLayers.push_back(register_module("State Encoder IN",torch::nn::Linear(size,nfc)));
+  for (int i=0;i<depth;i++)
     {
       encoderLayers.push_back(register_module("State Encoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
+  encoderLayers.push_back(register_module("State Encoder OUT",torch::nn::Linear(nfc,128)));
 
   //Adding the layers of the action encoder
 
-  actionLayers.push_back(register_module("Action Encoder FC1",torch::nn::Linear(6,nfc)));
-  for (int i=1;i<depth;i++)
+  actionLayers.push_back(register_module("Action Encoder IN",torch::nn::Linear(6,nfc)));
+  for (int i=0;i<depth;i++)
     {
       actionLayers.push_back(register_module("Action Encoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
+  actionLayers.push_back(register_module("Action Encoder OUT",torch::nn::Linear(nfc,128)));
 
     //Adding the layers of the state decoder
 
-  decoderLayers.push_back(register_module("State Decoder FC1",torch::nn::Linear(2*nfc,nfc)));
-  for (int i=1;i<depth;i++)
+  decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(256,nfc)));
+  for (int i=0;i<depth;i++)
     {
       decoderLayers.push_back(register_module("State Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
@@ -67,8 +69,8 @@ void ForwardSSImpl::init()
 
     //Adding the layers of the reward decoder
 
-  rewardLayers.push_back(register_module("Reward Decoder FC1",torch::nn::Linear(2*nfc,nfc)));
-  for (int i=1;i<depth;i++)
+  rewardLayers.push_back(register_module("Reward Decoder IN",torch::nn::Linear(256,nfc)));
+  for (int i=0;i<depth;i++)
     {
       rewardLayers.push_back(register_module("Reward Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
@@ -77,7 +79,7 @@ void ForwardSSImpl::init()
 
 torch::Tensor ForwardSSImpl::actionEncoderForward(torch::Tensor x)
 {
-  for (int i=0;i<depth;i++)
+  for (unsigned int i=0;i<actionLayers.size();i++)
     {
       x = torch::relu(actionLayers[i]->forward(x));
     }
@@ -86,35 +88,33 @@ torch::Tensor ForwardSSImpl::actionEncoderForward(torch::Tensor x)
 
 torch::Tensor ForwardSSImpl::stateEncoderForward(torch::Tensor x)
 {
-  for (int i=0;i<depth;i++)
+  for (unsigned int i=0;i<encoderLayers.size();i++)
     {
-      x = torch::relu(encoderLayers[i]->forward(x));
+      x = torch::prelu(encoderLayers[i]->forward(x),torch::full({1},0.1).to(usedDevice));
     }
   return x;
 }
 
 torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)
 {
-  for (int i=0;i<depth;i++)
+  for (unsigned int i=0;i<decoderLayers.size()-1;i++)
     {
-      x = torch::relu(decoderLayers[i]->forward(x));
+      x = torch::prelu(decoderLayers[i]->forward(x),torch::full({1},0.1).to(usedDevice));
     }
-  return torch::tanh(decoderLayers.back()->forward(x));
+  return decoderLayers.back()->forward(x);
 }
 
 torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
 {
-  for (int i=0;i<depth;i++)
+  for (unsigned int i=0;i<rewardLayers.size()-1;i++)
     {
       x = torch::relu(rewardLayers[i]->forward(x));
     }
-  return torch::tanh(rewardLayers.back()->forward(x));
+  return rewardLayers.back()->forward(x);
 }
 
 void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-
-  int n = stateBatch.size(0);
 
   //Splitting varying and constant parts of the state vector
   std::vector<torch::Tensor> split = torch::split(stateBatch,4,1);
