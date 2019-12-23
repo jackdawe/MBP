@@ -6,6 +6,7 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include "../toolsss.h"
 
 class ForwardSSImpl: public torch::nn::Module
 {
@@ -18,6 +19,7 @@ class ForwardSSImpl: public torch::nn::Module
   torch::Tensor stateDecoderForward(torch::Tensor x);
   torch::Tensor rewardDecoderForward(torch::Tensor x);
   void forward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
   void loadParams(std::string filename);
@@ -26,7 +28,9 @@ class ForwardSSImpl: public torch::nn::Module
 
   torch::Tensor predictedState;
   torch::Tensor predictedReward;
-
+  torch::Tensor stateLoss;
+  torch::Tensor rewardLoss;  
+  
  private:
   void init();
   

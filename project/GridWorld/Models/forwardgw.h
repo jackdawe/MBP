@@ -19,6 +19,7 @@ class ForwardGWImpl: public torch::nn::Module
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
   void forward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
   void loadParams(std::string filename);
@@ -27,6 +28,8 @@ class ForwardGWImpl: public torch::nn::Module
 
   torch::Tensor predictedState;
   torch::Tensor predictedReward;
+  torch::Tensor stateLoss;
+  torch::Tensor rewardLoss;
   
  private:
   void init();

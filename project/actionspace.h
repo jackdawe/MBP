@@ -15,11 +15,18 @@ public:
     
     /**
      * @brief cardinal
-     * Computes the cardinal of the action space, i.e. the number of possible actions. Returns -1 if the cardinal is infinite. 
-     * @return the cardinal of the action space or -1 if infinite. 
+     * Computes the cardinal of the discrete action space, i.e. the number of possible actions.  
+     * @return the cardinal of the discrete action space. 
      */
     int cardinal();
 
+    /**
+     * @brief nActions
+     * Computes the total number of elementary actions of the action space. 
+     * @return the sum of the sizes of the discrete actions and of the number of continuous actions. 
+     */    
+    int nActions();
+    
     /**
      *
      * @brief size 

@@ -20,9 +20,10 @@ ModelBased<W,F,P>::ModelBased(W world, F forwardModel, P planner):
 }
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr, float beta)
+void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float lr, float beta, bool allStatesProvided)
 {
   int n = stateInputs.size(0);
+  int s = stateInputs.size(2);
   torch::optim::Adam optimizer(forwardModel->parameters(), lr);
 
   //Training Loop
@@ -32,7 +33,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
   for (int e=0;e<epochs;e++)
     {
       //Extracting batch from dataset
-
+      
       int nTimesteps = rewardLabels.size(1);
       torch::Tensor siBatch = torch::zeros(0);
       torch::Tensor aiBatch = torch::zeros(0);
@@ -41,29 +42,47 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
-	  siBatch = torch::cat({siBatch,stateInputs[index][0].unsqueeze(0)});
+	  if (allStatesProvided)
+	    {
+	      siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
+	    }
+	  else
+	    {
+	      siBatch = torch::cat({siBatch,stateInputs[index][0].unsqueeze(0)});
+	    }
 	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	  slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
 	  rlBatch[i] = rewardLabels[index]; 
 	}
-      siBatch = siBatch.to(device);
-      aiBatch = aiBatch.to(device);
-      slBatch = slBatch.to(device);
+      siBatch = siBatch.to(device), aiBatch = aiBatch.to(device), slBatch = slBatch.to(device);
       rlBatch = rlBatch.to(device);
 
       //Forward and backward pass
       
       torch::Tensor stateOutputs = torch::zeros(0).to(device);
-      torch::Tensor rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);
-      for (int t=0;t<nTimesteps;t++)
+      torch::Tensor rewardOutputs = torch::zeros({batchSize,nTimesteps}).to(device);
+      if (allStatesProvided)
 	{
-	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[t]);
-	  siBatch = forwardModel->predictedState;	  
-	  stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
-	  rewardOutputs[t] = forwardModel->predictedReward;
+	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
+	  stateOutputs = forwardModel->predictedState.reshape({batchSize,nTimesteps,s});
+	  rewardOutputs = forwardModel->predictedReward.reshape({batchSize,nTimesteps});
 	}
-      torch::Tensor sLoss = beta*torch::mse_loss(torch::split(stateOutputs,4,2)[0],torch::split(slBatch,4,2)[0]);
-      torch::Tensor rLoss = torch::mse_loss(rewardOutputs.transpose(0,1),rlBatch); 
+      else
+	{
+	  rewardOutputs = rewardOutputs.transpose(0,1);
+	  for (int t=0;t<nTimesteps;t++)
+	    {
+	      forwardModel->forward(siBatch,aiBatch.transpose(0,1)[t]);
+	      siBatch = forwardModel->predictedState;	  
+	      stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
+	      rewardOutputs[t] = forwardModel->predictedReward;
+	    }
+	  rewardOutputs = rewardOutputs.transpose(0,1);	  
+	}
+      forwardModel->predictedState = stateOutputs;
+      forwardModel->predictedReward = rewardOutputs;
+      forwardModel->computeLoss(slBatch,rlBatch);
+      torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
       torch::Tensor totalLoss = sLoss+rLoss;
       if (e==epochs-10)
 	{
@@ -78,9 +97,9 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 
       if (*totalLoss.to(torch::Device(torch::kCPU)).data<float>()>1000)
 	{
-	  cout<<stateOutputs<<endl;
-	  cout<<slBatch<<endl;
-	  cout<<aiBatch<<endl;
+	  //	  cout<<stateOutputs<<endl;
+	  //cout<<slBatch<<endl;
+	  //cout<<aiBatch<<endl;
 	}      
       
       //Printing some stuff
@@ -95,63 +114,130 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 template <class W, class F, class P>
 void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int nGradsteps, float lr)
 {
-  torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,this->currentState().getStateVector().size()}); 
-  torch::Tensor actionSequences = torch::zeros({nTimesteps,nRollouts,4});  
-  torch::Tensor rewards = torch::zeros({nRollouts});
-  torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
+  //Setting everything up
   
-  //  torch::Tensor tokens = torch::full({nTimesteps,nRollouts,4},0.1).to(torch::kFloat32);
-  //  tokens[0][0][0]=40000;      
+  torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
+  unsigned int s = initState.size(0);
+  torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,s});  
+  
+  unsigned int nContinuousActions = this->world.getActions().getContinuousActions().size();
+  unsigned int nDiscreteActions = this->world.getActions().nActions()-nContinuousActions;
+  vector<DiscreteAction> discreteActions = this->world.getActions().getDiscreteActions();
+  
+  //Randomly initialising discrete and continuous actions and merging them
 
-  torch::Tensor tokens = torch::zeros({nTimesteps,nRollouts,4}).normal_(0,0.1);
-  tokens = torch::autograd::Variable(tokens.clone().set_requires_grad(true));       
-  torch::Tensor qactionSequences = torch::softmax(tokens,2);
-  for (int i=0;i<nGradsteps;i++)
+  torch::Tensor continuousActions = torch::zeros(0);
+  torch::Tensor toOptimize = torch::zeros(0);  
+  for (unsigned int d=0;d<discreteActions.size();d++)
     {
+      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,0.1)},2);
+    }
+  for (unsigned int i=0;i<nContinuousActions;i++)
+    {
+      float a = this->world.getActions().getContinuousActions()[i].getLowerBound();
+      float b = this->world.getActions().getContinuousActions()[i].getUpperBound();
+      toOptimize = torch::cat({toOptimize,a+(b-a)*torch::rand({nTimesteps,nRollouts,1})},2);
+    }  
+  toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
+  
+  torch::Tensor actionSequences = torch::zeros(0);
+  
+  torch::Tensor rewards = torch::zeros({nRollouts}).to(device);
+  
+  //Looping over the number of optimisation steps 
+  
+  for (int i=0;i<nGradsteps;i++)
+    {            
       for (int k=0;k<nRollouts;k++)
 	{	  
 	  stateSequences[0][k] = initState;
 	}
-      torch::Tensor totalReward = torch::zeros({nRollouts}).to(device);
+
+      //Putting each discrete action into a vector and putting continuous actions into one tensor  
+      
+      vector<torch::Tensor> split = torch::split(toOptimize,nDiscreteActions,2);
+      vector<torch::Tensor> daTokens;
+      int sum=0;
+      for (int d=0;d<discreteActions.size();d++)
+	{
+	  int daSize = discreteActions[d].getSize();	  
+	  daTokens.push_back(split[0].slice(2,sum,sum+daSize,1));
+	  sum+=daSize;
+	}
+      if (nContinuousActions>0)
+	{
+	  continuousActions = split[1];                  
+	}
+	  
+      //Predicting the state sequence given the initState and the action sequence
+                  
       for (int t=0;t<nTimesteps;t++)
 	{
-	  //Clipping tokens to closest one-hot encoded vector
-	  
-	  torch::Tensor ohev = torch::zeros({nRollouts,4});	      	      
+	  //Clipping tokens to closest one-hot encoded vector to minimise inference error
+
 	  {
 	    torch::NoGradGuard no_grad;		    
-	    ohev = torch::softmax(tokens[t],1);
-	    torch::Tensor maxToken = get<0>(torch::max(ohev,1)).unsqueeze(0).transpose(0,1);
-	    ohev = (1/maxToken)*ohev - 0.999;
-	    ohev = torch::relu(ohev) * 1000;	    	  
-	    forwardModel->forward(stateSequences[t].to(device),ohev.to(device));
+	    torch::Tensor ohev = torch::zeros(0);
+	    for (int d=0;d<discreteActions.size();d++)
+	      {
+		torch::Tensor toOneHot = torch::softmax(daTokens[d][t],1);   
+		torch::Tensor maxToken = get<0>(torch::max(toOneHot,1)).unsqueeze(0).transpose(0,1);
+		toOneHot = (1/maxToken)*toOneHot - 0.999;
+		toOneHot = torch::relu(toOneHot) * 1000;
+	        ohev = torch::cat({ohev,toOneHot},1);
+	      }
+	    if (nContinuousActions>0)
+	      {
+		ohev = torch::cat({ohev,continuousActions[t]},1);
+	      }
+	    forwardModel->forward(stateSequences[t],ohev);
 	    stateSequences[t+1]=forwardModel->predictedState;
 	  }
-	  forwardModel->forward(stateSequences[t].to(device),torch::softmax(tokens[t],1).to(device));
-	  totalReward+=forwardModel->predictedReward;
 	}
-      //  cout<<100*totalReward.mean()<<endl;
-      totalReward.backward(torch::ones({nRollouts}).to(device));
-      rewards = totalReward;
-      torch::Tensor grads = tokens.grad();
-      torch::Tensor newTokens = tokens.clone().detach() + lr*grads;
-      //cout<<torch::softmax(newTokens,1)-torch::softmax(tokens,1)<<endl;
-      tokens = torch::autograd::Variable(newTokens.clone().detach().set_requires_grad(true));       
+      
+      //Predicting the rewards given the state and action sequences 
+
+      torch::Tensor softmaxActions = torch::zeros(0);
+      for (int d=0;d<discreteActions.size();d++)
+	{
+	  softmaxActions = torch::cat({softmaxActions,torch::softmax(daTokens[d],2)},2);
+	}      
+      softmaxActions = torch::cat({softmaxActions,continuousActions},2);       
+
+      forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nContinuousActions+nDiscreteActions}));
+      rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
+      rewards.backward(torch::ones({nRollouts}).to(device));
+      torch::Tensor grads = toOptimize.grad();
+      cout<<grads<<endl;
+      torch::Tensor optiActions = toOptimize.clone().detach() + lr*grads;      
+
+      //Updating some tensors with the new action values 
+
+      toOptimize = torch::autograd::Variable(optiActions.clone().detach().set_requires_grad(true));  
     }
-  stateSequences = stateSequences.transpose(0,1);
-  tokens = tokens.transpose(0,1);
-  qactionSequences = qactionSequences.transpose(0,1);
-  actionSequences = torch::softmax(tokens,2);
+  stateSequences = ToolsSS().normalize(stateSequences.transpose(0,1),true);
+  toOptimize = toOptimize.transpose(0,1);
+  vector<torch::Tensor> chunks = torch::split(toOptimize,nDiscreteActions,2);
+  int sum=0;
+  for (int d=0;d<discreteActions.size();d++)
+    {
+      int daSize = discreteActions[d].getSize();
+      actionSequences = torch::cat({actionSequences, get<1>(torch::max(chunks[0].slice(2,sum,sum+daSize,1),2)).unsqueeze(2).to(torch::kFloat32)});
+      sum+=daSize;
+    }
+  if (nContinuousActions>0)
+    {
+      actionSequences = torch::cat({actionSequences,chunks[1]},2);
+    }
   int maxRewardIdx = *torch::argmax(rewards.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
-  cout<<qactionSequences[maxRewardIdx]<<endl;
-  cout<<actionSequences[maxRewardIdx] - qactionSequences[maxRewardIdx]<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<rewards[maxRewardIdx]<<endl;
 
-  actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
+  actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));
+  
 }
 
 template <class W, class F, class P>
@@ -197,16 +283,29 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
 {
+  /*
+
+  unsigned int nContinuousActions = this->world.getActions().getContinuousActions().size();
+  unsigned int nDiscreteActions = this->world.getActions().nActions()-nContinuousActions;
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
       gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
+      vector<torch::Tensor> chunks = torch::split(actionSequence,nDiscreteActions,1);
+      vector<float> action(nContinuousActions+nDiscreteActions,0);
       for (int t=0;t<nTimesteps;t++)
 	{
+	  for (int i=0;i<this->world.getActions().getDiscreteActions.size();i++)
+	    {
+	      
+
+	    }
 	  this->world.setTakenAction(vector<float>({*torch::argmax(actionSequence[t]).data<long>()}));
 	  this->world.transition();
 	}
     }
   cout<<this->rewardHistory()<<endl;
+
+  */
 }
 
 

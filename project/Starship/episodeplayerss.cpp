@@ -10,8 +10,6 @@ EpisodePlayerSS::EpisodePlayerSS(string filename):
 {
   map.load(filename);
   initMap();
-  shipShape->hide();
-  signalShape->hide();
 }
 
 void EpisodePlayerSS::initMap()
@@ -47,8 +45,7 @@ void EpisodePlayerSS::initMap()
 
   signalShape =new QGraphicsEllipseItem(0,0,ship.getWidth()*2/3.,ship.getWidth()*2/3.);
   signalShape->setBrush(QBrush(Qt::magenta));
-  ssScene.addItem(signalShape);
-  
+  ssScene.addItem(signalShape);  
 }
 
 void EpisodePlayerSS::showMap()
@@ -72,7 +69,7 @@ void EpisodePlayerSS::playEpisode(vector<vector<float>> actionSequence, vector<v
 void EpisodePlayerSS::signalOff()
 {
   signalClock.stop();
-  signalShape->setBrush(QBrush(wpColors.back()));
+  signalShape->setBrush(QBrush(Qt::magenta));
 }
 
 void EpisodePlayerSS::update()

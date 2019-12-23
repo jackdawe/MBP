@@ -90,8 +90,8 @@ float SpaceWorld::transition()
 	}
       else
 	{
-	  //	  ship.setA(Vect2d(0,0));
-	  //ship.setV(Vect2d(0,0));
+	  ship.setA(Vect2d(0,0));
+	  ship.setV(Vect2d(0,0));
 	}
       currentState.update(0,ship.getP().x),currentState.update(1,ship.getP().y);
       currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);	  
@@ -129,6 +129,9 @@ float SpaceWorld::transition()
 	    }
 	}
     }
+  cout<<signal<<endl;
+  cout<<thrustPow<<endl;
+  cout<<thrustOri<<endl;
   actionSequence.push_back({signal,thrustPow,thrustOri});
   stateSequence.push_back(currentState.getStateVector());
   rewardHistory.back()+=r;

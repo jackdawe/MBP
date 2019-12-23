@@ -185,7 +185,7 @@ void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels)
 	    {
 	      float pixelt = *testData[s][0][i][j].data<float>();
 	      float pixell = *labels[s][0][i][j].data<float>();
-		if (pixelt>0.7 && pixell<1.3)
+		if (pixelt>0.7)
 		  {		  
 		    pixelt=1;
 		  }
@@ -238,7 +238,7 @@ void ToolsGW::rewardAccuracy(torch::Tensor testData, torch::Tensor labels)
 	  rCounts[3]++;
 	}
       float precision = abs(*testData[s].data<float>()-rl);
-      if (rl==LOSE_REWARD && precision<0.1)
+      if (rl==LOSE_REWARD && precision<0.4)
 	{
 	  scores[0]++;
 	}

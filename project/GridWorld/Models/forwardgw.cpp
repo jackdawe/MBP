@@ -159,6 +159,8 @@ torch::Tensor ForwardGWImpl::rewardForward(torch::Tensor x)
 
 void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
+  stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);
+
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
@@ -204,6 +206,12 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 
   x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
   predictedReward = rewardForward(x).squeeze();  
+}
+
+void ForwardGWImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
+{
+  stateLoss = torch::mse_loss(predictedState, stateLabels);
+  rewardLoss = torch::mse_loss(predictedReward, rewardLabels);
 }
 
 void ForwardGWImpl::saveParams(std::string filename)

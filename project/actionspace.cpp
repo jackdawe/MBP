@@ -10,25 +10,28 @@ ActionSpace::ActionSpace(vector<DiscreteAction> discreteActions, vector<Continuo
 }
 
 int ActionSpace::cardinal()
-{
-    if (continuousActions.size() != 0)
+{  
+  unsigned int cardinal=1;
+  for (unsigned int i=0;i<discreteActions.size();i++)
     {
-        return -1;
-    }
-    else
-    {
-        int cardinal=1;
-        for (unsigned i=0;i<discreteActions.size();i++)
-        {
-            cardinal *= discreteActions[i].getSize();
-        }
-        return cardinal;
-    }
+      cardinal *= discreteActions[i].getSize();
+      }
+  return cardinal;    
 }
 
+int ActionSpace::nActions()
+{
+  unsigned int nAct=0;
+  for (unsigned int i=0;i<discreteActions.size();i++)
+    {
+      nAct += discreteActions[i].getSize();
+    }
+  return nAct+continuousActions.size();
+}
+  
 int ActionSpace::size()
 {
-    return discreteActions.size() + continuousActions.size();
+  return discreteActions.size() + continuousActions.size();
 }
 
 vector<float> ActionSpace::actionFromId(int id, vector<float> *p_coordinates, unsigned int counter)
