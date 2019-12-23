@@ -511,14 +511,14 @@ void Commands::learnForwardModelSS()
 
 void Commands::playModelBasedSS(int argc, char* argv[])
 {
-  //  QApplication a(argc,argv);
+  QApplication a(argc,argv);
   ForwardSS fm("../temp/ForwardSS_Params");
   torch::load(fm,"../temp/ForwardSS.pt");
   SpaceWorld sw(FLAGS_map);
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  //  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  //  EpisodePlayerSS ep(FLAGS_map);
-  //  ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence());
-  //  a.exec();
+  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  EpisodePlayerSS ep(FLAGS_map);
+  ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence());
+  a.exec();
 }

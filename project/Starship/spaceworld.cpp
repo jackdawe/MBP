@@ -112,6 +112,7 @@ float SpaceWorld::transition()
 		    {
 		      if (ship.getSignalColor() == i)
 			{
+			  cout<<"yes"<<endl;
 			  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
 			  break;
 			}
@@ -129,9 +130,6 @@ float SpaceWorld::transition()
 	    }
 	}
     }
-  cout<<signal<<endl;
-  cout<<thrustPow<<endl;
-  cout<<thrustOri<<endl;
   actionSequence.push_back({signal,thrustPow,thrustOri});
   stateSequence.push_back(currentState.getStateVector());
   rewardHistory.back()+=r;

@@ -134,9 +134,10 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
     }
   for (unsigned int i=0;i<nContinuousActions;i++)
     {
-      float a = this->world.getActions().getContinuousActions()[i].getLowerBound();
-      float b = this->world.getActions().getContinuousActions()[i].getUpperBound();
-      toOptimize = torch::cat({toOptimize,a+(b-a)*torch::rand({nTimesteps,nRollouts,1})},2);
+      float lb = this->world.getActions().getContinuousActions()[i].getLowerBound();
+      float ub = this->world.getActions().getContinuousActions()[i].getUpperBound();
+      float center = this->world.getActions().getContinuousActions()[i].pick();
+      toOptimize = torch::cat({toOptimize,torch::clamp(torch::zeros({nTimesteps,nRollouts,1}).normal_(center,(ub+lb)/10.),lb,ub)},2);
     }  
   toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
   
@@ -208,14 +209,14 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
       rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
       rewards.backward(torch::ones({nRollouts}).to(device));
       torch::Tensor grads = toOptimize.grad();
-      cout<<grads<<endl;
+      //      cout<<lr*grads.transpose(0,1)<<endl;
       torch::Tensor optiActions = toOptimize.clone().detach() + lr*grads;      
 
       //Updating some tensors with the new action values 
 
       toOptimize = torch::autograd::Variable(optiActions.clone().detach().set_requires_grad(true));  
     }
-  stateSequences = ToolsSS().normalize(stateSequences.transpose(0,1),true);
+  stateSequences = stateSequences.transpose(0,1);
   toOptimize = toOptimize.transpose(0,1);
   vector<torch::Tensor> chunks = torch::split(toOptimize,nDiscreteActions,2);
   int sum=0;
@@ -237,7 +238,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));
-  
 }
 
 template <class W, class F, class P>
@@ -282,32 +282,21 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
-{
-  /*
-
-  unsigned int nContinuousActions = this->world.getActions().getContinuousActions().size();
-  unsigned int nDiscreteActions = this->world.getActions().nActions()-nContinuousActions;
+{  
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
       gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
-      vector<torch::Tensor> chunks = torch::split(actionSequence,nDiscreteActions,1);
-      vector<float> action(nContinuousActions+nDiscreteActions,0);
       for (int t=0;t<nTimesteps;t++)
 	{
-	  for (int i=0;i<this->world.getActions().getDiscreteActions.size();i++)
+	  for (int i=0;i<this->world.getTakenAction().size();i++)
 	    {
-	      
-
+	      this->world.updateTakenAction(i,*actionSequence[t][i].data<float>());
 	    }
-	  this->world.setTakenAction(vector<float>({*torch::argmax(actionSequence[t]).data<long>()}));
 	  this->world.transition();
 	}
+      cout<<this->rewardHistory()<<endl;  
     }
-  cout<<this->rewardHistory()<<endl;
-
-  */
 }
-
 
 template <class W, class F, class P>
 void ModelBased<W,F,P>::saveTrainingData()
