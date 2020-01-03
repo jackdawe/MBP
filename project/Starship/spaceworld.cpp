@@ -112,7 +112,7 @@ float SpaceWorld::transition()
 		    {
 		      if (ship.getSignalColor() == i)
 			{
-			  cout<<"yes"<<endl;
+			  //			  cout<<"yes"<<endl;
 			  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
 			  break;
 			}
@@ -138,27 +138,6 @@ float SpaceWorld::transition()
 
 bool SpaceWorld::isTerminal(State s)
 {
-  /*    for (unsigned int i=0;i<planets.size();i++)
-    {
-        if (ship.getP().distance(planets[i].getCentre()) < ship.getWidth()+planets[i].getRadius())
-        {
-            return true;
-        }
-    }
-    if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize())
-    {
-        for (unsigned int i=0;i<waypoints.size();i++)
-        {
-            if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
-            {
-                if (ship.getSignalColor() == i)
-                {
-                    return true;
-                }
-            }
-        }
-    }
-    return false; */
   return epCount>=EPISODE_LENGTH;
 }
 
@@ -273,6 +252,11 @@ int SpaceWorld::getSize()
 vector<Waypoint> SpaceWorld::getWaypoints()
 {
   return waypoints;
+}
+
+Ship SpaceWorld::getShip()
+{
+  return ship;
 }
 
 void SpaceWorld::repositionShip(Vect2d p)

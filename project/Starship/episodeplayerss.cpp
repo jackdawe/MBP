@@ -84,7 +84,7 @@ void EpisodePlayerSS::update()
       float thrustPow = actionSequence[stepCount][1];
       float thrustO = actionSequence[stepCount][2];
       int signalColor = actionSequence[stepCount][0];
-      if (signalColor != wpColors.size())
+      if (signalColor != map.getWaypoints().size())
 	{
 	  QColor a = wpColors[signalColor];
 	  signalShape->setBrush(QBrush(wpColors[signalColor]));

@@ -11,11 +11,19 @@ class ToolsSS
   ToolsSS();
   ToolsSS(SpaceWorld sw);
   torch::Tensor normalize(torch::Tensor x, bool reverse=false);
-  void generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp=0.1);
-  void transitionAccuracy(torch::Tensor testData, torch::Tensor labels);
-  void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
+  void generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp=0.1, float edgeSpawnProp=0.1);
+  void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);
+  void displayTAccuracy(int dataSetSize);
+  void rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);
+  void displayRAccuracy();
+  torch::Tensor pMSE;
+  torch::Tensor vMSE;
+  torch::Tensor rMSE;
  private:
   SpaceWorld sw;
+  vector<int> tScores;
+  vector<int> rScores;
+  vector<int> rCounts;
 };
 
 #endif 

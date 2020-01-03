@@ -58,7 +58,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       rlBatch = rlBatch.to(device);
 
       //Forward and backward pass
-      
+
       torch::Tensor stateOutputs = torch::zeros(0).to(device);
       torch::Tensor rewardOutputs = torch::zeros({batchSize,nTimesteps}).to(device);
       if (allStatesProvided)
@@ -80,27 +80,15 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	  rewardOutputs = rewardOutputs.transpose(0,1);	  
 	}
       forwardModel->predictedState = stateOutputs;
-      forwardModel->predictedReward = rewardOutputs;
+      forwardModel->predictedReward = rewardOutputs;      
       forwardModel->computeLoss(slBatch,rlBatch);
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
-      torch::Tensor totalLoss = sLoss+rLoss;
-      if (e==epochs-10)
-	{
-	  //	  cout<<torch::split(stateOutputs,10,0)[0].squeeze()<<endl;
-	  //	  cout<<torch::split(slBatch,10,0)[0].squeeze()<<endl;	 
-	}	
+      torch::Tensor totalLoss = sLoss + rLoss;
       optimizer.zero_grad();
       totalLoss.backward();
       optimizer.step();
       sLossHistory.push_back(*sLoss.to(torch::Device(torch::kCPU)).data<float>());
       rLossHistory.push_back(*rLoss.to(torch::Device(torch::kCPU)).data<float>());
-
-      if (*totalLoss.to(torch::Device(torch::kCPU)).data<float>()>1000)
-	{
-	  //	  cout<<stateOutputs<<endl;
-	  //cout<<slBatch<<endl;
-	  //cout<<aiBatch<<endl;
-	}      
       
       //Printing some stuff
       
@@ -130,20 +118,21 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   torch::Tensor toOptimize = torch::zeros(0);  
   for (unsigned int d=0;d<discreteActions.size();d++)
     {
-      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,0.1)},2);
+      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,0.5)},2);
     }
   for (unsigned int i=0;i<nContinuousActions;i++)
     {
       float lb = this->world.getActions().getContinuousActions()[i].getLowerBound();
       float ub = this->world.getActions().getContinuousActions()[i].getUpperBound();
       float center = this->world.getActions().getContinuousActions()[i].pick();
-      toOptimize = torch::cat({toOptimize,torch::clamp(torch::zeros({nTimesteps,nRollouts,1}).normal_(center,(ub+lb)/10.),lb,ub)},2);
+      toOptimize = torch::cat({toOptimize,torch::clamp(torch::zeros({nTimesteps,nRollouts,1}).normal_(center,(ub+lb)/5.),lb,ub)},2);
     }  
   toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
-  
   torch::Tensor actionSequences = torch::zeros(0);
   
   torch::Tensor rewards = torch::zeros({nRollouts}).to(device);
+
+  torch::Tensor savedCA = torch::split(toOptimize,nDiscreteActions,2)[1];
   
   //Looping over the number of optimisation steps 
   
@@ -156,18 +145,21 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 
       //Putting each discrete action into a vector and putting continuous actions into one tensor  
       
-      vector<torch::Tensor> split = torch::split(toOptimize,nDiscreteActions,2);
+      torch::Tensor toOptiDA = toOptimize.slice(2,0,nDiscreteActions,1);
+      torch::Tensor toOptiCA = toOptimize.slice(2,nDiscreteActions,nDiscreteActions+nContinuousActions,1);
       vector<torch::Tensor> daTokens;
+
       int sum=0;
       for (int d=0;d<discreteActions.size();d++)
 	{
 	  int daSize = discreteActions[d].getSize();	  
-	  daTokens.push_back(split[0].slice(2,sum,sum+daSize,1));
+	  daTokens.push_back(toOptiDA.slice(2,sum,sum+daSize,1));
 	  sum+=daSize;
 	}
+
       if (nContinuousActions>0)
 	{
-	  continuousActions = split[1];                  
+	  continuousActions = toOptiCA;                  
 	}
 	  
       //Predicting the state sequence given the initState and the action sequence
@@ -204,9 +196,9 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	  softmaxActions = torch::cat({softmaxActions,torch::softmax(daTokens[d],2)},2);
 	}      
       softmaxActions = torch::cat({softmaxActions,continuousActions},2);       
-
       forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nContinuousActions+nDiscreteActions}));
       rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
+      //cout<< forwardModel->predictedReward.reshape({nTimesteps,nRollouts}) << endl;
       rewards.backward(torch::ones({nRollouts}).to(device));
       torch::Tensor grads = toOptimize.grad();
       //      cout<<lr*grads.transpose(0,1)<<endl;
@@ -218,23 +210,26 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
     }
   stateSequences = stateSequences.transpose(0,1);
   toOptimize = toOptimize.transpose(0,1);
-  vector<torch::Tensor> chunks = torch::split(toOptimize,nDiscreteActions,2);
+  torch::Tensor optiDA = toOptimize.slice(2,0,nDiscreteActions,1);
+  torch::Tensor optiCA = toOptimize.slice(2,nDiscreteActions,nDiscreteActions+nContinuousActions,1);
   int sum=0;
   for (int d=0;d<discreteActions.size();d++)
     {
       int daSize = discreteActions[d].getSize();
-      actionSequences = torch::cat({actionSequences, get<1>(torch::max(chunks[0].slice(2,sum,sum+daSize,1),2)).unsqueeze(2).to(torch::kFloat32)});
+      actionSequences = torch::cat({actionSequences, get<1>(torch::max(optiDA.slice(2,sum,sum+daSize,1),2)).unsqueeze(2).to(torch::kFloat32)});
       sum+=daSize;
     }
   if (nContinuousActions>0)
     {
-      actionSequences = torch::cat({actionSequences,chunks[1]},2);
+      actionSequences = torch::cat({actionSequences,optiCA},2);
     }
   int maxRewardIdx = *torch::argmax(rewards.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<rewards[maxRewardIdx]<<endl;
-
+  cout<<rewards<<endl;
+  //  cout<<actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx]<<endl;;
+  
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));

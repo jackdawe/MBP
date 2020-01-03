@@ -47,7 +47,7 @@ void ForwardSSImpl::init()
     {
       encoderLayers.push_back(register_module("State Encoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
-  encoderLayers.push_back(register_module("State Encoder OUT",torch::nn::Linear(nfc,512)));
+  encoderLayers.push_back(register_module("State Encoder OUT",torch::nn::Linear(nfc,nfc)));
 
   //Adding the layers of the action encoder
 
@@ -56,11 +56,11 @@ void ForwardSSImpl::init()
     {
       actionLayers.push_back(register_module("Action Encoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
-  actionLayers.push_back(register_module("Action Encoder OUT",torch::nn::Linear(nfc,512)));
+  actionLayers.push_back(register_module("Action Encoder OUT",torch::nn::Linear(nfc,nfc)));
 
     //Adding the layers of the state decoder
 
-  decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(1024,nfc)));
+  decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(2*nfc,nfc)));
   for (int i=0;i<depth;i++)
     {
       decoderLayers.push_back(register_module("State Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
@@ -69,7 +69,7 @@ void ForwardSSImpl::init()
 
     //Adding the layers of the reward decoder
 
-  rewardLayers.push_back(register_module("Reward Decoder IN",torch::nn::Linear(1024,nfc)));
+  rewardLayers.push_back(register_module("Reward Decoder IN",torch::nn::Linear(2*nfc,nfc)));
   for (int i=0;i<depth;i++)
     {
       rewardLayers.push_back(register_module("Reward Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
@@ -113,11 +113,11 @@ torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
   return rewardLayers.back()->forward(x);
 }
 
-void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
+void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);    
   stateBatch = ToolsSS().normalize(stateBatch), actionBatch = ToolsSS().normalize(actionBatch);
-  
+	  
   //Splitting varying and constant parts of the state vector
   std::vector<torch::Tensor> split = torch::split(stateBatch,4,1);
 
@@ -131,14 +131,22 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
     {
       predictedState = torch::cat({predictedState,split[i]},1);
     }
-  predictedState = ToolsSS().normalize(predictedState,true);
+  if (unnormalize)
+    {
+      predictedState = ToolsSS().normalize(predictedState,true);
+    }
   predictedReward = rewardDecoderForward(x).squeeze();
 }
 
-void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
-{
+void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels, bool normalize)
+{  
+  if (normalize)
+    {
+      int n = predictedState.size(0), T= predictedState.size(1), s = predictedState.size(2);
+      stateLabels = ToolsSS().normalize(stateLabels.reshape({n*T,s})).reshape({n,T,s});
+    }  
   std::vector<torch::Tensor> stateOutputsChunks = torch::split(predictedState,4,2);
-  std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,4,2);
+  std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,4,2);  
   stateLoss = torch::mse_loss(stateOutputsChunks[0],slBatchChunks[0])+torch::mse_loss(stateOutputsChunks[1],slBatchChunks[1]);
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
 }
