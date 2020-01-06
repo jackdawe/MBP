@@ -16,7 +16,7 @@
 #define CRASH_REWARD -1
 #define WRONG_SIGNAL_ON_WAYPOINT_REWARD -1
 #define SIGNAL_OFF_WAYPOINT_REWARD -0.1
-#define EPISODE_LENGTH 160
+#define EPISODE_LENGTH 80
 
 class SpaceWorld: public World
 {

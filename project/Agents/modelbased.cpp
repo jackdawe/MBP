@@ -197,6 +197,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	}      
       softmaxActions = torch::cat({softmaxActions,continuousActions},2);       
       forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nContinuousActions+nDiscreteActions}));
+      cout<<forwardModel->predictedReward.reshape({nTimesteps,nRollouts})<<endl;
       rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
       //cout<< forwardModel->predictedReward.reshape({nTimesteps,nRollouts}) << endl;
       rewards.backward(torch::ones({nRollouts}).to(device));
@@ -227,8 +228,8 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   cout<<"......"<<endl;
   cout<<actionSequences[maxRewardIdx]<<endl;      
   //cout<<rewards[maxRewardIdx]<<endl;
-  //cout<<rewards<<endl;
-  cout<<actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx]<<endl;;
+  cout<<rewards<<endl;
+  //cout<<actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx]<<endl;;
   
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
