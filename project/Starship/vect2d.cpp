@@ -34,14 +34,14 @@ float Vect2d::norm() //returns the norm of the vector
 
 float Vect2d::angle() //returns the angle in radians ranging from 0 to 2*pi between the vector and an arbitrary origin vector
 {
-    if ( (y/norm()) >=0 )
+  if ( (y/norm()) >=0 )
     {
-        return acos(x/norm());
-    } else
-    {
-        return -acos(x/norm());
+      return acos(x/norm());
     }
-
+  else
+    {
+      return -acos(x/norm());
+    }
 }
 
 float Vect2d::distance(Vect2d v) //computes the distance between two vectors

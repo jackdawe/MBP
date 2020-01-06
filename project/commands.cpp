@@ -11,6 +11,7 @@ DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encod
 DEFINE_bool(asp,true,"If true, all input states are provided for training for model based agent. If false, only initial state and the action sequence are provided and the agent uses his predicted states to predict the next state"); 
 
 DEFINE_string(mdl,"../temp/model","Path to a model file. Do not add the .pt extension.");
+DEFINE_string(tag,"","Suffix for auto generated files"); 
 
 //Starship flags
 
@@ -405,13 +406,13 @@ void Commands::playRandomSS(int argc, char* argv[])
   for (int i=0;i<FLAGS_n;i++)
     {
       vector<float> a = sw.randomAction();
-      a[2] = 1.5;
+      a[2] = i/20.;
       sw.setTakenAction(a);
       sw.transition();
     }
   QApplication a(argc,argv);
   EpisodePlayerSS ep("../Starship/Maps/test");
-  ep.playEpisode(sw.getActionSequence(), sw.getStateSequence());  
+  ep.playEpisode(sw.getActionSequence(), sw.getStateSequence(), SHIP_MAX_THRUST);  
   a.exec();
 }
 
@@ -453,12 +454,12 @@ void Commands::learnForwardModelSS()
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
   int l=0;
-  ofstream ftrp("../temp/trp_mse");
-  ofstream ftrv("../temp/trv_mse");  
-  ofstream ftep("../temp/tep_mse");
-  ofstream ftev("../temp/tev_mse");  
-  ofstream ftrr("../temp/trr_mse");
-  ofstream fter("../temp/ter_mse");  
+  ofstream ftrp("../temp/trp_mse"+FLAGS_tag);
+  ofstream ftrv("../temp/trv_mse"+FLAGS_tag);  
+  ofstream ftep("../temp/tep_mse"+FLAGS_tag);
+  ofstream ftev("../temp/tev_mse"+FLAGS_tag);  
+  ofstream ftrr("../temp/trr_mse"+FLAGS_tag);
+  ofstream fter("../temp/ter_mse"+FLAGS_tag);  
   
   while(l!=5000)
     {
@@ -537,13 +538,14 @@ void Commands::learnForwardModelSS()
 
 void Commands::playModelBasedSS(int argc, char* argv[])
 {
-  ForwardSS fm("../temp/ForwardSS_Params");
-  torch::load(fm,"../temp/ForwardSS.pt");
+  ForwardSS fm(FLAGS_mdl+"_Params");
+  torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_map);
+  sw.repositionShip(Vect2d(100,100));
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
   agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
-  ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence());
+  ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence(), SHIP_MAX_THRUST);
   a.exec();
 }

@@ -36,13 +36,23 @@ void EpisodePlayerSS::initMap()
       ssScene.addItem(waypointShapes.last());
     }
   QPolygonF shipTriangle;
-  shipTriangle.append(QPointF(0,(2*ship.getHeight()/3.)));
-  shipTriangle.append(QPointF(-ship.getWidth()/2.,-ship.getHeight()/3.));
-  shipTriangle.append(QPointF(ship.getWidth()/2.,-ship.getHeight()/3.));
+  int w = ship.getWidth();
+  int h = ship.getHeight();  
+  shipTriangle.append(QPointF(0,(2*h/3.)));
+  shipTriangle.append(QPointF(-w/2.,-h/3.));
+  shipTriangle.append(QPointF(w/2.,-h/3));
   shipShape = new QGraphicsPolygonItem(shipTriangle);
   shipShape->setBrush(QBrush(Qt::magenta));
   ssScene.addItem(shipShape);
 
+  QPolygonF thrustTriangle;      
+  thrustTriangle.append(QPointF(-w/4,-h/9));
+  thrustTriangle.append(QPointF(w/4,-h/9));
+  thrustTriangle.append(QPointF(0,2*h/9));
+  thrustShape = new QGraphicsPolygonItem(thrustTriangle);
+  thrustShape->setBrush(QBrush(Qt::darkYellow));      
+  ssScene.addItem(thrustShape);
+  
   signalShape =new QGraphicsEllipseItem(0,0,ship.getWidth()*2/3.,ship.getWidth()*2/3.);
   signalShape->setBrush(QBrush(Qt::magenta));
   ssScene.addItem(signalShape);  
@@ -53,16 +63,19 @@ void EpisodePlayerSS::showMap()
     ssView.show();
 }
 
-void EpisodePlayerSS::playEpisode(vector<vector<float>> actionSequence, vector<vector<float>> stateSequence)
+void EpisodePlayerSS::playEpisode(vector<vector<float>> actionSequence, vector<vector<float>> stateSequence, float maxThrust)
 {
+  this->maxThrust = maxThrust;
   this->actionSequence = actionSequence;
   this->stateSequence = stateSequence;
   shipShape->show();
-  signalShape->show();
+  thrustShape->show();
+  signalShape->show(); 
   shipShape->setPos(stateSequence[0][0],stateSequence[0][1]);
+  thrustShape->setPos(stateSequence[0][0],stateSequence[0][1]-ship.getWidth()/3);
   signalShape->setPos(stateSequence[0][0]-ship.getWidth()*9/24.,stateSequence[0][1]-ship.getWidth()*7/12.);
   showMap();
-  playClock.start(100);
+  playClock.start(TIME_STEP);
   stepCount=0;
 }
 
@@ -74,7 +87,7 @@ void EpisodePlayerSS::signalOff()
 
 void EpisodePlayerSS::update()
 {
-  if (stepCount == stateSequence.size()-1)
+  if (stepCount == stateSequence.size()-1 || stepCount == 3000)
     {
       playClock.stop();
     }
@@ -84,6 +97,10 @@ void EpisodePlayerSS::update()
       float thrustPow = actionSequence[stepCount][1];
       float thrustO = actionSequence[stepCount][2];
       int signalColor = actionSequence[stepCount][0];
+      if (thrustPow == 0)
+	{
+	  thrustPow=maxThrust/100.;
+	}      
       if (signalColor != map.getWaypoints().size())
 	{
 	  QColor a = wpColors[signalColor];
@@ -95,8 +112,24 @@ void EpisodePlayerSS::update()
 	  signalShape->setBrush(QBrush(Qt::magenta));
         }
       shipShape->setPos(stateSequence[stepCount][0],stateSequence[stepCount][1]);
-      signalShape->setPos(stateSequence[stepCount][0]-ship.getWidth()*9/24.,stateSequence[stepCount][1]-ship.getWidth()*7/12.);  
+
+      int w = ship.getWidth();
+      int h = ship.getHeight();
+      ssScene.removeItem(thrustShape);
+      QPolygonF thrustTriangle;
+      thrustTriangle.append(QPointF(-3*w/8,2*h/9));
+      thrustTriangle.append(QPointF(3*w/8,2*h/9));
+      thrustTriangle.append(QPointF(0,-(thrustPow/maxThrust)*(6*h/9)));
+      thrustTriangle.translate(0,-10*h/9);
+      thrustShape = new QGraphicsPolygonItem(thrustTriangle);
+      thrustShape->setBrush(QBrush(Qt::yellow));
+      ssScene.addItem(thrustShape);      
+      
+      signalShape->setPos(stateSequence[stepCount][0]-ship.getWidth()*9/24.,stateSequence[stepCount][1]-ship.getWidth()*7/12.);
       shipShape->setRotation(Vect2d(cos(thrustO),sin(thrustO)).dilate(thrustPow).angle()*180/M_PI+90);
+      thrustShape->setPos(stateSequence[stepCount][0],stateSequence[stepCount][1]+h/2);      
+      thrustShape->setTransformOriginPoint(0,-(h/3.)-(thrustPow/maxThrust)*(2*h/9));
+      thrustShape->setRotation(Vect2d(cos(thrustO),sin(thrustO)).dilate(thrustPow).angle()*180/M_PI+90);
       signalShape->setTransformOriginPoint(9*ship.getWidth()/24.,7*ship.getWidth()/12.);
     }    
 }

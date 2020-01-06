@@ -17,7 +17,7 @@ class EpisodePlayerSS: public QWidget
   EpisodePlayerSS(string filename);
   void initMap();
   void showMap();
-  void playEpisode(vector<vector<float>> actionSequence,vector<vector<float>> stateSequence);
+  void playEpisode(vector<vector<float>> actionSequence,vector<vector<float>> stateSequence, float maxThrust);
   ~EpisodePlayerSS();
   
   public slots:
@@ -38,8 +38,10 @@ class EpisodePlayerSS: public QWidget
     QList<QGraphicsEllipseItem*> planetShapes;
     QList<QGraphicsEllipseItem*> waypointShapes;
     QGraphicsPolygonItem *shipShape;
+    QGraphicsPolygonItem *thrustShape;
     QGraphicsEllipseItem *signalShape;
     QList<QColor> wpColors;
+    float maxThrust;
 };
 
 #endif // EPISODEPLAYERSS_H
