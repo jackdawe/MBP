@@ -50,6 +50,23 @@ float SpaceWorld::transition()
   int signal = (int)takenAction[0];
   float thrustPow = takenAction[1];
   float thrustOri = takenAction[2];
+
+  if(thrustPow > SHIP_MAX_THRUST)
+    {
+      thrustPow = SHIP_MAX_THRUST;
+    }
+  if (thrustPow < 0)
+    {
+      thrustPow = 0;
+    }
+  while (thrustOri > 2*M_PI)
+    {
+      thrustOri -= 2*M_PI;
+    }
+  while (thrustOri < 0)
+    {
+      thrustOri += 2*M_PI;
+    }      
   float r = 0;  
   if (!isTerminal(currentState))
     {

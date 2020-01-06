@@ -10,6 +10,8 @@ DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encod
 
 DEFINE_bool(asp,true,"If true, all input states are provided for training for model based agent. If false, only initial state and the action sequence are provided and the agent uses his predicted states to predict the next state"); 
 
+DEFINE_string(mdl,"../temp/model","Path to a model file. Do not add the .pt extension.");
+
 //Starship flags
 
 DEFINE_int32(nplan,1,"Number of planets for mapss generation");
@@ -458,7 +460,7 @@ void Commands::learnForwardModelSS()
   ofstream ftrr("../temp/trr_mse");
   ofstream fter("../temp/ter_mse");  
   
-  while(l!=4000)
+  while(l!=5000)
     {
       l++;    
       if (true)
@@ -467,11 +469,17 @@ void Commands::learnForwardModelSS()
 	}
       else
 	{
-	  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, false);
+	  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, false);	  
+	}
+      if (l%500 == 0)
+	{
+	  torch::save(agent.getForwardModel(),FLAGS_mdl+"cp"+to_string(l)+".pt");
+	  agent.getForwardModel()->saveParams(FLAGS_mdl+"cp"+to_string(l)+"_Params");
+	  cout<<"Checkpointing..."<<endl;
 	}
       agent.saveTrainingData();
-      torch::save(agent.getForwardModel(),"../temp/ForwardSS.pt");
-      agent.getForwardModel()->saveParams("../temp/ForwardSS_Params");
+      torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
+      agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
       //Computing accuracy
       {	
 	torch::NoGradGuard no_grad;
@@ -529,12 +537,12 @@ void Commands::learnForwardModelSS()
 
 void Commands::playModelBasedSS(int argc, char* argv[])
 {
-  QApplication a(argc,argv);
   ForwardSS fm("../temp/ForwardSS_Params");
   torch::load(fm,"../temp/ForwardSS.pt");
   SpaceWorld sw(FLAGS_map);
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
   agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence());
   a.exec();

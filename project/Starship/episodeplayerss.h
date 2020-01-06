@@ -7,7 +7,7 @@
 #include "mapss.h"
 #include "ship.h"
 
-#define TIME_STEP 50 //in ms
+#define TIME_STEP 100 //in ms
 
 class EpisodePlayerSS: public QWidget
 {

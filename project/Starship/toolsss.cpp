@@ -93,25 +93,9 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		  default_random_engine generator(random_device{}());
 		  normal_distribution<float> dist(previousAction[1],SHIP_MAX_THRUST/10.);
 		  float thrustPow = dist(generator);
-		  if(thrustPow > SHIP_MAX_THRUST)
-		    {
-		      thrustPow = SHIP_MAX_THRUST;
-		    }
-		  if (thrustPow < 0)
-		    {
-		      thrustPow = 0;
-		    }
 		  a[1] = thrustPow;
 		  dist = normal_distribution<float>(previousAction[2],M_PI/5);
 		  float thrustOri = dist(generator);
-		  if(thrustOri > 2*M_PI)
-		    {
-		      thrustOri -= 2*M_PI;
-		    }
-		  if (thrustOri < 0)
-		    {
-		      thrustOri += 2*M_PI;
-		    }
 		  a[2]=thrustOri;
 		}
 	      sw.setTakenAction(a);
