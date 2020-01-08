@@ -135,7 +135,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   torch::Tensor savedCA = torch::split(toOptimize,nDiscreteActions,2)[1];
   
   //Looping over the number of optimisation steps 
-  
+
   for (int i=0;i<nGradsteps;i++)
     {            
       for (int k=0;k<nRollouts;k++)
@@ -183,7 +183,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	      {
 		ohev = torch::cat({ohev,continuousActions[t]},1);
 	      }
-	    forwardModel->forward(stateSequences[t],ohev);
+	    forwardModel->forward(stateSequences[t],ohev, true);
 	    stateSequences[t+1]=forwardModel->predictedState;
 	  }
 	}
@@ -197,7 +197,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	}      
       softmaxActions = torch::cat({softmaxActions,continuousActions},2);       
       forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nContinuousActions+nDiscreteActions}));
-      cout<<forwardModel->predictedReward.reshape({nTimesteps,nRollouts})<<endl;
       rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
       //cout<< forwardModel->predictedReward.reshape({nTimesteps,nRollouts}) << endl;
       rewards.backward(torch::ones({nRollouts}).to(device));
@@ -278,7 +277,9 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
-{  
+{
+  //  torch::Tensor a = torch::zeros(0);
+  //  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
       gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
@@ -289,8 +290,10 @@ void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientStep
 	      this->world.updateTakenAction(i,*actionSequence[t][i].data<float>());
 	    }
 	  this->world.transition();
+	  //	  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
 	}
-      cout<<this->rewardHistory()<<endl;  
+      cout<<this->rewardHistory()<<endl;
+      //      cout<<torch::split(a-trajectory,4,1)[0]<<endl;
     }
 }
 

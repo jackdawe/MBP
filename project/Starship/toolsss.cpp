@@ -30,10 +30,10 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x, bool reverse)
   return y;
 }
 
-void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp, float edgeSpawnProp)
+void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, float edgeSpawnProp)
 {
   cout<<"Generating a dataset for the Starship task containing " + to_string(n) + " samples of " + to_string(nTimesteps) + " time steps. An episode ends after "+to_string(EPISODE_LENGTH)+" time steps."<<endl;
-  cout<<"The training set contains 80% of the dataset and the test set the remaining samples."<<endl;
+  cout<<"The training set contains " +to_string((int)(100*trainSetProp))+"% of the dataset and the test set the remaining samples."<<endl;
   cout<<"To help with the training, the agent is forced to spawn on a waypoint in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
   cout<<"To help with the training, the agent is forced to spawn near the edge of the map in " + to_string((int)(100*edgeSpawnProp)) + "% of the episodes."<<endl;  
 
@@ -42,10 +42,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Initialising the tensors that will contain the training set
 
   int size = sw.getSvSize();
-  torch::Tensor stateInputs = torch::zeros({4*n/5,nTimesteps,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,6});
-  torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,size});
-  torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
+  torch::Tensor stateInputs = torch::zeros({trainSetProp*n,nTimesteps,size});
+  torch::Tensor actionInputs = torch::zeros({trainSetProp*n,nTimesteps,6});
+  torch::Tensor stateLabels = torch::zeros({trainSetProp*n,nTimesteps,size});
+  torch::Tensor rewardLabels = torch::zeros({trainSetProp*n,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
 
@@ -66,7 +66,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  
 	  //Swapping to test set generation when training set generation is done
 	  
-	  if (i==4*n/5)
+	  if (i==trainSetProp*n)
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
 	      j = 0;
@@ -75,10 +75,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      torch::save(actionInputs,path+"actionInputsTrain.pt");
 	      torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	      torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	      stateInputs = torch::zeros({n/5,nTimesteps,size});
-	      actionInputs = torch::zeros({n/5,nTimesteps,6});
-	      stateLabels = torch::zeros({n/5,nTimesteps,size});
-	      rewardLabels = torch::zeros({n/5,nTimesteps});
+	      stateInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,size});
+	      actionInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,6});
+	      stateLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps,size});
+	      rewardLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps});
 	    }
 	  	
 	  for (int t=0;t<nTimesteps;t++)
@@ -112,7 +112,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
       //Adding waypoint collision situations to the dataset as they occur more rarely
       
-      if (i<=winProp*4*n/5 || i>=n-winProp*n/5)
+      if (i<=winProp*trainSetProp*n || i>=n*(1-winProp*(1-trainSetProp)))
 	{
 	  default_random_engine generator(random_device{}());
 	  uniform_int_distribution<int> dist(0,sw.getWaypoints().size()-1);
@@ -121,7 +121,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw.generateVectorStates();
 	}
 
-      if ((i>winProp*4*n/5 && i<=(edgeSpawnProp+winProp)*4*n/5) || (i<n-winProp*n/5 && i>=n-(edgeSpawnProp+winProp)*n/5))
+      if ((i>winProp*trainSetProp*n && i<=(edgeSpawnProp+winProp)*trainSetProp*n) || (i<n-winProp*(1-trainSetProp)*n && i>=n-(edgeSpawnProp+winProp)*(1-trainSetProp)*n))
 	{
 	  default_random_engine generator(random_device{}());
 	  uniform_int_distribution<int> dist(0,1);
@@ -197,7 +197,6 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
     }
   cout<<ft<<endl;
   */
-  /*
   torch::Tensor distance = torch::abs(testData-labels);   
   for (int i=0;i<n;i++)
     {
@@ -212,8 +211,7 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
 	      tScores[j+2]++;
 	    }
 	}
-    }
-  */
+    } 
 }
 
 void ToolsSS::displayTAccuracy(int dataSetSize)
@@ -240,7 +238,6 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
   labels = labels.flatten();
   int m = testData.size(0);
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
-  /*
   for (int s=0;s<m;s++)
     {
       float rl = *labels[s].data<float>();
@@ -278,7 +275,6 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
 	  rScores[3]++;
 	}
     }
-  */
 }
 
 void ToolsSS::displayRAccuracy()

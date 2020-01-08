@@ -116,7 +116,7 @@ torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
 void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);    
-  stateBatch = ToolsSS().normalize(stateBatch), actionBatch = ToolsSS().normalize(actionBatch);
+  stateBatch = ToolsSS().normalize(stateBatch);
 	  
   //Splitting varying and constant parts of the state vector
   std::vector<torch::Tensor> split = torch::split(stateBatch,4,1);

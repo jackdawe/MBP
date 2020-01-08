@@ -21,6 +21,7 @@ DEFINE_int32(pmax,100,"Planet maximum radius for mapss generation");
 DEFINE_int32(nwp,3,"Number of waypoints for mapss generation");
 DEFINE_int32(rwp,30,"Waypoint radius for mapss generation");
 DEFINE_double(esp,0.1,"Proportion of episodes for which the agent will spawn near the edge of the map");
+DEFINE_double(trp,0.9,"Share of the training set from the whole dataset");
 
 Commands::Commands(){}
 
@@ -298,8 +299,8 @@ void Commands::learnForwardModelGW()
     {
       agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
       agent.saveTrainingData();
-      torch::save(agent.getForwardModel(),"../temp/ForwardGW.pt");
-      agent.getForwardModel()->saveParams("../temp/ForwardGW_Params");
+      torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
+      agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
       //Computing accuracy
       {
 	torch::NoGradGuard no_grad;
@@ -314,8 +315,8 @@ void Commands::learnForwardModelGW()
 void Commands::playModelBasedGW(int argc, char* argv[])
 {
   //QApplication a(argc,argv);
-  ForwardGW fm("../temp/ForwardGW_Params");
-  torch::load(fm,"../temp/ForwardGW.pt");
+  ForwardGW fm(FLAGS_mdl+"_Params");
+  torch::load(fm,FLAGS_mdl+".pt");
   GridWorld gw(FLAGS_map);
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
@@ -328,30 +329,28 @@ void Commands::playModelBasedGW(int argc, char* argv[])
 
 void Commands::tc1()
 {
+  /*
   ForwardGW fm("../temp/ForwardGW_Params");
   torch::load(fm,"../temp/ForwardGW.pt");
-  GridWorld gw("../GridWorld/Maps/Inter8x8/test/map5",4,5);
+  GridWorld gw("../GridWorld/Maps/Easy8x8/test/map0",7,6);
   gw.generateVectorStates();
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  /*
-  for (int e=0;e<4001;e+=800)
-    {  
-      ForwardGW fm("../temp/ForwardGW_Params");
-      torch::load(fm,"../temp/cp"+to_string(e)+".pt");
-      GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",4,2);
-      gw.generateVectorStates();
-      ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
-      ofstream f("../temp/e"+to_string(e));
-      for (int i=0;i<2000;i++)
-	{
-	  torch::Tensor a = torch::tensor({1-(i/2000.),i/2000.,0.,0.}).to(torch::kFloat32);
-	  torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
-	  fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
-	  f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;
-	}
-    }
   */
+
+  ForwardGW fm(FLAGS_mdl+"_Params");
+  torch::load(fm,FLAGS_mdl+".pt");
+  GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",4,2);
+  gw.generateVectorStates();
+  ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
+  ofstream f("../temp/frgw");
+    for (int i=0;i<1000;i++)
+      {
+	torch::Tensor a = torch::tensor({1-(i/1000.),i/1000.,0.,0.}).to(torch::kFloat32);
+	torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
+	fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
+	f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;    
+      }
 }
 
 void Commands::tc2()
@@ -419,7 +418,7 @@ void Commands::playRandomSS(int argc, char* argv[])
 void Commands::generateDataSetSS()
 {
   ToolsSS t;
-  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_wp, FLAGS_esp);
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp, FLAGS_esp);
 }
 
 void Commands::learnForwardModelSS()
@@ -449,8 +448,8 @@ void Commands::learnForwardModelSS()
       actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
     }
   ForwardSS forwardModel(stateInputsTr.size(2),512,2);
-  //ForwardSS forwardModel("../temp/ForwardSS_Params");
-  //torch::load(forwardModel,"../temp/ForwardSS.pt");  
+  //ForwardSS forwardModel(FLAGS_mdl+"_Params");
+  //torch::load(forwardModel,FLAGS_mdl+".pt");  
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
   int l=0;
@@ -541,7 +540,7 @@ void Commands::playModelBasedSS(int argc, char* argv[])
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_map);
-  sw.repositionShip(Vect2d(100,100));
+  //  sw.repositionShip(Vect2d(100,100));
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
   agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   QApplication a(argc,argv);

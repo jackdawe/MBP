@@ -18,7 +18,7 @@ class ForwardGWImpl: public torch::nn::Module
   torch::Tensor actionForward(torch::Tensor x);
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
-  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize=false);
   void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);

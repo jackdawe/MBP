@@ -157,7 +157,7 @@ torch::Tensor ForwardGWImpl::rewardForward(torch::Tensor x)
 }
 
 
-void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
+void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalixe)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);
 
