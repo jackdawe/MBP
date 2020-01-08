@@ -81,7 +81,7 @@ float SpaceWorld::transition()
 	    {
 	      Planet p = planets[i];
 	      Vect2d vectPS = p.getCentre().sum(ship.getP().dilate(-1));
-	      gravForce = gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),3)));
+	      gravForce = gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),2)));
 	      ship.setA(Vect2d(gravForce.x-DAMPING*ship.getV().x-ship.getThrust().x,gravForce.y-DAMPING*ship.getV().y-ship.getThrust().y).dilate(1./SHIP_MASS));
 	      Vect2d newP = ship.getP().sum(ship.getV().dilate(STEP_SIZE));
 	      if (newP.x>size)
@@ -193,7 +193,7 @@ void SpaceWorld::reset()
       planets = map.getPlanets();
       for (unsigned int i=0;i<planets.size();i++)
 	{
-	  planets[i].setMass(4*PLANET_DENSITY*pow(planets[i].getRadius(),3)*M_PI/3);
+	  planets[i].setMass(20*planets[i].getRadius());
 	}
       waypoints = map.getWaypoints();
     }
