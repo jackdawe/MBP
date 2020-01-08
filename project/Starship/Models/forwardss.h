@@ -18,8 +18,8 @@ class ForwardSSImpl: public torch::nn::Module
   torch::Tensor actionEncoderForward(torch::Tensor x);
   torch::Tensor stateDecoderForward(torch::Tensor x);
   torch::Tensor rewardDecoderForward(torch::Tensor x);
-  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize=false);
-  void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels, bool normalize=true);
+  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore=false);
+  void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
   void loadParams(std::string filename);

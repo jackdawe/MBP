@@ -436,10 +436,10 @@ void Commands::learnForwardModelSS()
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
-  int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
+  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
 
   stateInputsTe = stateInputsTe.reshape({nTe*T,s});
-  stateLabelsTe = stateLabelsTe.reshape({nTe*T,s});
+  stateLabelsTe = stateLabelsTe.reshape({nTe*T,4});
   actionInputsTe = actionInputsTe.reshape({nTe*T,6});
   rewardLabelsTe = rewardLabelsTe.reshape({nTe*T});
   
@@ -463,14 +463,7 @@ void Commands::learnForwardModelSS()
   while(l!=5000)
     {
       l++;    
-      if (true)
-	{
-	  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
-	}
-      else
-	{
-	  agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, false);	  
-	}
+      agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
       if (l%500 == 0)
 	{
 	  torch::save(agent.getForwardModel(),FLAGS_mdl+"cp"+to_string(l)+".pt");
@@ -486,10 +479,10 @@ void Commands::learnForwardModelSS()
 	ToolsSS t;
 	auto model = agent.getForwardModel();
 	int splitSize = 10000;
-	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr.reshape({4*nTe*T,s}),splitSize,0);
-	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr.reshape({4*nTe*T,6}),splitSize,0);
-	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr.reshape({4*nTe*T,s}),splitSize,0);
-	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr.reshape({4*nTe*T}),splitSize,0);
+	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr.reshape({nTr*T,s}),splitSize,0);
+	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr.reshape({nTr*T,6}),splitSize,0);
+	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr.reshape({nTr*T,4}),splitSize,0);
+	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr.reshape({nTr*T}),splitSize,0);
 	unsigned int nSplit = sitrSplit.size();
 	
 	for (unsigned int i=0;i<nSplit;i++)
@@ -502,7 +495,7 @@ void Commands::learnForwardModelSS()
 	ftrp<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftrv<<pow(*t.vMSE.data<float>(),0.5)<<endl;
 	ftrr<<pow(*t.rMSE.data<float>(),0.5)<<endl;	
-	t.displayTAccuracy(4*nTe*T);
+	t.displayTAccuracy(nTr*T);
 	t.displayRAccuracy();
 
         t = ToolsSS();
@@ -532,7 +525,8 @@ void Commands::learnForwardModelSS()
 	//ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);	
 	//ToolsSS().transitionAccuracy(ToolsSS().normalize(model->predictedState,true).to(torch::Device(torch::kCPU)),stateLabelsTe);
       }
-    }
+
+    }  
 }
 
 void Commands::playModelBasedSS(int argc, char* argv[])

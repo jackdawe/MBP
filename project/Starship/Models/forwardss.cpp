@@ -113,7 +113,7 @@ torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
   return rewardLayers.back()->forward(x);
 }
 
-void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize)
+void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);    
   stateBatch = ToolsSS().normalize(stateBatch);
@@ -127,26 +127,23 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
   torch::Tensor aeOut = actionEncoderForward(actionBatch);
   torch::Tensor x = torch::cat({seOut,aeOut},1);
   predictedState = stateDecoderForward(x);
-  for (int i=1;i<split.size();i++)
+  if (restore)
     {
-      predictedState = torch::cat({predictedState,split[i]},1);
-    }
-  if (unnormalize)
-    {
+      torch::Tensor pos = stateBatch.slice(1,0,1,1);
+      torch::Tensor velo = stateBatch.slice(1,2,3,1);  
+      torch::Tensor constPart = stateBatch.slice(1,4,stateBatch.size(1),1);  
+      predictedState = torch::cat({torch::fmod(pos+predictedState.slice(1,0,1,1),1),velo+predictedState.slice(1,2,3,1),constPart},1);      
       predictedState = ToolsSS().normalize(predictedState,true);
     }
   predictedReward = rewardDecoderForward(x).squeeze();
 }
 
-void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels, bool normalize)
+void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {  
-  if (normalize)
-    {
-      int n = predictedState.size(0), T= predictedState.size(1), s = predictedState.size(2);
-      stateLabels = ToolsSS().normalize(stateLabels.reshape({n*T,s})).reshape({n,T,s});
-    }  
-  std::vector<torch::Tensor> stateOutputsChunks = torch::split(predictedState,4,2);
-  std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,4,2);  
+  int n = predictedState.size(0), T= predictedState.size(1);
+  stateLabels = ToolsSS().normalize(stateLabels.reshape({n*T,4})).reshape({n,T,4});
+  std::vector<torch::Tensor> stateOutputsChunks = torch::split(predictedState,2,2);
+  std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,2,2);  
   stateLoss = torch::mse_loss(stateOutputsChunks[0],slBatchChunks[0])+torch::mse_loss(stateOutputsChunks[1],slBatchChunks[1]);
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
 }

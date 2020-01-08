@@ -44,7 +44,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   int size = sw.getSvSize();
   torch::Tensor stateInputs = torch::zeros({trainSetProp*n,nTimesteps,size});
   torch::Tensor actionInputs = torch::zeros({trainSetProp*n,nTimesteps,6});
-  torch::Tensor stateLabels = torch::zeros({trainSetProp*n,nTimesteps,size});
+  torch::Tensor stateLabels = torch::zeros({trainSetProp*n,nTimesteps,4});
   torch::Tensor rewardLabels = torch::zeros({trainSetProp*n,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
@@ -77,7 +77,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      torch::save(stateLabels,path+"stateLabelsTrain.pt");
 	      stateInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,size});
 	      actionInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,6});
-	      stateLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps,size});
+	      stateLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps,4});
 	      rewardLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps});
 	    }
 	  	
@@ -103,7 +103,12 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      actionInputs[j][t][4]=sw.getTakenAction()[1];
 	      actionInputs[j][t][5]=sw.getTakenAction()[2];
 	      rewardLabels[j][t] = sw.transition();
-	      stateLabels[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	     
+	      torch::Tensor nextState = torch::zeros({4});
+	      nextState[0] = sw.getPreviousState().getStateVector()[2]*STEP_SIZE;
+	      nextState[1] = sw.getPreviousState().getStateVector()[3]*STEP_SIZE;
+	      nextState[2] = sw.getShip().getA().x*STEP_SIZE;
+	      nextState[3] = sw.getShip().getA().y*STEP_SIZE;	      
+	      stateLabels[j][t] = nextState;
 	    }
 	  i++;
 	  j++;
@@ -197,6 +202,7 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
     }
   cout<<ft<<endl;
   */
+  /*
   torch::Tensor distance = torch::abs(testData-labels);   
   for (int i=0;i<n;i++)
     {
@@ -211,7 +217,8 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
 	      tScores[j+2]++;
 	    }
 	}
-    } 
+    }
+  */
 }
 
 void ToolsSS::displayTAccuracy(int dataSetSize)
@@ -223,9 +230,9 @@ void ToolsSS::displayTAccuracy(int dataSetSize)
       cout<<"Correctly classified " + names[j] + ": " + to_string(tScores[j])+"/"+to_string(dataSetSize) + " (" + to_string(100.*tScores[j]/dataSetSize) + "%)" << endl;
     }
   cout<<endl;
-  cout<< "POSITION AVERAGE ERROR (TARGET: 5 pixels): ";
+  cout<< "POSITION DELTA AVERAGE ERROR: ";
   cout<<pow(*pMSE.data<float>(),0.5)<<endl;
-  cout<< "VELOCITY MSE (TARGET: 0.2 pixels per step): ";
+  cout<< "VELOCITY DELTA AVERAGE ERROR: ";
   cout<<pow(*vMSE.data<float>(),0.5)<<endl;
   cout<<endl;  
   cout<<"################################################"<<endl;  

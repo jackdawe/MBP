@@ -64,7 +64,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
       if (allStatesProvided)
 	{
 	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
-	  stateOutputs = forwardModel->predictedState.reshape({batchSize,nTimesteps,s});
+	  stateOutputs = forwardModel->predictedState.reshape({batchSize,nTimesteps,4});
 	  rewardOutputs = forwardModel->predictedReward.reshape({batchSize,nTimesteps});
 	}
       else
@@ -80,7 +80,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	  rewardOutputs = rewardOutputs.transpose(0,1);	  
 	}
       forwardModel->predictedState = stateOutputs;
-      forwardModel->predictedReward = rewardOutputs;      
+      forwardModel->predictedReward = rewardOutputs;
       forwardModel->computeLoss(slBatch,rlBatch);
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
       torch::Tensor totalLoss = sLoss + rLoss;
