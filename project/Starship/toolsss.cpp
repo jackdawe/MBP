@@ -12,7 +12,7 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x, bool reverse)
 {
   torch::Tensor y = x.clone();
   y = y.transpose(0,1);
-  float vmax = 50;
+  float vmax = 20;
   float size = 800;
   if (!reverse)    
     {
@@ -28,6 +28,15 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x, bool reverse)
     }
   y = y.transpose(0,1);		
   return y;
+}
+
+torch::Tensor ToolsSS::deltaToState(torch::Tensor stateBatch, torch::Tensor deltas)
+{
+  torch::Tensor pos = stateBatch.slice(1,0,2,1);
+  torch::Tensor velo = stateBatch.slice(1,2,4,1);  
+  torch::Tensor constPart = stateBatch.slice(1,4,stateBatch.size(1),1);  
+  torch::Tensor newStates = torch::cat({torch::fmod(pos+deltas.slice(1,0,2,1),1),velo+deltas.slice(1,2,4,1),constPart},1);
+  return newStates;
 }
 
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, float edgeSpawnProp)
@@ -70,7 +79,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
 	      j = 0;
-	      cout<< "Training set generation is complete! Now generating test set..."<<endl; 
+	      cout<< "Training set generation is complete! Now generating test set..."<<endl; 	      
 	      torch::save(stateInputs,path+"stateInputsTrain.pt");
 	      torch::save(actionInputs,path+"actionInputsTrain.pt");
 	      torch::save(rewardLabels,path+"rewardLabelsTrain.pt");

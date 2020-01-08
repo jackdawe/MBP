@@ -43,6 +43,8 @@ class ForwardSSImpl: public torch::nn::Module
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> actionLayers;
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> decoderLayers;
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> rewardLayers;
+
+  torch::Tensor savedState;  
 };
 
 #endif

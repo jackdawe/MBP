@@ -29,7 +29,6 @@ template<class W, class F, class P>
  private:
   F forwardModel;
   P planner;
-
   torch::Tensor actionSequence;
   torch::Tensor trajectory;
   torch::Tensor reward;

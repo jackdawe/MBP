@@ -65,7 +65,8 @@ void ForwardSSImpl::init()
     {
       decoderLayers.push_back(register_module("State Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
-  decoderLayers.push_back(register_module("State Decoder OUT",torch::nn::Linear(nfc,4)));
+  decoderLayers.push_back(register_module("POSITION OUT",torch::nn::Linear(nfc,2)));
+  decoderLayers.push_back(register_module("VELOCITY OUT",torch::nn::Linear(nfc,2)));  
 
     //Adding the layers of the reward decoder
 
@@ -97,11 +98,15 @@ torch::Tensor ForwardSSImpl::stateEncoderForward(torch::Tensor x)
 
 torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)
 {
-  for (unsigned int i=0;i<decoderLayers.size()-1;i++)
+  for (unsigned int i=0;i<decoderLayers.size()-2;i++)
     {
       x = torch::prelu(decoderLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
     }
-  return decoderLayers.back()->forward(x);
+  torch::Tensor posOut = decoderLayers[decoderLayers.size()-2]->forward(x);
+  //  posOut = torch::sigmoid(posOut);
+  torch::Tensor veloOut = decoderLayers.back()->forward(x);
+  veloOut = torch::tanh(veloOut);
+  return torch::cat({posOut,veloOut},1);
 }
 
 torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
@@ -110,16 +115,18 @@ torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
     {
       x = torch::prelu(rewardLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
     }
-  return rewardLayers.back()->forward(x);
+  return torch::tanh(rewardLayers.back()->forward(x));
 }
 
 void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);    
   stateBatch = ToolsSS().normalize(stateBatch);
-	  
-  //Splitting varying and constant parts of the state vector
-  std::vector<torch::Tensor> split = torch::split(stateBatch,4,1);
+
+  if (stateBatch.size(1) == 4)
+    {
+      stateBatch = ToolsSS().deltaToState(savedState,stateBatch);
+    }
 
   //Forward Pass
 
@@ -129,13 +136,11 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
   predictedState = stateDecoderForward(x);
   if (restore)
     {
-      torch::Tensor pos = stateBatch.slice(1,0,1,1);
-      torch::Tensor velo = stateBatch.slice(1,2,3,1);  
-      torch::Tensor constPart = stateBatch.slice(1,4,stateBatch.size(1),1);  
-      predictedState = torch::cat({torch::fmod(pos+predictedState.slice(1,0,1,1),1),velo+predictedState.slice(1,2,3,1),constPart},1);      
+      predictedState = ToolsSS().deltaToState(stateBatch,predictedState);
       predictedState = ToolsSS().normalize(predictedState,true);
     }
   predictedReward = rewardDecoderForward(x).squeeze();
+  savedState = stateBatch;
 }
 
 void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)

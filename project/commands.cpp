@@ -437,7 +437,6 @@ void Commands::learnForwardModelSS()
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
   int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
-
   stateInputsTe = stateInputsTe.reshape({nTe*T,s});
   stateLabelsTe = stateLabelsTe.reshape({nTe*T,4});
   actionInputsTe = actionInputsTe.reshape({nTe*T,6});
@@ -462,7 +461,7 @@ void Commands::learnForwardModelSS()
   
   while(l!=5000)
     {
-      l++;    
+      l++;
       agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
       if (l%500 == 0)
 	{

@@ -56,7 +56,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::Tensor actionInputs, torch::Ten
 	}
       siBatch = siBatch.to(device), aiBatch = aiBatch.to(device), slBatch = slBatch.to(device);
       rlBatch = rlBatch.to(device);
-
+      
       //Forward and backward pass
 
       torch::Tensor stateOutputs = torch::zeros(0).to(device);
