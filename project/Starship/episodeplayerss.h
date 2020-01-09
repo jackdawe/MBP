@@ -5,7 +5,7 @@
 #include <QGraphicsItem>
 #include <QTimer>
 #include "mapss.h"
-#include "ship.h"
+#include "spaceworld.h"
 
 #define TIME_STEP 100 //in ms
 

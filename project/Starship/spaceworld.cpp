@@ -35,8 +35,8 @@ void SpaceWorld::init()
   size = map.getSize();
   svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
-  ship.setWidth(map.getWaypoints()[0].getRadius()/2.);
-  ship.setHeight(map.getWaypoints()[0].getRadius());
+  ship.setWidth(SHIP_WIDTH);
+  ship.setHeight(SHIP_HEIGHT);
   reset();
 }
 

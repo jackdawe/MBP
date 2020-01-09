@@ -16,10 +16,7 @@ using namespace std;
 #define PLANET_MAX_SIZE 100
 
 #define N_WAYPOINTS 3
-#define WAYPOINT_RADIUS 20
-
-#define SHIP_WIDTH WAYPOINT_RADIUS
-#define SHIP_HEIGHT WAYPOINT_RADIUS*2
+#define WAYPOINT_RADIUS 40
 
 class MapSS
 {

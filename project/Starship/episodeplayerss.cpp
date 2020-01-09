@@ -16,8 +16,8 @@ void EpisodePlayerSS::initMap()
 {
   connect(&playClock,SIGNAL(timeout()),this,SLOT(update()));
   connect(&signalClock,SIGNAL(timeout()),this,SLOT(signalOff()));
-  ship.setWidth(map.getWaypoints()[0].getRadius()/2.);
-  ship.setHeight(map.getWaypoints()[0].getRadius());
+  ship.setWidth(SHIP_WIDTH);
+  ship.setHeight(SHIP_HEIGHT);
   ssView.setScene(&ssScene);
   ssScene.setSceneRect(0,0,map.getSize(),map.getSize());
   ssView.setFixedSize(map.getSize(),map.getSize());
@@ -30,7 +30,7 @@ void EpisodePlayerSS::initMap()
     }
   for (unsigned int i=0;i<map.getWaypoints().size();i++)
     {
-      waypointShapes.push_back(new QGraphicsEllipseItem(0,0,map.getWaypoints()[i].getRadius(),map.getWaypoints()[i].getRadius()));
+      waypointShapes.push_back(new QGraphicsEllipseItem(0,0,map.getWaypoints()[i].getRadius()*2,map.getWaypoints()[i].getRadius()*2));
       waypointShapes.last()->setBrush(wpColors[i]);
       waypointShapes.last()->setPos(map.getWaypoints()[i].getCentre().x-map.getWaypoints()[i].getRadius(), map.getWaypoints()[i].getCentre().y-map.getWaypoints()[i].getRadius());
       ssScene.addItem(waypointShapes.last());

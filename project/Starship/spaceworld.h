@@ -6,7 +6,7 @@
 
 #define SHIP_WIDTH 20
 #define SHIP_HEIGHT 40
-#define GRAVITY 0.015
+#define GRAVITY 0.025
 #define DAMPING 0.1
 #define SHIP_MASS 1
 #define SHIP_MAX_THRUST 1
