@@ -294,10 +294,11 @@ void Commands::learnForwardModelGW()
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
-
+  torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
+  
   while(true)
     {
-      agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
+      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta, FLAGS_asp);
       agent.saveTrainingData();
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
@@ -451,6 +452,7 @@ void Commands::learnForwardModelSS()
   //torch::load(forwardModel,FLAGS_mdl+".pt");  
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
+  torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
   int l=0;
   ofstream ftrp("../temp/trp_mse"+FLAGS_tag);
   ofstream ftrv("../temp/trv_mse"+FLAGS_tag);  
@@ -462,7 +464,7 @@ void Commands::learnForwardModelSS()
   while(l!=5000)
     {
       l++;
-      agent.learnForwardModel(actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs,FLAGS_lr, FLAGS_beta, FLAGS_asp);
+      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta, FLAGS_asp);
       if (l%500 == 0)
 	{
 	  torch::save(agent.getForwardModel(),FLAGS_mdl+"cp"+to_string(l)+".pt");
