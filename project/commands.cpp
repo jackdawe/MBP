@@ -29,7 +29,7 @@ void Commands::generateMapGW()
 {
   MapGW map(FLAGS_size);
   map.generate(FLAGS_maxObst);
-  map.save(FLAGS_f);
+  map.save(FLAGS_map);
 }
 
 void Commands::generateMapPoolGW()
