@@ -1,9 +1,6 @@
 #ifndef TOOLSGW_H
 #define TOOLSGW_H
 #include "gridworld.h"
-DECLARE_double(wp);
-DECLARE_bool(wn);
-DECLARE_double(sd);
 
 class ToolsGW
 {

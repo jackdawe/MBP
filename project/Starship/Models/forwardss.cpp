@@ -121,12 +121,13 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
 void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {  
   int n = predictedState.size(0), T= predictedState.size(1);
-  stateLabels = ToolsSS().normalize(stateLabels.reshape({n*T,4})).reshape({n,T,4});
+  stateLabels = ToolsSS().normalizeDeltas(stateLabels.reshape({n*T,4})).reshape({n,T,4});
   std::vector<torch::Tensor> stateOutputsChunks = torch::split(predictedState,2,2);
   std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,2,2);  
   stateLoss = torch::mse_loss(stateOutputsChunks[0],slBatchChunks[0])+torch::mse_loss(stateOutputsChunks[1],slBatchChunks[1]);
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
   //cout<<torch::cat({predictedState.slice(2,0,4,1),stateLabels.slice(2,0,4,1)},2)[0]<<endl;
+  //  cout<<stateLabels[1000000000000000]<<endl;
 }
 
 void ForwardSSImpl::saveParams(std::string filename)

@@ -30,6 +30,28 @@ torch::Tensor ToolsSS::normalize(torch::Tensor x, bool reverse)
   return y;
 }
 
+torch::Tensor ToolsSS::normalizeDeltas(torch::Tensor x, bool reverse)
+{
+  torch::Tensor y = x.clone();
+  y = y.transpose(0,1);
+  float vmax = 10;
+  float size = 50;
+  if (!reverse)    
+    {
+      y/=size;        
+      y[2]=y[2]*size/vmax;
+      y[3]=y[3]*size/vmax;
+    }
+  else
+    {
+      y*=size;        
+      y[2]=y[2]/size*vmax;
+      y[3]=y[3]/size*vmax;
+    }
+  y = y.transpose(0,1);		
+  return y;
+}
+
 torch::Tensor ToolsSS::deltaToState(torch::Tensor stateBatch, torch::Tensor deltas)
 {
   torch::Tensor pos = stateBatch.slice(1,0,2,1);
@@ -47,14 +69,15 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   cout<<"To help with the training, the agent is forced to spawn near the edge of the map in " + to_string((int)(100*edgeSpawnProp)) + "% of the episodes."<<endl;  
 
   sw = SpaceWorld(path+"train/",nmaps);
-
+  int nTr=(int)(trainSetProp*n), nTe = n-nTr;
+  
   //Initialising the tensors that will contain the training set
 
   int size = sw.getSvSize();
-  torch::Tensor stateInputs = torch::zeros({trainSetProp*n,nTimesteps,size});
-  torch::Tensor actionInputs = torch::zeros({trainSetProp*n,nTimesteps,6});
-  torch::Tensor stateLabels = torch::zeros({trainSetProp*n,nTimesteps,4});
-  torch::Tensor rewardLabels = torch::zeros({trainSetProp*n,nTimesteps});
+  torch::Tensor stateInputs = torch::zeros({nTr,nTimesteps,size});
+  torch::Tensor actionInputs = torch::zeros({nTr,nTimesteps,6});
+  torch::Tensor stateLabels = torch::zeros({nTr,nTimesteps,4});
+  torch::Tensor rewardLabels = torch::zeros({nTr,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
 
@@ -70,12 +93,12 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  
 	  if (n > 100 && i%(5*n/100) == 0)
 	    {
-	      cout << "Your agent is crashing into planets for science... " + to_string(i/(n/100)) + "%" << endl;
+	      cout << "Your agent is crashing into planets for science... " + to_string((int)(i/(n/100.))) + "%" << endl;
 	    }	  
 	  
 	  //Swapping to test set generation when training set generation is done
 	  
-	  if (i==trainSetProp*n)
+	  if (i==nTr)
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
 	      j = 0;
@@ -84,10 +107,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      torch::save(actionInputs,path+"actionInputsTrain.pt");
 	      torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	      torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	      stateInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,size});
-	      actionInputs = torch::zeros({(1-trainSetProp)*n,nTimesteps,6});
-	      stateLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps,4});
-	      rewardLabels = torch::zeros({(1-trainSetProp)*n,nTimesteps});
+	      stateInputs = torch::zeros({nTe,nTimesteps,size});
+	      actionInputs = torch::zeros({nTe,nTimesteps,6});
+	      stateLabels = torch::zeros({nTe,nTimesteps,4});
+	      rewardLabels = torch::zeros({nTe,nTimesteps});
 	    }
 	  	
 	  for (int t=0;t<nTimesteps;t++)
@@ -126,7 +149,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
       //Adding waypoint collision situations to the dataset as they occur more rarely
       
-      if (i<=winProp*trainSetProp*n || i>=n*(1-winProp*(1-trainSetProp)))
+      if (i<=winProp*nTr || i>=n-winProp*nTe)
 	{
 	  default_random_engine generator(random_device{}());
 	  uniform_int_distribution<int> dist(0,sw.getWaypoints().size()-1);
@@ -135,7 +158,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw.generateVectorStates();
 	}
 
-      if ((i>winProp*trainSetProp*n && i<=(edgeSpawnProp+winProp)*trainSetProp*n) || (i<n-winProp*(1-trainSetProp)*n && i>=n-(edgeSpawnProp+winProp)*(1-trainSetProp)*n))
+      if ((i>winProp*nTr && i<=(edgeSpawnProp+winProp)*nTr) || (i<n-winProp*nTe && i>=n-(edgeSpawnProp+winProp)*nTe))
 	{
 	  default_random_engine generator(random_device{}());
 	  uniform_int_distribution<int> dist(0,1);
@@ -175,7 +198,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(stateInputs,path+"stateInputsTest.pt");
   torch::save(actionInputs,path+"actionInputsTest.pt");
   torch::save(rewardLabels,path+"rewardLabelsTest.pt");
-  torch::save(stateLabels,path+"stateLabelsTest.pt");  
+  torch::save(stateLabels,path+"stateLabelsTest.pt");    
 }
 
 void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)

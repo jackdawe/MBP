@@ -1,7 +1,4 @@
 #include "toolsgw.h"
-DEFINE_double(wp,0.1,"Percentage of forced win scenarios during the dataset generation"); 
-DEFINE_bool(wn,false,"Adding white noise to the one-hot encoded action vectors");
-DEFINE_double(sd,0.25,"Standard deviation");
 
 ToolsGW::ToolsGW(){}
 

@@ -1,17 +1,17 @@
 #include "commands.h"
-DEFINE_double(eps,0.1,"Probability of exploring for agents using epsilon greedy policies");
-DEFINE_double(g,0.95,"Discount factor");
-DEFINE_string(map,"../GridWorld/Maps/Inter8x8/train/map0","Path to a map file");
-DEFINE_string(mp,"../GridWorld/Maps/Inter8x8/","Path to a directory containing your maps");
-DEFINE_int32(K,1,"Number of rollouts");
-DEFINE_int32(T,1,"Number of timesteps to unroll");
-DEFINE_int32(gs,1,"Number of gradient steps");
-DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encoder. Next layers have twice as many features maps and the NN is shaped accordingly");
-
-DEFINE_bool(asp,true,"If true, all input states are provided for training for model based agent. If false, only initial state and the action sequence are provided and the agent uses his predicted states to predict the next state"); 
 
 DEFINE_string(mdl,"../temp/model","Path to a model file. Do not add the .pt extension.");
 DEFINE_string(tag,"","Suffix for auto generated files"); 
+DEFINE_string(f,"../file","The path to a file");
+DEFINE_string(dir,"../temp/","The path to a directory (must end with a /)");
+DEFINE_string(map,"","Path to a map file");
+DEFINE_string(mp,"","Path to a directory containing your maps");
+DEFINE_int32(nmaps,1,"The number of maps in the map pool directory");
+
+//GridWorld flags
+
+DEFINE_int32(size,8,"The generated maps will be of size sizexsize");
+DEFINE_int32(maxObst,1,"The maps will be generated having a random number of obstacles between 1 and maxObst");
 
 //Starship flags
 
@@ -22,6 +22,32 @@ DEFINE_int32(nwp,N_WAYPOINTS,"Number of waypoints for mapss generation");
 DEFINE_int32(rwp,WAYPOINT_RADIUS,"Waypoint radius for mapss generation");
 DEFINE_double(esp,0.1,"Proportion of episodes for which the agent will spawn near the edge of the map");
 DEFINE_double(trp,0.9,"Share of the training set from the whole dataset");
+
+//Model flags
+
+DEFINE_int32(sc1,16,"Number of feature maps of the first conv layer of the encoder. Next layers have twice as many features maps and the NN is shaped accordingly");
+
+//Learning parameters flags
+
+DEFINE_double(eps,0.1,"Probability of exploring for agents using epsilon greedy policies");
+DEFINE_double(g,0.95,"Discount factor");
+DEFINE_double(lr,0.001,"Learning Rate");
+DEFINE_double(beta,1,"Coefficient applied to the entropy loss");
+DEFINE_double(zeta,1,"Coefficient applied to the value loss");
+DEFINE_int32(bs,32,"Batch Size");
+
+//Planning flags
+
+DEFINE_int32(K,1,"Number of rollouts");
+DEFINE_int32(T,1,"Number of timesteps to unroll");
+DEFINE_int32(gs,1,"Number of gradient steps");
+
+
+DEFINE_bool(asp,true,"If true, all input states are provided for training for model based agent. If false, only initial state and the action sequence are provided and the agent uses his predicted states to predict the next state"); 
+DEFINE_int32(n,10000,"Number of training episodes");
+DEFINE_double(wp,0.1,"Percentage of forced win scenarios during the dataset generation"); 
+DEFINE_bool(wn,false,"Adding white noise to the one-hot encoded action vectors");
+DEFINE_double(sd,0.25,"Standard deviation");
 
 Commands::Commands(){}
 
@@ -435,9 +461,7 @@ void Commands::learnForwardModelSS()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-
-  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
-  
+  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);  
   if (FLAGS_wn)
     {
       actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
@@ -503,7 +527,7 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nTr*T,4}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTr*T});	       
 	      }
-	    t.transitionAccuracy(t.normalize(model->predictedState,true),sltrSplit[i],nSplit);
+	    t.transitionAccuracy(t.normalizeDeltas(model->predictedState,true),sltrSplit[i],nSplit);
 	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rltrSplit[i], nSplit);
 	  }
 	
@@ -542,7 +566,7 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nTe*T,4}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTe*T});	       
 	      }
-	    t.transitionAccuracy(t.normalize(model->predictedState,true),slteSplit[i],nSplit);
+	    t.transitionAccuracy(t.normalizeDeltas(model->predictedState,true),slteSplit[i],nSplit);
 	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i], nSplit);
 	  }
 	

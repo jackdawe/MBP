@@ -58,15 +58,15 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
       
       //Forward and backward pass
 
-      torch::Tensor stateOutputs, rewardOutputs;
       if (allStatesProvided)
 	{
 	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
-	  stateOutputs = forwardModel->predictedState.reshape({batchSize,nTimesteps,4});
-	  rewardOutputs = forwardModel->predictedReward.reshape({batchSize,nTimesteps});
+	  forwardModel->predictedState = forwardModel->predictedState.reshape({batchSize,nTimesteps,4});
+	  forwardModel->predictedReward = forwardModel->predictedReward.reshape({batchSize,nTimesteps});
 	}
       else
 	{
+	  torch::Tensor stateOutputs, rewardOutputs;
 	  stateOutputs = torch::zeros({nTimesteps,batchSize,4}).to(device);
 	  rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);	  
 	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[0]);	      
@@ -85,7 +85,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	}
       forwardModel->computeLoss(slBatch,rlBatch);
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
-      torch::Tensor totalLoss = sLoss + rLoss;
+      torch::Tensor totalLoss = rLoss;
       optimizer->zero_grad();
       totalLoss.backward();
       optimizer->step();

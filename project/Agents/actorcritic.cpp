@@ -1,9 +1,4 @@
 #include "actorcritic.h"
-DEFINE_double(lr,0.003,"Learning Rate");
-DEFINE_double(beta,0.01,"Coefficient applied to the entropy loss");
-DEFINE_double(zeta,0.5,"Coefficient applied to the value loss");
-DEFINE_int32(bs,100,"Batch Size");
-DEFINE_int32(n,10000,"Number of training episodes");
 
 template <class W, class M>
 ActorCritic<W,M>::ActorCritic()
