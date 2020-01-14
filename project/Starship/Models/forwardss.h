@@ -1,14 +1,9 @@
 #ifndef FORWARDSS_H
 #define FORWARDSS_H
-#undef slots
-#include <torch/torch.h>
-#define slots Q_SLOTS
-#include <math.h>
-#include <fstream>
-#include <iostream>
 #include "../toolsss.h"
+#include "../../forward.h"
 
-class ForwardSSImpl: public torch::nn::Module
+class ForwardSSImpl: public ForwardImpl
 {
  public:
   ForwardSSImpl();
@@ -24,17 +19,9 @@ class ForwardSSImpl: public torch::nn::Module
   void saveParams(std::string filename);
   void loadParams(std::string filename);
   
-  torch::Device getUsedDevice();
-
-  torch::Tensor predictedState;
-  torch::Tensor predictedReward;
-  torch::Tensor stateLoss;
-  torch::Tensor rewardLoss;  
-  
  private:
   void init();
   
-  torch::Device usedDevice;
   int size;
   int nfc;
   int depth;

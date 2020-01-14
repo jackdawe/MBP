@@ -1,44 +1,20 @@
 #include "forwardgw.h"
 
-ForwardGWImpl::ForwardGWImpl():
-  usedDevice(torch::Device(torch::kCPU))
-{
-  if (torch::cuda::is_available())
-    {
-      std::cout << "CUDA detected for ForwardGW: training and inference will be done using CUDA." << std::endl;
-      usedDevice = torch::Device(torch::kCUDA);
-    }
-    else
-    {
-      std::cout << "CUDA not available for ForwardGW: training and inference will be done using CPU." << std::endl;
-    }
-  this->to(usedDevice);
-}
+ForwardGWImpl::ForwardGWImpl(){}
 
 ForwardGWImpl::ForwardGWImpl(int size, int nConv1):
-  size(size), nConv1(nConv1), usedDevice(torch::Device(torch::kCPU)), nUnetLayers(-1+log(size)/log(2))
+  size(size), nConv1(nConv1), nUnetLayers(-1+log(size)/log(2))
 {
   init();
 }
 
-ForwardGWImpl::ForwardGWImpl(std::string filename):
-  usedDevice(torch::Device(torch::kCPU))
+ForwardGWImpl::ForwardGWImpl(std::string filename)
 {
   loadParams(filename);
 }
 
 void ForwardGWImpl::init()
 {
-  if (torch::cuda::is_available())
-    {
-      std::cout << "CUDA detected for ForwardGW: training and inference will be done using CUDA." << std::endl;
-      usedDevice = torch::Device(torch::kCUDA);
-    }
-    else
-    {
-      std::cout << "CUDA not available for ForwardGW: training and inference will be done using CPU." << std::endl;
-    }
-    this->to(usedDevice);
 
     //Adding the convolutionnal layers of the encoder 
 
@@ -157,7 +133,7 @@ torch::Tensor ForwardGWImpl::rewardForward(torch::Tensor x)
 }
 
 
-void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalixe)
+void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalise)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);
 
@@ -241,8 +217,4 @@ void ForwardGWImpl::loadParams(std::string filename)
   }
 }
 
-torch::Device ForwardGWImpl::getUsedDevice()
-{
-  return usedDevice;
-}
 

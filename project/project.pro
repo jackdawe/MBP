@@ -34,6 +34,7 @@ SOURCES += main.cpp \
     state.cpp \
     actionspace.cpp \
     world.cpp \
+    forward.cpp \
     GridWorld/mapgw.cpp \
     GridWorld/gridworld.cpp \    
     GridWorld/episodeplayergw.cpp \    
@@ -63,6 +64,7 @@ HEADERS += \
     state.h \
     actionspace.h \
     world.h \
+    forward.h \
     GridWorld/mapgw.h \
     GridWorld/gridworld.h \    
     GridWorld/episodeplayergw.h \    

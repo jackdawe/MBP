@@ -1,14 +1,9 @@
 #ifndef FORWARDGW_H
 #define FORWARDGW_H
-#undef slots
-#include <torch/torch.h>
-#define slots Q_SLOTS
-#include <math.h>
-#include <fstream>
-#include <iostream>
+#include "../../forward.h"
 #include "../toolsgw.h"
 
-class ForwardGWImpl: public torch::nn::Module
+class ForwardGWImpl: public ForwardImpl
 {
  public:
   ForwardGWImpl();
@@ -24,18 +19,9 @@ class ForwardGWImpl: public torch::nn::Module
   void saveParams(std::string filename);
   void loadParams(std::string filename);
   
-  torch::Device getUsedDevice();
-
-  torch::Tensor predictedState;
-  torch::Tensor predictedReward;
-  torch::Tensor stateLoss;
-  torch::Tensor rewardLoss;
-  
  private:
   void init();
   
-  torch::Device usedDevice;
-
   std::vector<torch::Tensor> outputCopies;
 
   int size;

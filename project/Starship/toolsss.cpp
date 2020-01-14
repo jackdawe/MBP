@@ -183,7 +183,7 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   int s = testData.size(1);
   int n = testData.size(0);
   testData = testData.to(torch::Device(torch::kCPU));
-
+  //  cout<<torch::cat({testData, labels},1)<<endl;
   pMSE+=torch::mse_loss(torch::split(testData,2,1)[0],torch::split(labels,2,1)[0])/nSplit;
   vMSE+=torch::mse_loss(torch::split(testData,2,1)[1],torch::split(labels,2,1)[1])/nSplit;
 

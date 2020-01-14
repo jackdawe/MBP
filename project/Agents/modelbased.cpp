@@ -7,14 +7,14 @@ ModelBased<W,F,P>::ModelBased():
 
 template <class W, class F, class P>
 ModelBased<W,F,P>::ModelBased(W world, F forwardModel):
-  forwardModel(forwardModel), device(forwardModel->getUsedDevice())
+  forwardModel(forwardModel), device(forwardModel->usedDevice)
 {
   this->world = world;
 }
 
 template <class W, class F, class P>
 ModelBased<W,F,P>::ModelBased(W world, F forwardModel, P planner):
-  forwardModel(forwardModel),planner(planner),device(forwardModel->getUsedDevice())
+  forwardModel(forwardModel),planner(planner),device(forwardModel->usedDevice)
 {
   this->world = world;
 }
@@ -58,8 +58,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
       
       //Forward and backward pass
 
-      torch::Tensor stateOutputs = torch::zeros(0).to(device);
-      torch::Tensor rewardOutputs = torch::zeros({batchSize,nTimesteps}).to(device);
+      torch::Tensor stateOutputs, rewardOutputs;
       if (allStatesProvided)
 	{
 	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
@@ -68,18 +67,22 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	}
       else
 	{
-	  rewardOutputs = rewardOutputs.transpose(0,1);
-	  for (int t=0;t<nTimesteps;t++)
+	  stateOutputs = torch::zeros({nTimesteps,batchSize,4}).to(device);
+	  rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);	  
+	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[0]);	      
+	  stateOutputs[0] = forwardModel->predictedState;      
+	  rewardOutputs[0] = forwardModel->predictedReward;
+	  for (int t=1;t<nTimesteps;t++)
 	    {
-	      forwardModel->forward(siBatch,aiBatch.transpose(0,1)[t]);
-	      siBatch = forwardModel->predictedState;	  
-	      stateOutputs = torch::cat({stateOutputs,siBatch.unsqueeze(1)},1);	  
+	      forwardModel->forward(stateOutputs[t-1],aiBatch.transpose(0,1)[t]);	      
+	      stateOutputs[t] = forwardModel->predictedState;      
 	      rewardOutputs[t] = forwardModel->predictedReward;
 	    }
-	  rewardOutputs = rewardOutputs.transpose(0,1);	  
+	  rewardOutputs = rewardOutputs.transpose(0,1);
+	  stateOutputs = stateOutputs.transpose(0,1);
+	  forwardModel->predictedState = stateOutputs; //Regrouping the operation for loss computation
+	  forwardModel->predictedReward = rewardOutputs;
 	}
-      forwardModel->predictedState = stateOutputs;
-      forwardModel->predictedReward = rewardOutputs;
       forwardModel->computeLoss(slBatch,rlBatch);
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
       torch::Tensor totalLoss = sLoss + rLoss;
@@ -91,7 +94,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
       
       //Printing some stuff
       
-      if (e%25 == 0)
+      if (e%(epochs/25) == 0)
 	{	  
 	  cout<< "Training loss at iteration " + to_string(e)+"/"+to_string(epochs)+" : " + to_string(*totalLoss.to(torch::Device(torch::kCPU)).data<float>())<<endl; 
 	}
@@ -117,22 +120,24 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   torch::Tensor toOptimize = torch::zeros(0);  
   for (unsigned int d=0;d<discreteActions.size();d++)
     {
-      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,0.5)},2);
+      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,1)},2);
     }
   for (unsigned int i=0;i<nContinuousActions;i++)
     {
       float lb = this->world.getActions().getContinuousActions()[i].getLowerBound();
       float ub = this->world.getActions().getContinuousActions()[i].getUpperBound();
       float center = this->world.getActions().getContinuousActions()[i].pick();
-      toOptimize = torch::cat({toOptimize,torch::clamp(torch::zeros({nTimesteps,nRollouts,1}).normal_(center,(ub+lb)/5.),lb,ub)},2);
-    }  
+      toOptimize = torch::cat({toOptimize,torch::clamp(torch::zeros({nTimesteps,nRollouts,1}).normal_(center,(ub+lb)/10.),lb,ub)},2);
+    }
   toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
   torch::Tensor actionSequences = torch::zeros(0);
-  
   torch::Tensor rewards = torch::zeros({nRollouts}).to(device);
-
-  torch::Tensor savedCA = torch::split(toOptimize,nDiscreteActions,2)[1];
-  
+  torch::Tensor savedCA;
+  if (nContinuousActions!=0)
+    {
+      savedCA=torch::split(toOptimize,nDiscreteActions,2)[1];
+    }
+      
   //Looping over the number of optimisation steps 
 
   for (int i=0;i<nGradsteps;i++)
@@ -198,6 +203,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
       forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nContinuousActions+nDiscreteActions}));
       rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
       //cout<< forwardModel->predictedReward.reshape({nTimesteps,nRollouts}) << endl;
+      cout<<rewards.mean()<<endl;
       rewards.backward(torch::ones({nRollouts}).to(device));
       torch::Tensor grads = toOptimize.grad();
       //      cout<<lr*grads.transpose(0,1)<<endl;
@@ -227,7 +233,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
   cout<<actionSequences[maxRewardIdx]<<endl;      
   //cout<<rewards[maxRewardIdx]<<endl;
   cout<<rewards<<endl;
-  //cout<<actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx]<<endl;;
+  //cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
   
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
@@ -277,8 +283,8 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
 {
-  //  torch::Tensor a = torch::zeros(0);
-  //  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
+  torch::Tensor a = torch::zeros(0);
+  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
       gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
@@ -289,10 +295,10 @@ void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientStep
 	      this->world.updateTakenAction(i,*actionSequence[t][i].data<float>());
 	    }
 	  this->world.transition();
-	  //	  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
+	  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
 	}
       cout<<this->rewardHistory()<<endl;
-      //      cout<<torch::split(a-trajectory,4,1)[0]<<endl;
+      cout<<torch::cat({a.slice(1,0,4,1),trajectory.slice(1,0,4,1)},1)<<endl;
     }
 }
 

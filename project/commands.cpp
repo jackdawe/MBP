@@ -288,7 +288,7 @@ void Commands::learnForwardModelGW()
   
   if (FLAGS_wn)
     {
-      actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);
+      actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);      
     }
   actionInputsTr = torch::softmax(actionInputsTr,2);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
@@ -306,7 +306,7 @@ void Commands::learnForwardModelGW()
       {
 	torch::NoGradGuard no_grad;
 	auto model = agent.getForwardModel();
-	model->forward(stateInputsTe.to(model->getUsedDevice()),actionInputsTe.to(model->getUsedDevice()));
+	model->forward(stateInputsTe.to(model->usedDevice),actionInputsTe.to(model->usedDevice));
 	t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
 	t.transitionAccuracy(model->predictedState.to(torch::Device(torch::kCPU)),stateLabelsTe);    
       }
@@ -315,16 +315,16 @@ void Commands::learnForwardModelGW()
 
 void Commands::playModelBasedGW(int argc, char* argv[])
 {
-  //QApplication a(argc,argv);
   ForwardGW fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   GridWorld gw(FLAGS_map);
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  //  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  // EpisodePlayerGW ep(FLAGS_map);
-  //ep.playEpisode(agent.getWorld().getStateSequence());
-  //a.exec();
+  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  QApplication a(argc,argv);
+  EpisodePlayerGW ep(FLAGS_map);
+  ep.playEpisode(agent.getWorld().getStateSequence());
+  a.exec();
 }
 
 
@@ -342,14 +342,13 @@ void Commands::tc1()
   ForwardGW fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   GridWorld gw("../GridWorld/Maps/Hard8x8/train/map0",4,2);
-  gw.generateVectorStates();
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   ofstream f("../temp/frgw");
     for (int i=0;i<1000;i++)
       {
 	torch::Tensor a = torch::tensor({1-(i/1000.),i/1000.,0.,0.}).to(torch::kFloat32);
 	torch::Tensor s = torch::tensor(gw.getCurrentState().getStateVector());
-	fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->getUsedDevice()));
+	fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->usedDevice));
 	f<<*fm->predictedReward.to(torch::Device(torch::kCPU)).data<float>()<<endl;    
       }
 }
@@ -360,7 +359,6 @@ void Commands::tc2()
   torch::load(fm,"../temp/ForwardGW.pt");
   ofstream f("../temp/gbpAcc");
   GridWorld gw(FLAGS_map);
-  gw.generateVectorStates();  
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   for (int i=0;i<FLAGS_n;i++)
     {      
@@ -372,7 +370,8 @@ void Commands::tc2()
 
 void Commands::tc3()
 {
-
+  ForwardGW forwardModel(8,FLAGS_sc1);
+  cout<<forwardModel<<endl;
 }
 
 void Commands::generateMapSS()
@@ -438,10 +437,6 @@ void Commands::learnForwardModelSS()
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
   int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);
-  stateInputsTe = stateInputsTe.reshape({nTe*T,s});
-  stateLabelsTe = stateLabelsTe.reshape({nTe*T,4});
-  actionInputsTe = actionInputsTe.reshape({nTe*T,6});
-  rewardLabelsTe = rewardLabelsTe.reshape({nTe*T});
   
   if (FLAGS_wn)
     {
@@ -449,7 +444,7 @@ void Commands::learnForwardModelSS()
     }
   ForwardSS forwardModel(stateInputsTr.size(2),512,2);
   //ForwardSS forwardModel(FLAGS_mdl+"_Params");
-  //torch::load(forwardModel,FLAGS_mdl+".pt");  
+  //  torch::load(forwardModel,FLAGS_mdl+".pt");  
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
   torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
@@ -475,20 +470,39 @@ void Commands::learnForwardModelSS()
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
       //Computing accuracy
+
       {	
 	torch::NoGradGuard no_grad;
 	ToolsSS t;
 	auto model = agent.getForwardModel();
 	int splitSize = 10000;
-	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr.reshape({nTr*T,s}),splitSize,0);
-	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr.reshape({nTr*T,6}),splitSize,0);
+	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr,splitSize,0);
+	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr,splitSize,0);
 	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr.reshape({nTr*T,4}),splitSize,0);
 	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr.reshape({nTr*T}),splitSize,0);
 	unsigned int nSplit = sitrSplit.size();
-	
 	for (unsigned int i=0;i<nSplit;i++)
 	  {
-	    model->forward(sitrSplit[i].to(model->getUsedDevice()),aitrSplit[i].to(model->getUsedDevice()));
+	    if (FLAGS_asp)
+	      {
+		model->forward(sitrSplit[i].reshape({nTr*T,s}).to(model->usedDevice),aitrSplit[i].reshape({aitrSplit[i].size(0)*T,6}).to(model->usedDevice));
+	      }
+	    else
+	      {
+		torch::Tensor predictedStates = torch::zeros({T,nTr,4});
+		torch::Tensor predictedRewards = torch::zeros({T,nTr});
+		forwardModel->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
+		predictedStates[0] = forwardModel->predictedState;      
+	        predictedRewards[0] = forwardModel->predictedReward;
+		for (int t=1;t<T;t++)
+		  {
+		    forwardModel->forward(predictedStates[t-1],aitrSplit[i].transpose(0,1)[t]);
+		    predictedStates[t] = forwardModel->predictedState;      
+		    predictedRewards[t] = forwardModel->predictedReward;		    
+		  }
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nTr*T,4}); 
+	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTr*T});	       
+	      }
 	    t.transitionAccuracy(t.normalize(model->predictedState,true),sltrSplit[i],nSplit);
 	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rltrSplit[i], nSplit);
 	  }
@@ -499,18 +513,37 @@ void Commands::learnForwardModelSS()
 	t.displayTAccuracy(nTr*T);
 	t.displayRAccuracy();
 
-        t = ToolsSS();
+        t = ToolsSS(); 
 	vector<torch::Tensor> siteSplit = torch::split(stateInputsTe,splitSize,0);
 	vector<torch::Tensor> aiteSplit = torch::split(actionInputsTe,splitSize,0);
-	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe,splitSize,0);
-	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe,splitSize,0);	
+	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe.reshape({nTe*T,4}),splitSize,0);
+	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe.reshape({nTe*T}),splitSize,0);	
         nSplit = siteSplit.size();
 	
 	for (unsigned int i=0;i<nSplit;i++)
 	  {
-	    model->forward(siteSplit[i].to(model->getUsedDevice()),aiteSplit[i].to(model->getUsedDevice()));
+	    if (FLAGS_asp)
+	      {
+		model->forward(siteSplit[i].reshape({nTe*T,s}).to(model->usedDevice),aiteSplit[i].reshape({aiteSplit[i].size(0)*T,6}).to(model->usedDevice));
+	      }
+	    else
+	      {
+		torch::Tensor predictedStates = torch::zeros({T,nTe,4});
+		torch::Tensor predictedRewards = torch::zeros({T,nTe});
+		forwardModel->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
+		predictedStates[0] = forwardModel->predictedState;      
+	        predictedRewards[0] = forwardModel->predictedReward;
+		for (int t=1;t<T;t++)
+		  {
+		    forwardModel->forward(predictedStates[t-1],aiteSplit[i].transpose(0,1)[t]);
+		    predictedStates[t] = forwardModel->predictedState;      
+		    predictedRewards[t] = forwardModel->predictedReward;		    
+		  }
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nTe*T,4}); 
+	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTe*T});	       
+	      }
 	    t.transitionAccuracy(t.normalize(model->predictedState,true),slteSplit[i],nSplit);
-	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i], nSplit);	
+	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i], nSplit);
 	  }
 	
 	ftep<<pow(*t.pMSE.data<float>(),0.5)<<endl;
@@ -526,7 +559,6 @@ void Commands::learnForwardModelSS()
 	//ToolsSS().rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rewardLabelsTe);	
 	//ToolsSS().transitionAccuracy(ToolsSS().normalize(model->predictedState,true).to(torch::Device(torch::kCPU)),stateLabelsTe);
       }
-
     }  
 }
 
@@ -535,11 +567,26 @@ void Commands::playModelBasedSS(int argc, char* argv[])
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_map);
-  sw.repositionShip(sw.getWaypoints()[2].getCentre());
+  //  sw.repositionShip(sw.getWaypoints()[2].getCentre());
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
   agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence(), SHIP_MAX_THRUST);
   a.exec();
+}
+
+void Commands::testModelBasedSS()
+{
+  ForwardSS fm(FLAGS_mdl+"_Params");
+  torch::load(fm,FLAGS_mdl+".pt");
+  ofstream f("../temp/gbpAccSS");
+  SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
+  ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm,PlannerGW());
+  for (int i=0;i<FLAGS_n;i++)
+    {      
+      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+      f<<agent.rewardHistory().back()<<endl;
+      agent.resetWorld();
+    }
 }

@@ -146,7 +146,7 @@ float SpaceWorld::transition()
 		}
 	    }
 	}
-    }
+    }  
   actionSequence.push_back({signal,thrustPow,thrustOri});
   stateSequence.push_back(currentState.getStateVector());
   rewardHistory.back()+=r;

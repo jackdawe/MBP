@@ -108,6 +108,11 @@ int main(int argc, char *argv[])
     {
       c.playModelBasedSS(argc,argv);
     }
+  else if(FLAGS_cmd=="ssmbtest")
+    {
+      c.testModelBasedSS();
+    }
+
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;

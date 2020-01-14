@@ -1,45 +1,20 @@
 #include "forwardss.h"
 
-ForwardSSImpl::ForwardSSImpl():
-  usedDevice(torch::Device(torch::kCPU))
-{
-  if (torch::cuda::is_available())
-    {
-      std::cout << "CUDA detected for ForwardSS: training and inference will be done using CUDA." << std::endl;
-      usedDevice = torch::Device(torch::kCUDA);
-    }
-    else
-    {
-      std::cout << "CUDA not available for ForwardSS: training and inference will be done using CPU." << std::endl;
-    }
-  this->to(usedDevice);
-}
+ForwardSSImpl::ForwardSSImpl(){}
 
 ForwardSSImpl::ForwardSSImpl(int size, int nfc, int depth):
-  size(size), nfc(nfc), usedDevice(torch::Device(torch::kCPU)), depth(depth)
+  size(size), nfc(nfc), depth(depth)
 {
   init();
 }
 
-ForwardSSImpl::ForwardSSImpl(std::string filename):
-  usedDevice(torch::Device(torch::kCPU))
+ForwardSSImpl::ForwardSSImpl(std::string filename)
 {
   loadParams(filename);
 }
 
 void ForwardSSImpl::init()
 {
-  if (torch::cuda::is_available())
-    {
-      std::cout << "CUDA detected for ForwardSS: training and inference will be done using CUDA." << std::endl;
-      usedDevice = torch::Device(torch::kCUDA);
-    }
-  else
-    {
-      std::cout << "CUDA not available for ForwardSS: training and inference will be done using CPU." << std::endl;
-    }
-  this->to(usedDevice);
-
   //Adding the layers of the state encoder
 
   encoderLayers.push_back(register_module("State Encoder IN",torch::nn::Linear(size,nfc)));
@@ -151,6 +126,7 @@ void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardL
   std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,2,2);  
   stateLoss = torch::mse_loss(stateOutputsChunks[0],slBatchChunks[0])+torch::mse_loss(stateOutputsChunks[1],slBatchChunks[1]);
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
+  //cout<<torch::cat({predictedState.slice(2,0,4,1),stateLabels.slice(2,0,4,1)},2)[0]<<endl;
 }
 
 void ForwardSSImpl::saveParams(std::string filename)
@@ -181,8 +157,5 @@ void ForwardSSImpl::loadParams(std::string filename)
   }
 }
 
-torch::Device ForwardSSImpl::getUsedDevice()
-{
-  return usedDevice;
-}
+
 
