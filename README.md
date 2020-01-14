@@ -9,21 +9,17 @@ In their research, they tested their algorithms on two tasks:
 2. **Starship**, a more complex environment with an infinite state and action space. Many state of the art RL algorithms such as Q-Learning or TD-Lambda cannot be applied without using tricks such as discretizing the state space. The agent controls the thrusters of a small ship and has to fight the gravitational pull of the planets to reach the closest waypoint. Once the agent reaches the waypointm he has to fire a signal indicating that he has reached this precise waypoint to collect a reward.  
 
 For this work, I reproduced the environment as described in the paper. 
-You can find all the details ![here](https://arxiv.org/abs/1705.07177).
+You can find all the details [here](https://arxiv.org/abs/1705.07177).
 
+# GRIDWORLD TASK
 
-
-#############
-<huge><b>GRIDWORLD TASK</b>
-#############
-
-#Map Generation
+## Map Generation
 
 Map files contain a simple matrix: 0 is an empty space, 1 an obstacle and 2 the goal. To generate a map, you can use the **gwmgen** command with the following parameters:
 
-- size : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested. 
-- maxObst : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count.
-- map : the path to the file that will be created.
+- *size* : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested. 
+- *maxObst* : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count.
+- *map* : the path to the file that will be created.
 
 ##Example:
 
@@ -35,28 +31,34 @@ To generate a map named myMap of size 16 with a maximum of 50 obstacles in the G
 
 For my algorithms to generalize well, I needed to train my agent on several maps. The **gwmpgen** command allows to easily generate a pool of training and test maps using this set of parameters:
 
-- size : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested.
-- maxObst : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count.
-- mp : the path to the directory that will contain the test and train map pools. A new directory is created if it does not already exists.
-- nmaps: the number of maps to be generated (both train and test map pools will contain nmaps maps)
+### Command:  gwmpgen
 
-##Example: 
+### Parameters: 
+
+- *size* : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested.
+- *maxObst* : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count.
+- *mp* : the path to the directory that will contain the test and train map pools. A new directory is created if it does not already exists.
+- *nmaps*: the number of maps to be generated (both train and test map pools will contain nmaps maps)
+
+### Example: 
 
 To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 1000 maps of size 8 with a maximum of 10 obstacles:
 
 ./project -cmd=gwmpgen -size=8 -maxObst=10 -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000
 
-#Showing the map using the implemented GUI
+## Showing the map using the implemented GUI
 
 You can use the GUI to display the map on your screen.
-Command: gwmshow
-Parameters:
-- map : the path to the file containing the map to be displayed.
-Examples: you can show the map named MyMap in the GridWorld/Maps/MyMapPool/test/map0 using the following command line:
+### Command: gwmshow
+### Parameters
+- *map* : the path to the file containing the map to be displayed.
+### Example
+
+You can show the map named MyMap in the GridWorld/Maps/MyMapPool/test/map0 using the following command line:
 
 ./project -cmd=gwmshow -map=../GridWorld/Maps/MyMapPool/test/map0
 
-#Generating the data set
+## Generating the data set
 
 An agent appears at a random location on a map randomly chosen from a map pool and wanders randomly until some conditions are met. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor .
 Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards.
