@@ -13,7 +13,7 @@ class ForwardSSImpl: public ForwardImpl
   torch::Tensor actionEncoderForward(torch::Tensor x);
   torch::Tensor stateDecoderForward(torch::Tensor x);
   torch::Tensor rewardDecoderForward(torch::Tensor x);
-  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore=false);
+  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch);
   void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
@@ -31,7 +31,7 @@ class ForwardSSImpl: public ForwardImpl
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> decoderLayers;
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> rewardLayers;
 
-  torch::Tensor savedState;  
+  torch::Tensor savedStates;  
 };
 
 #endif

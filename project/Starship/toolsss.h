@@ -13,6 +13,7 @@ class ToolsSS
   torch::Tensor normalize(torch::Tensor x, bool reverse=false);
   torch::Tensor normalizeDeltas(torch::Tensor x, bool reverse=false);  
   torch::Tensor deltaToState(torch::Tensor stateBatch, torch::Tensor deltas);
+  torch::Tensor moduloMSE(torch::Tensor x, torch::Tensor target, bool normalized=true);
   void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1, float edgeSpawnProp=0.1);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);
   void displayTAccuracy(int dataSetSize);

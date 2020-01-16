@@ -3,12 +3,13 @@
 ForwardSSImpl::ForwardSSImpl(){}
 
 ForwardSSImpl::ForwardSSImpl(int size, int nfc, int depth):
-  size(size), nfc(nfc), depth(depth)
+  size(size), nfc(nfc), depth(depth), savedStates(torch::zeros(0).to(usedDevice))
 {
   init();
 }
 
-ForwardSSImpl::ForwardSSImpl(std::string filename)
+ForwardSSImpl::ForwardSSImpl(std::string filename):
+  savedStates(torch::zeros(0).to(usedDevice))
 {
   loadParams(filename);
 }
@@ -78,7 +79,7 @@ torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)
       x = torch::prelu(decoderLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
     }
   torch::Tensor posOut = decoderLayers[decoderLayers.size()-2]->forward(x);
-  //  posOut = torch::sigmoid(posOut);
+  posOut = torch::sigmoid(posOut);
   torch::Tensor veloOut = decoderLayers.back()->forward(x);
   veloOut = torch::tanh(veloOut);
   return torch::cat({posOut,veloOut},1);
@@ -93,38 +94,31 @@ torch::Tensor ForwardSSImpl::rewardDecoderForward(torch::Tensor x)
   return torch::tanh(rewardLayers.back()->forward(x));
 }
 
-void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore)
+void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
   stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);    
-  stateBatch = ToolsSS().normalize(stateBatch);
-
-  if (stateBatch.size(1) == 4)
-    {
-      stateBatch = ToolsSS().deltaToState(savedState,stateBatch);
-    }
 
   //Forward Pass
 
-  torch::Tensor seOut = stateEncoderForward(stateBatch);
+  torch::Tensor seOut = stateEncoderForward(ToolsSS().normalize(stateBatch));
   torch::Tensor aeOut = actionEncoderForward(actionBatch);
   torch::Tensor x = torch::cat({seOut,aeOut},1);
   predictedState = stateDecoderForward(x);
-  if (restore)
-    {
-      predictedState = ToolsSS().deltaToState(stateBatch,predictedState);
-      predictedState = ToolsSS().normalize(predictedState,true);
-    }
   predictedReward = rewardDecoderForward(x).squeeze();
-  savedState = stateBatch;
+
+  //Rebuilding state from deltas
+
+  predictedState = ToolsSS().normalizeDeltas(predictedState,true);
+  predictedState = ToolsSS().deltaToState(stateBatch,predictedState);  
 }
 
 void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
-{  
-  int n = predictedState.size(0), T= predictedState.size(1);
-  stateLabels = ToolsSS().normalizeDeltas(stateLabels.reshape({n*T,4})).reshape({n,T,4});
-  std::vector<torch::Tensor> stateOutputsChunks = torch::split(predictedState,2,2);
-  std::vector<torch::Tensor> slBatchChunks = torch::split(stateLabels,2,2);  
-  stateLoss = torch::mse_loss(stateOutputsChunks[0],slBatchChunks[0])+torch::mse_loss(stateOutputsChunks[1],slBatchChunks[1]);
+{
+  //  cout<<torch::cat({predictedState.slice(1,0,4,1),stateLabels},1)[0].unsqueeze(0)<<endl;
+  predictedState = ToolsSS().normalize(predictedState);
+  stateLabels = ToolsSS().normalize(stateLabels);
+  stateLoss = ToolsSS().moduloMSE(predictedState.slice(1,0,2,1),stateLabels.slice(1,0,2,1))+
+  torch::mse_loss(predictedState.slice(1,2,4,1),stateLabels.slice(1,2,4,1));
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
   //cout<<torch::cat({predictedState.slice(2,0,4,1),stateLabels.slice(2,0,4,1)},2)[0]<<endl;
   //  cout<<stateLabels[1000000000000000]<<endl;

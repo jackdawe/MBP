@@ -499,22 +499,23 @@ void Commands::learnForwardModelSS()
 	torch::NoGradGuard no_grad;
 	ToolsSS t;
 	auto model = agent.getForwardModel();
-	int splitSize = 10000;
+	int splitSize = 1000;
 	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr,splitSize,0);
 	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr,splitSize,0);
-	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr.reshape({nTr*T,4}),splitSize,0);
-	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr.reshape({nTr*T}),splitSize,0);
+	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr,splitSize,0);
+	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr,splitSize,0);
 	unsigned int nSplit = sitrSplit.size();
 	for (unsigned int i=0;i<nSplit;i++)
 	  {
+	    int nSpl = sitrSplit[i].size(0); 
 	    if (FLAGS_asp)
-	      {
-		model->forward(sitrSplit[i].reshape({nTr*T,s}).to(model->usedDevice),aitrSplit[i].reshape({aitrSplit[i].size(0)*T,6}).to(model->usedDevice));
+	      {		
+		model->forward(sitrSplit[i].reshape({nSpl*T,s}),aitrSplit[i].reshape({nSpl*T,6}));
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nTr,4});
-		torch::Tensor predictedRewards = torch::zeros({T,nTr});
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
+		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
 		forwardModel->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
@@ -524,36 +525,35 @@ void Commands::learnForwardModelSS()
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
-	        model->predictedState = predictedStates.transpose(0,1).reshape({nTr*T,4}); 
-	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTr*T});	       
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
+	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(t.normalizeDeltas(model->predictedState,true),sltrSplit[i],nSplit);
-	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rltrSplit[i], nSplit);
+	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}),nSplit);
+	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rltrSplit[i].reshape({nSpl*T}), nSplit);
 	  }
-	
 	ftrp<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftrv<<pow(*t.vMSE.data<float>(),0.5)<<endl;
 	ftrr<<pow(*t.rMSE.data<float>(),0.5)<<endl;	
 	t.displayTAccuracy(nTr*T);
 	t.displayRAccuracy();
-
         t = ToolsSS(); 
 	vector<torch::Tensor> siteSplit = torch::split(stateInputsTe,splitSize,0);
 	vector<torch::Tensor> aiteSplit = torch::split(actionInputsTe,splitSize,0);
-	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe.reshape({nTe*T,4}),splitSize,0);
-	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe.reshape({nTe*T}),splitSize,0);	
+	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe,splitSize,0);
+	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe,splitSize,0);	
         nSplit = siteSplit.size();
 	
 	for (unsigned int i=0;i<nSplit;i++)
 	  {
+	    int nSpl = siteSplit[i].size(0); 
 	    if (FLAGS_asp)
 	      {
-		model->forward(siteSplit[i].reshape({nTe*T,s}).to(model->usedDevice),aiteSplit[i].reshape({aiteSplit[i].size(0)*T,6}).to(model->usedDevice));
+		model->forward(siteSplit[i].reshape({nTe*T,s}),aiteSplit[i].reshape({aiteSplit[i].size(0)*T,6}));
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nTe,4});
-		torch::Tensor predictedRewards = torch::zeros({T,nTe});
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
+		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
 		forwardModel->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
@@ -563,13 +563,12 @@ void Commands::learnForwardModelSS()
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
-	        model->predictedState = predictedStates.transpose(0,1).reshape({nTe*T,4}); 
-	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nTe*T});	       
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
+	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(t.normalizeDeltas(model->predictedState,true),slteSplit[i],nSplit);
-	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i], nSplit);
-	  }
-	
+	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}),nSplit);
+	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i].reshape({nSpl*T}), nSplit);
+	  }	
 	ftep<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftev<<pow(*t.vMSE.data<float>(),0.5)<<endl;
 	fter<<pow(*t.rMSE.data<float>(),0.5)<<endl;
@@ -602,7 +601,7 @@ void Commands::playModelBasedSS(int argc, char* argv[])
 
 void Commands::testModelBasedSS()
 {
-  ForwardSS fm(FLAGS_mdl+"_Params");
+  /*  ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   ofstream f("../temp/gbpAccSS");
   SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
@@ -612,5 +611,35 @@ void Commands::testModelBasedSS()
       agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
       f<<agent.rewardHistory().back()<<endl;
       agent.resetWorld();
+    }*/
+  int T=40;
+  string path=FLAGS_mp;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+  torch::Tensor bsi = stateInputsTe[0].unsqueeze(0);
+  torch::Tensor bai = actionInputsTe[0].unsqueeze(0);
+  torch::Tensor bsl = stateLabelsTe[0].unsqueeze(0);
+  torch::Tensor brl = rewardLabelsTe[0].unsqueeze(0);
+  ForwardSS forwardModel(FLAGS_mdl+"_Params");
+  torch::load(forwardModel,FLAGS_mdl+".pt");
+  torch::Tensor predictedStates = torch::zeros({T,1,4});
+  torch::Tensor predictedRewards = torch::zeros({T,1});
+  forwardModel->forward(bsi.transpose(0,1)[0],bai.transpose(0,1)[0]);
+  predictedStates[0] = forwardModel->predictedState;      
+  predictedRewards[0] = forwardModel->predictedReward;
+  for (int t=1;t<T;t++)
+    {
+      forwardModel->forward(predictedStates[t-1],bai.transpose(0,1)[t]);
+      predictedStates[t] = forwardModel->predictedState;      
+      predictedRewards[t] = forwardModel->predictedReward;		    
     }
+  forwardModel->predictedState = predictedStates.transpose(0,1).reshape({1*T,4}); 
+  forwardModel->predictedReward = predictedRewards.transpose(0,1).reshape({1*T});	       
+
+  cout<<torch::cat({bsl,ToolsSS().normalizeDeltas(predictedStates.transpose(0,1),true)},2)<<endl;
 }
+
+

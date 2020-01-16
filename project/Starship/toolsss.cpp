@@ -57,8 +57,21 @@ torch::Tensor ToolsSS::deltaToState(torch::Tensor stateBatch, torch::Tensor delt
   torch::Tensor pos = stateBatch.slice(1,0,2,1);
   torch::Tensor velo = stateBatch.slice(1,2,4,1);  
   torch::Tensor constPart = stateBatch.slice(1,4,stateBatch.size(1),1);  
-  torch::Tensor newStates = torch::cat({torch::fmod(pos+deltas.slice(1,0,2,1),1),velo+deltas.slice(1,2,4,1),constPart},1);
+  torch::Tensor newStates = torch::cat({torch::remainder(pos+deltas.slice(1,0,2,1),800),velo+deltas.slice(1,2,4,1),constPart},1);
   return newStates;
+}
+
+torch::Tensor ToolsSS::moduloMSE(torch::Tensor x, torch::Tensor target, bool normalized)
+{
+  int bound = 1*normalized+800*(1-normalized);
+  torch::Tensor compare = torch::cat({x.unsqueeze(0),target.unsqueeze(0)},0);
+  //  cout<<compare.transpose(0,1)[0]<<endl;
+  torch::Tensor mini = get<0>(torch::min(compare,0));
+  torch::Tensor maxi = get<0>(torch::max(compare,0));
+  torch::Tensor a = (mini+bound-maxi).unsqueeze(0);
+  compare = torch::cat({a,bound-a});
+  //  cout<<get<0>(torch::min(compare,0))[0]<<endl;
+  return (get<0>(torch::min(compare,0)).pow(2).mean());
 }
 
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, float edgeSpawnProp)
@@ -135,12 +148,13 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      actionInputs[j][t][4]=sw.getTakenAction()[1];
 	      actionInputs[j][t][5]=sw.getTakenAction()[2];
 	      rewardLabels[j][t] = sw.transition();
-	      torch::Tensor nextState = torch::zeros({4});
-	      nextState[0] = sw.getPreviousState().getStateVector()[2]*STEP_SIZE;
+	      //torch::Tensor nextState = torch::zeros({4});
+	      /*	      nextState[0] = sw.getPreviousState().getStateVector()[2]*STEP_SIZE;
 	      nextState[1] = sw.getPreviousState().getStateVector()[3]*STEP_SIZE;
 	      nextState[2] = sw.getShip().getA().x*STEP_SIZE;
-	      nextState[3] = sw.getShip().getA().y*STEP_SIZE;	      
-	      stateLabels[j][t] = nextState;
+	      nextState[3] = sw.getShip().getA().y*STEP_SIZE;	      */
+	      vector<float> nextStateVec  = sw.getCurrentState().getStateVector();
+	      stateLabels[j][t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
 	    }
 	  i++;
 	  j++;
@@ -206,10 +220,18 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   int s = testData.size(1);
   int n = testData.size(0);
   testData = testData.to(torch::Device(torch::kCPU));
-  //  cout<<torch::cat({testData, labels},1)<<endl;
-  pMSE+=torch::mse_loss(torch::split(testData,2,1)[0],torch::split(labels,2,1)[0])/nSplit;
-  vMSE+=torch::mse_loss(torch::split(testData,2,1)[1],torch::split(labels,2,1)[1])/nSplit;
-
+  //  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1).slice(0,0,2,1)<<endl;
+  /*  for (int i=0;i<n;i++)
+    {
+      torch::Tensor a = moduloMSE(testData.slice(1,0,2,1)[i],labels.slice(1,0,2,1)[i],false);
+      if (*a.data<float>()>100000)
+	{
+	  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1)[i].unsqueeze(0)<<endl;   
+	}
+    }
+  */
+  pMSE+=moduloMSE(testData.slice(1,0,2,1),labels.slice(1,0,2,1),false)/nSplit;
+  vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;
   //  cout<<torch::split(torch::split(testData,4,1)[0],20,0)[0]<<endl;
   //  cout<<torch::split(torch::split(labels,4,1)[0],20,0)[0]<<endl;
 

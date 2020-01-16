@@ -164,7 +164,7 @@ Prototype: void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, boo
 
 This method takes as input a batch of states and actions and should update the predictedState and predictedReward attributes inherited from the ForwardImpl class. Your are free to use this method to encode / decode your data to meet the requirements of the ModelBased class. You might need, for example, to normalize your data or encode your states as images if your model uses convolutions.
 
-stateBatch and actionBatch's dimension 0 and 1 have been merged in such a way that new dimension 0's size is batchSize*T. predictedState and predictedReward should have this same dimension 0 size. After calling forward, ModelBased re-separates dimension 0 of size batchSize*T into dimension 0 of size batchSize and dimension 1 of size T. Please keep that in mind for the computeLoss method implementation.     
+stateBatch and actionBatch's dimension 0 and 1 have been merged in such a way that new dimension 0's size is batchSize*T. predictedState and predictedReward should have this same dimension 0 size.
 
 ### computeLoss
 
@@ -172,7 +172,7 @@ Prototype: virtual void computeLoss(torch::Tensor stateLabels, torch::Tensor rew
 
 This method should use the input labels as well as the predictedState and predictedReward attributes to update the stateLoss and rewardLoss attributes inherited from the ForwardImpl class. These losses are then used by ModelBased to perform a backward pass through your forward model and update its weights. stateLoss and rewardLoss should be scalar tensors.
 
-stateLabels and rewardLabels are batches from your provided dataset and keep their original sizes (except for dimension 0 who now have a batchSize size).  
+stateLabels and rewardLabels are batches from your provided dataset also have their two first dimension merged.
 
 The ForwardImpl method also provides a public usedDevice attribute that contains the nature of the device on which the training will be done on (GPU or CPU). usedDevice will be updated upon initialisation of an object of your forward model class.    
 
@@ -182,33 +182,3 @@ The ForwardImpl method also provides a public usedDevice attribute that contains
 -Initialise an optimizer (/!\ only Adam atm)
 -Restrictions on the dataset
 -can use method to save loss data
-
-I - QLearning Agent
-
-![ql8](/img/ql8x8.png)
-
-![ql16](/img/ql16x16.png)
-
-II - Advantage Actor Critic Agent (A2C)
-
-III - ModelBased Agent
-
-a) Learning the forward model
-
-b) Finding the optimal sequence of actions using the forward model and a Gradient Based Planner (GBP) (Currently working on that)
-
-c) Learning a policy network for faster inference
-
-#############
-<huge><b>SPACEWORLD TASK</b>
-#############
-
-I - Advantage Actor Critic Agent (A2C)
-
-II - ModelBased Agent
-
-a) Learning the forward model
-
-b) Finding the optimal sequence of actions using the forward model and a Gradient Based Planner (GBP)
-
-c) Learning a policy network for faster inference

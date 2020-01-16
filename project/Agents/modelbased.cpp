@@ -61,16 +61,14 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
       if (allStatesProvided)
 	{
 	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
-	  forwardModel->predictedState = forwardModel->predictedState.reshape({batchSize,nTimesteps,4});
-	  forwardModel->predictedReward = forwardModel->predictedReward.reshape({batchSize,nTimesteps});
 	}
       else
 	{
 	  torch::Tensor stateOutputs, rewardOutputs;
-	  stateOutputs = torch::zeros({nTimesteps,batchSize,4}).to(device);
+	  stateOutputs = torch::zeros({nTimesteps,batchSize,s}).to(device);
 	  rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);	  
 	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[0]);	      
-	  stateOutputs[0] = forwardModel->predictedState;      
+	  stateOutputs[0] = forwardModel->predictedState.reshape({batchSize,s});      
 	  rewardOutputs[0] = forwardModel->predictedReward;
 	  for (int t=1;t<nTimesteps;t++)
 	    {
@@ -78,14 +76,14 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	      stateOutputs[t] = forwardModel->predictedState;      
 	      rewardOutputs[t] = forwardModel->predictedReward;
 	    }
-	  rewardOutputs = rewardOutputs.transpose(0,1);
-	  stateOutputs = stateOutputs.transpose(0,1);
+	  rewardOutputs = rewardOutputs.transpose(0,1).reshape({nTimesteps*batchSize});
+	  stateOutputs = stateOutputs.transpose(0,1).reshape({nTimesteps*batchSize,s});
 	  forwardModel->predictedState = stateOutputs; //Regrouping the operation for loss computation
 	  forwardModel->predictedReward = rewardOutputs;
 	}
-      forwardModel->computeLoss(slBatch,rlBatch);
+      forwardModel->computeLoss(slBatch.reshape({batchSize*nTimesteps,4}),rlBatch.reshape({batchSize*nTimesteps}));
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
-      torch::Tensor totalLoss = rLoss;
+      torch::Tensor totalLoss = sLoss+rLoss;
       optimizer->zero_grad();
       totalLoss.backward();
       optimizer->step();
@@ -187,7 +185,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	      {
 		ohev = torch::cat({ohev,continuousActions[t]},1);
 	      }
-	    forwardModel->forward(stateSequences[t],ohev, true);
+	    forwardModel->forward(stateSequences[t],ohev); //HAD RESTORE MODE BEFORE
 	    stateSequences[t+1]=forwardModel->predictedState;
 	  }
 	}
