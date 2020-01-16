@@ -220,7 +220,7 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   int s = testData.size(1);
   int n = testData.size(0);
   testData = testData.to(torch::Device(torch::kCPU));
-  //  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1).slice(0,0,2,1)<<endl;
+  //  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1)<<endl;
   /*  for (int i=0;i<n;i++)
     {
       torch::Tensor a = moduloMSE(testData.slice(1,0,2,1)[i],labels.slice(1,0,2,1)[i],false);
@@ -299,7 +299,7 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
   labels = labels.flatten();
   int m = testData.size(0);
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
-  for (int s=0;s<m;s++)
+  /*  for (int s=0;s<m;s++)
     {
       float rl = *labels[s].data<float>();
       if (rl==CRASH_REWARD)
@@ -336,6 +336,7 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
 	  rScores[3]++;
 	}
     }
+  */
 }
 
 void ToolsSS::displayRAccuracy()

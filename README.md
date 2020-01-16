@@ -6,25 +6,37 @@ In their research, they tested their algorithms on two tasks:
 
 1. **GridWorld**, a state of the art toy example where the agent has to find its way in a grid by chosing whether to go up, down, left or right without colliding with an obstacle.
 
-2. **Starship**, a more complex environment with an infinite state and action space. Many state of the art RL algorithms such as Q-Learning or TD-Lambda cannot be applied without using tricks such as discretizing the state space. The agent controls the thrusters of a small ship and has to fight the gravitational pull of the planets to reach the closest waypoint. Once the agent reaches the waypointm he has to fire a signal indicating that he has reached this precise waypoint to collect a reward.  
+2. **Starship**, a more complex environment with an infinite state and action space. Many state of the art RL algorithms such as Q-Learning or TD-Lambda cannot be applied without using tricks such as discretizing the state space. The agent controls the thrusters of a small ship and has to fight the gravitational pull of the planets to reach the closest waypoint. Once the agent reaches the waypoint he has to fire the correct signal to indicate that he has reached this precise waypoint to collect a reward.  
 
 For this work, I reproduced the environment as described in the paper. 
+
 You can find all the details [here](https://arxiv.org/abs/1705.07177).
+
+#General Information 
+
+1. joliRL/project/ is the root directory.
+2. To use one of my commands, first go to the root directory. Then follow the general architecture: ./project -cmd=COMMAND_NAME -myflag1= -myflag2= ... -myflagn=
+3. Flags to indicate the path to a directory should end with a "/". 
 
 # GRIDWORLD TASK
 
 ## Map Generation
 
-Map files contain a simple matrix: 0 is an empty space, 1 an obstacle and 2 the goal. To generate a map, you can use the **gwmgen** command with the following parameters:
+Map files contain a simple matrix:
+- 0 for an empty space
+- 1 for an obstacle
+- 2 for the goal
+You can generate a GridWorld map of the size of your choice with this command. 
 
-### Command
+
+### Command name
 
 gwmgen
 
 ### Parameters
 
-- int **size**  : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested. Default: 8 .
-- int **maxObst** : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count. Default: 1 .
+- int **size**  : the size of the map. I advise you to stick to 8 and 16 as other sizes weren't tested. Default: 8 
+- int **maxObst** : the maximum number of obstacles. The map will be generated with a random number of obstacles between 0 and maxObst. Please note that walls are automatically generated and are not taken into account in the maxObst count. Default: 1 
 - string **map** : the path to the file that will be created. Default: root directory. 
 
 ### Example
@@ -35,9 +47,9 @@ To generate a map named myMap of size 16 with a maximum of 50 obstacles in the G
 
 #Map pool generation
 
-For my algorithms to generalize well, I needed to train my agent on several maps. The **gwmpgen** command allows to easily generate a pool of training and test maps using this set of parameters:
+For my algorithms to generalize well, I needed to train my agent on several maps. You can easily generate a pool of training and test maps using this command. 
 
-### Command
+### Command name
 
 gwmpgen
 
@@ -72,12 +84,27 @@ You can show the map named MyMap in the GridWorld/Maps/MyMapPool/test/map0 using
 
 ./project -cmd=gwmshow -map=../GridWorld/Maps/MyMapPool/test/map0
 
+Here is the type of window that you should get:
+
+![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2015-03-14.png "This is how the map should look like with Qt!")
+
 ## Generating the data set
 
-An agent appears at a random location on a map randomly chosen from a map pool and wanders randomly until some conditions are met. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor .
-Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards.
+An agent appears at a random location on a map randomly chosen from a map pool and wanders randomly until some conditions are met. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
+
+Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. You should set T to 1 if you do not want to use this feature as batches are made by picking random samples of T timesteps from the dataset. 
+
 A train and test set are generated using the train and test maps respectively.
-Executing this command created 8 files in the map pool directory: actionInputsTr.pt, stateInputsTr.pt, stateLabelsTr.pt, rewardLabelsTr.pt, actionInputsTe.pt, stateInputsTe.pt, stateLabelsTe.pt, rewardLabelsTe.pt . 
+
+Executing this command created 8 files in the map pool directory:
+-actionInputsTr.pt containing a n*trp x T x 4 tensor  
+-stateInputsTr.pt containing a n*trp x T x size*size+4 tensor  
+-stateLabelsTr.pt containing a n*trp x T x size*size+4 tensor
+-rewardLabelsTr.pt containing a n*trp x T tensor
+-actionInputsTe.pt containing a n*(1-trp) x T x 4 tensor
+-stateInputsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
+-stateLabelsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
+-rewardLabelsTe.pt containing a n*(1-trp) x T tensor
 
 ### Command
 
@@ -108,15 +135,15 @@ gwmbfm
 
 ### Parameters
 
-- string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their default names. Default: root directory.
+- string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their original names. Default: root directory.
 - int **sc1** : manages the number of feature maps of the convolutionnal layers. Default: 16
 - float **lr** : learning rate. Default: 0.001
 - int **n** : Number of iterations. Default: 10000
 - int **bs** : batch size. Default: 32
 - float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
-- bool **asp** : If set to true, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
+- bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
 
-# Gradient Based Planner
+## Gradient Based Planner
 
 Command: ???
 Parameters:
@@ -124,6 +151,55 @@ Parameters:
 - T : The amount of time steps to be planned
 - gs : The number of gradient steps to be performed
 - lr : Learning rate
+
+# STARSHIP COMMANDS
+
+## Map Generation
+
+To generate a map of the Starship environment. 
+
+### Command name
+
+ssmgen
+
+### Parameters
+
+- int **nplan**  : The number of planets. Expect an infinite loop if you fill up the available space. Default: 1 
+- int **pmin** : The planet minimum radius in pixels. Default: 50
+- int **pmax** : The planet maximum radius in pixels. Default: 100
+- int **nwp**  : The number of waypoints. Should not be higher that 6 for GUI. Default: 3 
+- int **rwp** : The radius of each waypoint in pixels. Default: 15
+- string **map** : the path to the file that will be created. Default: root directory. 
+
+### Example
+
+To generate a map named myMap with 2 planets of radius ranging from 60 to 80, 4 waypoints of radius 15 in the Starship/Maps/ directory, execute the following command:
+
+./project -cmd=ssmgen -nplan=2 -pmin=60 -pmax=80 -nwp=4 -rwp=15 -map=../Starship/Maps/myMap 
+
+## Map Pool Generation
+
+To generate a map pool of test and train maps of the Starship environment. 
+
+### Command name
+
+ssmgen
+
+### Parameters
+
+- int **nplan**  : The number of planets. Expect an infinite loop if you fill up the available space. Default: 1 
+- int **pmin** : The planet minimum radius in pixels. Default: 50
+- int **pmax** : The planet maximum radius in pixels. Default: 100
+- int **nwp**  : The number of waypoints. Should not be higher that 6 for GUI. Default: 3 
+- int **rwp** : The radius of each waypoint in pixels. Default: 15
+- string **mp** : the path to the directory that will contain the test and train map pools. A new directory is created if it does not already exists. Default: root directory.
+- int **nmaps** : the number of maps to be generated (both train and test map pools will contain nmaps maps). Default: 1
+
+### Example
+
+To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 100 maps using the default values for the planet and waypoint parameters:
+
+./project -cmd=ssmpgen -mp=../Starship/Maps/myMapPool/ -nmaps=100 
 
 [TUTORIAL] Making you own world class
 
