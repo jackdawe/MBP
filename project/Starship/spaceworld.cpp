@@ -43,7 +43,6 @@ void SpaceWorld::init()
 
 float SpaceWorld::transition()
 {
-  epCount++;
   previousState.update(0,ship.getP().x),previousState.update(1,ship.getP().y);
   previousState.update(2,ship.getV().x), previousState.update(3,ship.getV().y);
   
@@ -101,8 +100,7 @@ float SpaceWorld::transition()
 		  newP.y+=size;
 		}
 	      ship.setP(newP);
-	      ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
-	      
+	      ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));	      
 	    }
 	}
       else
@@ -157,6 +155,7 @@ float SpaceWorld::transition()
   actionSequence.push_back({signal,thrustPow,thrustOri});
   stateSequence.push_back(currentState.getStateVector());
   rewardHistory.back()+=r;
+  epCount++;
   return r;
 }
 

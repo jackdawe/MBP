@@ -56,6 +56,9 @@ void EpisodePlayerSS::initMap()
   signalShape =new QGraphicsEllipseItem(0,0,ship.getWidth()*2/3.,ship.getWidth()*2/3.);
   signalShape->setBrush(QBrush(Qt::magenta));
   ssScene.addItem(signalShape);  
+  shipShape->hide();
+  signalShape->hide();
+  thrustShape->hide();
 }
 
 void EpisodePlayerSS::showMap()

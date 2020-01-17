@@ -12,7 +12,7 @@ For this work, I reproduced the environment as described in the paper.
 
 You can find all the details [here](https://arxiv.org/abs/1705.07177).
 
-#General Information 
+# General Information 
 
 1. joliRL/project/ is the root directory.
 2. To use one of my commands, first go to the root directory. Then follow the general architecture: ./project -cmd=COMMAND_NAME -myflag1= -myflag2= ... -myflagn=
@@ -97,14 +97,14 @@ Every sample contains T transitions. This is useful when you want your agent to 
 A train and test set are generated using the train and test maps respectively.
 
 Executing this command created 8 files in the map pool directory:
--actionInputsTr.pt containing a n*trp x T x 4 tensor  
--stateInputsTr.pt containing a n*trp x T x size*size+4 tensor  
--stateLabelsTr.pt containing a n*trp x T x size*size+4 tensor
--rewardLabelsTr.pt containing a n*trp x T tensor
--actionInputsTe.pt containing a n*(1-trp) x T x 4 tensor
--stateInputsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
--stateLabelsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
--rewardLabelsTe.pt containing a n*(1-trp) x T tensor
+- actionInputsTr.pt containing a n*trp x T x 4 tensor
+- stateInputsTr.pt containing a n*trp x T x size*size+4 tensor
+- stateLabelsTr.pt containing a n*trp x T x size*size+4 tensor
+- rewardLabelsTr.pt containing a n*trp x T tensor
+- actionInputsTe.pt containing a n*(1-trp) x T x 4 tensor
+- stateInputsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
+- stateLabelsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
+- rewardLabelsTe.pt containing a n*(1-trp) x T tensor
 
 ### Command
 
@@ -200,6 +200,30 @@ ssmgen
 To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 100 maps using the default values for the planet and waypoint parameters:
 
 ./project -cmd=ssmpgen -mp=../Starship/Maps/myMapPool/ -nmaps=100 
+
+## Showing the map using the implemented GUI
+
+You can use the GUI to display the map on your screen.
+
+### Command
+
+**ssmshow**
+
+### Parameters
+
+- string **map** : the path to the file containing the map to be displayed. Default: root directory.
+
+### Example
+
+You can show the map named MyMap in the Starship/Maps/MyMapPool/test/map0 using the following command line:
+
+./project -cmd=gwmshow -map=../Starship/Maps/MyMapPool/test/map0
+
+Here is the type of window that you should get:
+
+![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2015-03-14.png "This is how the map should look like with Qt!")
+
+
 
 [TUTORIAL] Making you own world class
 

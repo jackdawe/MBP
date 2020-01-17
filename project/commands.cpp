@@ -613,19 +613,20 @@ void Commands::testModelBasedSS()
       agent.resetWorld();
     }*/
   int T=40;
+  int idx = 245;
   string path=FLAGS_mp;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
   torch::load(stateInputsTe,path+"stateInputsTest.pt");
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  torch::Tensor bsi = stateInputsTe[0].unsqueeze(0);
-  torch::Tensor bai = actionInputsTe[0].unsqueeze(0);
-  torch::Tensor bsl = stateLabelsTe[0].unsqueeze(0);
-  torch::Tensor brl = rewardLabelsTe[0].unsqueeze(0);
+  torch::Tensor bsi = stateInputsTe[FLAGS_n].unsqueeze(0);
+  torch::Tensor bai = actionInputsTe[FLAGS_n].unsqueeze(0);
+  torch::Tensor bsl = stateLabelsTe[FLAGS_n].unsqueeze(0);
+  torch::Tensor brl = rewardLabelsTe[FLAGS_n].unsqueeze(0);
   ForwardSS forwardModel(FLAGS_mdl+"_Params");
   torch::load(forwardModel,FLAGS_mdl+".pt");
-  torch::Tensor predictedStates = torch::zeros({T,1,4});
+  torch::Tensor predictedStates = torch::zeros({T,1,17});
   torch::Tensor predictedRewards = torch::zeros({T,1});
   forwardModel->forward(bsi.transpose(0,1)[0],bai.transpose(0,1)[0]);
   predictedStates[0] = forwardModel->predictedState;      
@@ -636,10 +637,11 @@ void Commands::testModelBasedSS()
       predictedStates[t] = forwardModel->predictedState;      
       predictedRewards[t] = forwardModel->predictedReward;		    
     }
-  forwardModel->predictedState = predictedStates.transpose(0,1).reshape({1*T,4}); 
-  forwardModel->predictedReward = predictedRewards.transpose(0,1).reshape({1*T});	       
+  forwardModel->predictedState = predictedStates.transpose(0,1);
+  forwardModel->predictedReward = predictedRewards.transpose(0,1);
 
-  cout<<torch::cat({bsl,ToolsSS().normalizeDeltas(predictedStates.transpose(0,1),true)},2)<<endl;
+  cout<<torch::cat({bsl,predictedStates.transpose(0,1).slice(2,0,4,1)},2)<<endl;
+  cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
 }
 
 

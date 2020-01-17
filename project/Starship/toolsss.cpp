@@ -148,6 +148,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      actionInputs[j][t][4]=sw.getTakenAction()[1];
 	      actionInputs[j][t][5]=sw.getTakenAction()[2];
 	      rewardLabels[j][t] = sw.transition();
+
 	      //torch::Tensor nextState = torch::zeros({4});
 	      /*	      nextState[0] = sw.getPreviousState().getStateVector()[2]*STEP_SIZE;
 	      nextState[1] = sw.getPreviousState().getStateVector()[3]*STEP_SIZE;
