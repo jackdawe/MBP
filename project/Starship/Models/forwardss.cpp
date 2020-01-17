@@ -100,7 +100,7 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 
   //Forward Pass
 
-  torch::Tensor seOut = stateEncoderForward(ToolsSS().normalize(stateBatch));
+  torch::Tensor seOut = stateEncoderForward(ToolsSS().normalizeStates(stateBatch));
   torch::Tensor aeOut = actionEncoderForward(actionBatch);
   torch::Tensor x = torch::cat({seOut,aeOut},1);
   predictedState = stateDecoderForward(x);
@@ -115,8 +115,8 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {
   //  cout<<torch::cat({predictedState.slice(1,0,4,1),stateLabels},1)[0].unsqueeze(0)<<endl;
-  predictedState = ToolsSS().normalize(predictedState);
-  stateLabels = ToolsSS().normalize(stateLabels);
+  predictedState = ToolsSS().normalizeStates(predictedState);
+  stateLabels = ToolsSS().normalizeStates(stateLabels);
   stateLoss = ToolsSS().moduloMSE(predictedState.slice(1,0,2,1),stateLabels.slice(1,0,2,1))+
   torch::mse_loss(predictedState.slice(1,2,4,1),stateLabels.slice(1,2,4,1));
   rewardLoss = torch::mse_loss(predictedReward,rewardLabels);

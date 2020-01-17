@@ -461,6 +461,7 @@ void Commands::learnForwardModelSS()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+  
   int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);  
   if (FLAGS_wn)
     {

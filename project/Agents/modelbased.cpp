@@ -165,7 +165,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	}
 	  
       //Predicting the state sequence given the initState and the action sequence
-                  
+
       for (int t=0;t<nTimesteps;t++)
 	{
 	  //Clipping tokens to closest one-hot encoded vector to minimise inference error
@@ -189,7 +189,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
 	    stateSequences[t+1]=forwardModel->predictedState;
 	  }
 	}
-      
       //Predicting the rewards given the state and action sequences 
 
       torch::Tensor softmaxActions = torch::zeros(0);
@@ -228,10 +227,10 @@ void ModelBased<W,F,P>::gradientBasedPlanner(int nRollouts, int nTimesteps, int 
     }
   int maxRewardIdx = *torch::argmax(rewards.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
-  cout<<actionSequences[maxRewardIdx]<<endl;      
+  //cout<<actionSequences[maxRewardIdx]<<endl;      
   //cout<<rewards[maxRewardIdx]<<endl;
   cout<<rewards<<endl;
-  //cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
+  cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
   
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
@@ -281,8 +280,8 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientSteps, float lr)
 {
-  torch::Tensor a = torch::zeros(0);
-  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
+  //  torch::Tensor a = torch::zeros(0);
+  //  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
       gradientBasedPlanner(nRollouts,nTimesteps,nGradientSteps,lr);
@@ -293,10 +292,10 @@ void ModelBased<W,F,P>::playOne(int nRollouts, int nTimesteps, int nGradientStep
 	      this->world.updateTakenAction(i,*actionSequence[t][i].data<float>());
 	    }
 	  this->world.transition();
-	  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
+	  //	  a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
 	}
       cout<<this->rewardHistory()<<endl;
-      cout<<torch::cat({a.slice(1,0,4,1),trajectory.slice(1,0,4,1)},1)<<endl;
+      //      cout<<torch::cat({a.slice(1,0,4,1),trajectory.slice(1,0,4,1)},1)<<endl;
     }
 }
 
