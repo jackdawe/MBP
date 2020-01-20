@@ -59,12 +59,12 @@ torch::Tensor ToolsSS::normalizeActions(torch::Tensor x, bool reverse)
   if (reverse)
     {
       y[4]*=SHIP_MAX_THRUST;
-      y[5]*=2*M_PI;
+      y[5]*=SHIP_MAX_THRUST;
     }
   else
     {
       y[4]/=SHIP_MAX_THRUST;
-      y[5]/=2*M_PI;     
+      y[5]/=SHIP_MAX_THRUST;     
     }
   return y.transpose(0,-1);
 }
@@ -140,7 +140,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	      stateInputs = torch::zeros({nTe,nTimesteps,size});
 	      actionInputs = torch::zeros({nTe,nTimesteps,6});
 	      stateLabels = torch::zeros({nTe,nTimesteps,4});
-	      rewardLabels = torch::zeros({nTe,nTimesteps});
+	      rewardLabels = torch::zeros({nTe,nTimesteps});	      
 	    }
 	  	
 	  for (int t=0;t<nTimesteps;t++)
@@ -154,11 +154,8 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		  vector<float> previousAction = sw.getTakenAction();
 		  default_random_engine generator(random_device{}());
 		  normal_distribution<float> dist(previousAction[1],SHIP_MAX_THRUST/10.);
-		  float thrustPow = dist(generator);
-		  a[1] = thrustPow;
-		  dist = normal_distribution<float>(previousAction[2],M_PI/5);
-		  float thrustOri = dist(generator);
-		  a[2]=thrustOri;
+		  a[1] = dist(generator);
+		  a[2] = dist(generator);		  
 		}
 	      sw.setTakenAction(a);
 	      actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
