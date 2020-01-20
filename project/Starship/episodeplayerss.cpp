@@ -96,7 +96,6 @@ void EpisodePlayerSS::update()
     }
   else
     {
-      stepCount++;	
       float thrustPow = actionSequence[stepCount][1];
       float thrustO = actionSequence[stepCount][2];
       int signalColor = actionSequence[stepCount][0];
@@ -134,6 +133,7 @@ void EpisodePlayerSS::update()
       thrustShape->setTransformOriginPoint(0,-(h/3.)-(thrustPow/maxThrust)*(2*h/9));
       thrustShape->setRotation(Vect2d(cos(thrustO),sin(thrustO)).dilate(thrustPow).angle()*180/M_PI+90);
       signalShape->setTransformOriginPoint(9*ship.getWidth()/24.,7*ship.getWidth()/12.);
+      stepCount++;	
     }    
 }
 

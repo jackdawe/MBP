@@ -345,8 +345,8 @@ void Commands::playModelBasedGW(int argc, char* argv[])
   torch::load(fm,FLAGS_mdl+".pt");
   GridWorld gw(FLAGS_map);
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
-  agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  //  agent.gradientBasedPlanner(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  //  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   QApplication a(argc,argv);
   EpisodePlayerGW ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getStateSequence());
@@ -388,7 +388,7 @@ void Commands::tc2()
   ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
   for (int i=0;i<FLAGS_n;i++)
     {      
-      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+      //      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
       f<<agent.rewardHistory().back()<<endl;
       agent.resetWorld();
     }
@@ -481,11 +481,11 @@ void Commands::learnForwardModelSS()
   ofstream ftrr("../temp/trr_mse"+FLAGS_tag);
   ofstream fter("../temp/ter_mse"+FLAGS_tag);  
   
-  while(l!=5000)
+  while(l!=400)
     {
       l++;
       agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta, FLAGS_asp);
-      if (l%500 == 0)
+      if (l%40 == 0)
 	{
 	  torch::save(agent.getForwardModel(),FLAGS_mdl+"cp"+to_string(l)+".pt");
 	  agent.getForwardModel()->saveParams(FLAGS_mdl+"cp"+to_string(l)+"_Params");
@@ -494,6 +494,7 @@ void Commands::learnForwardModelSS()
       agent.saveTrainingData();
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
+
       //Computing accuracy
 
       {	
@@ -517,12 +518,12 @@ void Commands::learnForwardModelSS()
 	      {
 		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
 		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
-		forwardModel->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
+	        model->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
 		for (int t=1;t<T;t++)
 		  {
-		    forwardModel->forward(predictedStates[t-1],aitrSplit[i].transpose(0,1)[t]);
+		    model->forward(predictedStates[t-1],aitrSplit[i].transpose(0,1)[t]);
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
@@ -555,12 +556,12 @@ void Commands::learnForwardModelSS()
 	      {
 		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
 		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
-		forwardModel->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
+	        model->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
 		for (int t=1;t<T;t++)
 		  {
-		    forwardModel->forward(predictedStates[t-1],aiteSplit[i].transpose(0,1)[t]);
+		    model->forward(predictedStates[t-1],aiteSplit[i].transpose(0,1)[t]);
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
@@ -593,7 +594,7 @@ void Commands::playModelBasedSS(int argc, char* argv[])
   SpaceWorld sw(FLAGS_map);
   //  sw.repositionShip(sw.getWaypoints()[2].getCentre());
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
-  agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+  agent.playOne(sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
   QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence(), SHIP_MAX_THRUST);
@@ -614,7 +615,6 @@ void Commands::testModelBasedSS()
       agent.resetWorld();
     }*/
   int T=40;
-  int idx = 245;
   string path=FLAGS_mp;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
   torch::load(stateInputsTe,path+"stateInputsTest.pt");
@@ -643,6 +643,7 @@ void Commands::testModelBasedSS()
 
   cout<<torch::cat({bsl,predictedStates.transpose(0,1).slice(2,0,4,1)},2)<<endl;
   cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
+  cout<<ToolsSS().moduloMSE(bsl.slice(2,0,2,1),predictedStates.transpose(0,1).slice(2,0,2,1),false).pow(0.5)<<endl;
 }
 
 
