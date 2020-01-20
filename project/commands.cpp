@@ -468,9 +468,9 @@ void Commands::learnForwardModelSS()
       actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
     }
   ForwardSS forwardModel(stateInputsTr.size(2),512,2);
+  forwardModel->to(torch::Device(torch::kCUDA)); //OOIEJFOEWJFOI
   //ForwardSS forwardModel(FLAGS_mdl+"_Params");
   //  torch::load(forwardModel,FLAGS_mdl+".pt");  
-  forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
   torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
   int l=0;
@@ -516,9 +516,9 @@ void Commands::learnForwardModelSS()
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
-		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
-	        model->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,17}).to(model->usedDevice);
+		torch::Tensor predictedRewards = torch::zeros({T,nSpl}).to(model->usedDevice);
+		model->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
 		for (int t=1;t<T;t++)
@@ -530,8 +530,8 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}),nSplit);
-	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rltrSplit[i].reshape({nSpl*T}), nSplit);
+	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
+	    t.rewardAccuracy(model->predictedReward,rltrSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit);
 	  }
 	ftrp<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftrv<<pow(*t.vMSE.data<float>(),0.5)<<endl;
@@ -554,8 +554,8 @@ void Commands::learnForwardModelSS()
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nSpl,17});
-		torch::Tensor predictedRewards = torch::zeros({T,nSpl});
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,17}).to(model->usedDevice);
+		torch::Tensor predictedRewards = torch::zeros({T,nSpl}).to(model->usedDevice);
 	        model->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
 	        predictedRewards[0] = forwardModel->predictedReward;
@@ -568,8 +568,8 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}),nSplit);
-	    t.rewardAccuracy(model->predictedReward.to(torch::Device(torch::kCPU)),rlteSplit[i].reshape({nSpl*T}), nSplit);
+	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
+	    t.rewardAccuracy(model->predictedReward,rlteSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit);
 	  }	
 	ftep<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftev<<pow(*t.vMSE.data<float>(),0.5)<<endl;

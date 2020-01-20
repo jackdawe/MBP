@@ -58,13 +58,13 @@ torch::Tensor ToolsSS::normalizeActions(torch::Tensor x, bool reverse)
   y = y.transpose(0,-1);
   if (reverse)
     {
-      y[4]*=SHIP_MAX_THRUST;
-      y[5]*=SHIP_MAX_THRUST;
+      y[4]=y[4]*2*SHIP_MAX_THRUST-0.5;
+      y[5]=y[5]*2*SHIP_MAX_THRUST-0.5;
     }
   else
     {
-      y[4]/=SHIP_MAX_THRUST;
-      y[5]/=SHIP_MAX_THRUST;     
+      y[4]=y[4]/(2*SHIP_MAX_THRUST)+0.5;
+      y[5]=y[5]/(2*SHIP_MAX_THRUST)+0.5;
     }
   return y.transpose(0,-1);
 }
@@ -234,7 +234,10 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
 {
   int s = testData.size(1);
   int n = testData.size(0);
+  pMSE+=moduloMSE(testData.slice(1,0,2,1),labels.slice(1,0,2,1),false)/nSplit;
+  vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;  
   testData = testData.to(torch::Device(torch::kCPU));
+  labels = labels.to(torch::Device(torch::kCPU));  
   //  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1)<<endl;
   /*  for (int i=0;i<n;i++)
     {
@@ -245,8 +248,6 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
 	}
     }
   */
-  pMSE+=moduloMSE(testData.slice(1,0,2,1),labels.slice(1,0,2,1),false)/nSplit;
-  vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;
   //  cout<<torch::split(torch::split(testData,4,1)[0],20,0)[0]<<endl;
   //  cout<<torch::split(torch::split(labels,4,1)[0],20,0)[0]<<endl;
 
@@ -310,10 +311,10 @@ void ToolsSS::displayTAccuracy(int dataSetSize)
 
 void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)
 {
-  testData = testData.flatten().to(torch::Device(torch::kCPU));
-  labels = labels.flatten();
   int m = testData.size(0);
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
+  testData = testData.to(torch::Device(torch::kCPU));
+  labels = labels.to(torch::Device(torch::kCPU));    
   /*  for (int s=0;s<m;s++)
     {
       float rl = *labels[s].data<float>();
