@@ -53,6 +53,7 @@ class Commands
 
   void generateDataSetSS();
   void learnForwardModelSS();
+  void generateSeedSS();
   void playModelBasedSS(int argc, char* argv[]);
   void testModelBasedSS();  
   

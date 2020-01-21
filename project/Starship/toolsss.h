@@ -16,6 +16,7 @@ class ToolsSS
   torch::Tensor deltaToState(torch::Tensor stateBatch, torch::Tensor deltas);
   torch::Tensor moduloMSE(torch::Tensor x, torch::Tensor target, bool normalized=true);
   void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1, float edgeSpawnProp=0.1);
+  void generateSeed(int nTimesteps, int nRollouts, string filename);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);
   void displayTAccuracy(int dataSetSize);
   void rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);

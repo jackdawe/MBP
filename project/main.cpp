@@ -78,8 +78,7 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd == "tc3")
     {
       c.tc3();
-    }
-  
+    }  
   else if(FLAGS_cmd=="ssmgen")    
     {
       c.generateMapSS();
@@ -103,6 +102,10 @@ int main(int argc, char *argv[])
   else if(FLAGS_cmd=="ssmbfm")
     {
       c.learnForwardModelSS();
+    }
+  else if(FLAGS_cmd=="sssgen")
+    {
+      c.generateSeedSS();
     }
   else if(FLAGS_cmd=="ssmbplay")
     {

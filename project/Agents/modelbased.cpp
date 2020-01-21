@@ -100,13 +100,13 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 }
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::gradientBasedPlanner(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradsteps, float lr)
+void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradsteps, float lr, torch::Tensor initActions)
 {
+  ofstream f("../temp/rew");
+  torch::Tensor iii;
   //Setting everything up
   
-  torch::Tensor initState = torch::tensor(this->currentState().getStateVector());
   unsigned int s = initState.size(0);
-
   torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,s});  
   torch::Tensor actionSequences = torch::zeros(0);
   torch::Tensor rewards = torch::zeros({nRollouts}).to(device);
@@ -117,21 +117,24 @@ void ModelBased<W,F,P>::gradientBasedPlanner(ActionSpace actionSpace, int nRollo
 
   //Randomly initialising discrete and continuous actions and merging them
 
-  torch::Tensor toOptimize = torch::zeros(0);  
-  for (unsigned int d=0;d<discreteActions.size();d++)
+  torch::Tensor toOptimize = initActions;
+  if (torch::equal(initActions,torch::zeros(0)))
     {
-      toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,1)},2);
-    }
-
-  for (unsigned int i=0;i<nca;i++)
-    {
-      torch::Tensor center = torch::rand({nRollouts});
-      torch::Tensor initCA = torch::zeros({nRollouts,nTimesteps,1});
-      for (int k=0;k<nRollouts;k++)
+      for (unsigned int d=0;d<discreteActions.size();d++)
 	{
-	  initCA[k] = torch::clamp(torch::zeros({nTimesteps,1}).normal_(*center[k].data<float>(),0.1),0,1);
-	}      
-      toOptimize = torch::cat({toOptimize,initCA.transpose(0,1)},2);
+	  toOptimize = torch::cat({toOptimize,torch::zeros({nTimesteps,nRollouts,discreteActions[d].getSize()}).normal_(0,1)},2);
+	}
+      
+      for (unsigned int i=0;i<nca;i++)
+	{
+	  torch::Tensor center = torch::rand({nRollouts});
+	  torch::Tensor initCA = torch::zeros({nRollouts,nTimesteps,1});
+	  for (int k=0;k<nRollouts;k++)
+	    {
+	      initCA[k] = torch::clamp(torch::zeros({nTimesteps,1}).normal_(*center[k].data<float>(),0.1),0,1);
+	    }      
+	  toOptimize = torch::cat({toOptimize,initCA.transpose(0,1)},2);
+	}
     }
 
   toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
@@ -203,11 +206,20 @@ void ModelBased<W,F,P>::gradientBasedPlanner(ActionSpace actionSpace, int nRollo
 	  forwardModel->forward(torch::split(stateSequences,nTimesteps,0)[0].reshape({nTimesteps*nRollouts,s}),softmaxActions.reshape({nTimesteps*nRollouts,nca+nda}));
 	  rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
 	  //cout<< forwardModel->predictedReward.reshape({nTimesteps,nRollouts}) << endl;
+	  if (i==0)
+	    {
+	      iii = rewards;
+	    }
+	  else
+	    {
+	      //cout<<torch::cat({(iii-rewards).unsqueeze(1),rewards.unsqueeze(1)},1)<<endl;
+	    }
 	  cout<<rewards.mean()<<endl;
+	  f<<*rewards.mean().to(torch::Device(torch::kCPU)).data<float>()<<endl;
 	  rewards.backward(torch::ones({nRollouts}).to(device));
 	  torch::Tensor grads = toOptimize.grad();
-	  //      cout<<lr*grads.transpose(0,1)[0]<<endl;
-	  torch::Tensor optiActions = toOptimize.clone().detach() + lr*grads;      
+	  //cout<<lr*grads.transpose(0,1)[0]<<endl;
+	  torch::Tensor optiActions = toOptimize.clone().detach() - lr*grads;      
 	  
 	  //Updating some tensors with the new action values 
 	  
@@ -294,14 +306,14 @@ void ModelBased<W,F,P>::trainPolicyNetwork(torch::Tensor actionInputs, torch::Te
 
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::playOne(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr)
+void ModelBased<W,F,P>::playOne(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions)
 {
   torch::Tensor a = torch::zeros(0);
   torch::Tensor b = torch::zeros(0);
   a = torch::cat({a,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
-      gradientBasedPlanner(actionSpace,nRollouts,nTimesteps,nGradientSteps,lr);      
+      gradientBasedPlanner(initState, actionSpace,nRollouts,nTimesteps,nGradientSteps,lr, initActions);
       b = torch::cat({b,trajectory.slice(0,0,-1,1)},0);      
       for (int t=0;t<nTimesteps;t++)
 	{

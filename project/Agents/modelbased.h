@@ -19,9 +19,9 @@ template<class W, class F, class P>
   ModelBased(W world, F forwardModel); 
   ModelBased(W world, F forwardModel, P planner);
   void learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize=32, float beta=1, bool allStatesProvided = true);
-  void gradientBasedPlanner(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr);
+  void gradientBasedPlanner(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
   void trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, int epochs, int batchSize=32, float lr=0.001);
-  void playOne(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr);
+  void playOne(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
   void saveTrainingData();
   F getForwardModel();
   vector<float> tensorToVector(torch::Tensor stateVector);

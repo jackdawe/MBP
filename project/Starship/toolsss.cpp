@@ -233,6 +233,25 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(stateLabels,path+"stateLabelsTest.pt");    
 }
 
+void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
+{
+  torch::Tensor actions = torch::zeros(0);
+  //  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1)},2);
+  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1000)},2); 
+  for (unsigned int i=0;i<2;i++)
+    {
+      torch::Tensor center = torch::rand({nRollouts});
+      torch::Tensor initCA = torch::zeros({nRollouts,nTimesteps,1});
+      for (int k=0;k<nRollouts;k++)
+	{
+	  initCA[k] = torch::clamp(torch::zeros({nTimesteps,1}).normal_(*center[k].data<float>(),0.1),0,1);
+	}      
+      actions = torch::cat({actions,initCA.transpose(0,1)},2);
+    }
+  cout<<actions<<endl;
+  torch::save(actions,filename);
+}
+
 void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)
 {
   int s = testData.size(1);
