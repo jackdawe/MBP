@@ -20,7 +20,6 @@ DEFINE_int32(pmin,PLANET_MIN_SIZE,"Planet minimum radius for mapss generation");
 DEFINE_int32(pmax,PLANET_MAX_SIZE,"Planet maximum radius for mapss generation");
 DEFINE_int32(nwp,N_WAYPOINTS,"Number of waypoints for mapss generation");
 DEFINE_int32(rwp,WAYPOINT_RADIUS,"Waypoint radius for mapss generation");
-DEFINE_double(esp,0.1,"Proportion of episodes for which the agent will spawn near the edge of the map");
 DEFINE_double(trp,0.9,"Share of the training set from the whole dataset");
 
 //Model flags
@@ -444,7 +443,7 @@ void Commands::playRandomSS(int argc, char* argv[])
 void Commands::generateDataSetSS()
 {
   ToolsSS t;
-  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp, FLAGS_esp);
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp);
 }
 
 void Commands::learnForwardModelSS()

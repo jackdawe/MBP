@@ -89,12 +89,11 @@ torch::Tensor ToolsSS::moduloMSE(torch::Tensor x, torch::Tensor target, bool nor
   return (get<0>(torch::min(compare,0)).pow(2).mean());
 }
 
-void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, float edgeSpawnProp)
+void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
 {
   cout<<"Generating a dataset for the Starship task containing " + to_string(n) + " samples of " + to_string(nTimesteps) + " time steps. An episode ends after "+to_string(EPISODE_LENGTH)+" time steps."<<endl;
   cout<<"The training set contains " +to_string((int)(100*trainSetProp))+"% of the dataset and the test set the remaining samples."<<endl;
   cout<<"To help with the training, the agent is forced to spawn on a waypoint in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
-  cout<<"To help with the training, the agent is forced to spawn near the edge of the map in " + to_string((int)(100*edgeSpawnProp)) + "% of the episodes."<<endl;  
 
   sw = SpaceWorld(path+"train/",nmaps);
   int nTr=(int)(trainSetProp*n), nTe = n-nTr;
@@ -185,39 +184,6 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw.repositionShip(sw.getWaypoints()[wpIdx].getCentre());	        
 	  sw.generateVectorStates();
 	}
-
-      if ((i>winProp*nTr && i<=(edgeSpawnProp+winProp)*nTr) || (i<n-winProp*nTe && i>=n-(edgeSpawnProp+winProp)*nTe))
-	{
-	  default_random_engine generator(random_device{}());
-	  uniform_int_distribution<int> dist(0,1);
-	  bool isX = dist(generator);
-	  bool nearZero = dist(generator);
-	  dist = uniform_int_distribution<int>(0,10);
-	  int newCoordinate = dist(generator);
-	  if (isX)
-	    {
-	      if (nearZero)
-		{
-		  sw.repositionShip(Vect2d(newCoordinate,sw.getShip().getP().y));
-		}
-	      else
-		{
-		  sw.repositionShip(Vect2d(800-newCoordinate,sw.getShip().getP().y));
-		}	      
-	    }
-	  else
-	    {
-	      if (nearZero)
-		{
-		  sw.repositionShip(Vect2d(sw.getShip().getP().x,newCoordinate));
-		}
-	      else
-		{
-		  sw.repositionShip(Vect2d(sw.getShip().getP().x,800-newCoordinate));
-		}	      	      
-	    }
-	  sw.generateVectorStates();
-	}      
     }
       
   //Saving the test set
@@ -237,57 +203,25 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;  
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));  
-  //  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1)<<endl;
-  /*  for (int i=0;i<n;i++)
-    {
-      torch::Tensor a = moduloMSE(testData.slice(1,0,2,1)[i],labels.slice(1,0,2,1)[i],false);
-      if (*a.data<float>()>100000)
-	{
-	  cout<<torch::cat({testData.slice(1,0,2,1), labels.slice(1,0,2,1)},1)[i].unsqueeze(0)<<endl;   
-	}
-    }
-  */
-  //  cout<<torch::split(torch::split(testData,4,1)[0],20,0)[0]<<endl;
-  //  cout<<torch::split(torch::split(labels,4,1)[0],20,0)[0]<<endl;
 
-
-  //  torch::Tensor td = torch::split(testData.slice(0,190000,200000,1),1,1)[0];
-  //  torch::Tensor ll = torch::split(labels.slice(0,190000,200000,1),1,1)[0];
-  //  torch::Tensor aa = torch::arange(190000,200000,1)/1000.unsqueeze(1);
-  //  cout<<torch::cat({td,ll},1)<<endl;
-  /*
-  torch::Tensor diff = torch::abs(testData-labels);
-  int ft=0;
-  for (int i=10;i<n-10;i++)
+  if (n<10000)
     {
-      if (*diff[i][1].data<float>()>150)
+      torch::Tensor distance = torch::abs(testData-labels);   
+      for (int i=0;i<n;i++)
 	{
-	  ft++;
-	  torch::Tensor pp = torch::split(testData.slice(0,i-2,i+2,1),4,1)[0];
-	  torch::Tensor qq = torch::split(labels.slice(0,i-2,i+2,1),4,1)[0];	  
-	  torch::Tensor rr = (torch::arange(i-10,i+10,1)).unsqueeze(1);
-	  cout<<torch::cat({pp,qq},1)<<endl;
-	}      
-    }
-  cout<<ft<<endl;
-  */
-  /*
-  torch::Tensor distance = torch::abs(testData-labels);   
-  for (int i=0;i<n;i++)
-    {
-      for (int j=0;j<2;j++)
-	{
-	  if (*distance[i][j].data<float>()<5)
+	  for (int j=0;j<2;j++)
 	    {
-	      tScores[j]++;
-	    }
-	  if (*distance[i][j+2].data<float>()<0.2)
-	    {
-	      tScores[j+2]++;
+	      if (*distance[i][j].data<float>()<5)
+		{
+		  tScores[j]++;
+		}
+	      if (*distance[i][j+2].data<float>()<0.2)
+		{
+		  tScores[j+2]++;
+		}
 	    }
 	}
     }
-  */
 }
 
 void ToolsSS::displayTAccuracy(int dataSetSize)
@@ -314,44 +248,47 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));    
-  /*  for (int s=0;s<m;s++)
+
+  if (m<10000)
     {
-      float rl = *labels[s].data<float>();
-      if (rl==CRASH_REWARD)
+      for (int s=0;s<m;s++)
 	{
-	  rCounts[0]++;
-	}
-      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001) //had to do this because of -0.1 float approximation
-	{
-	  rCounts[1]++;
-	}
-      else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD)
-	{
-	  rCounts[2]++;
-	}
-      else if (rl==0)
-	{
-	  rCounts[3]++;
-	}
-      float precision = abs(*testData[s].data<float>()-rl);
-      if (rl==CRASH_REWARD && precision<0.1)
-	{
-	  rScores[0]++;
-	}
-      else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001 && precision<0.05)
-	{
-	  rScores[1]++;
-	}
-      else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.1)
-	{
-	  rScores[2]++;
-	}
-      else if (rl == 0 && precision<0.05)
-	{
-	  rScores[3]++;
+	  float rl = *labels[s].data<float>();
+	  if (rl==CRASH_REWARD)
+	    {
+	      rCounts[0]++;
+	    }
+	  else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001) //had to do this because of -0.1 float approximation
+	    {
+	      rCounts[1]++;
+	    }
+	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD)
+	    {
+	      rCounts[2]++;
+	    }
+	  else if (rl==0)
+	    {
+	      rCounts[3]++;
+	    }
+	  float precision = abs(*testData[s].data<float>()-rl);
+	  if (rl==CRASH_REWARD && precision<0.1)
+	    {
+	      rScores[0]++;
+	    }
+	  else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001 && precision<0.05)
+	    {
+	      rScores[1]++;
+	    }
+	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.1)
+	    {
+	      rScores[2]++;
+	    }
+	  else if (rl == 0 && precision<0.05)
+	    {
+	      rScores[3]++;
+	    }
 	}
     }
-  */
 }
 
 void ToolsSS::displayRAccuracy()
