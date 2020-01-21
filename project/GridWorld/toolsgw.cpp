@@ -56,17 +56,18 @@ cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
     }*/
 
 
-void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, float winProp)
+void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
 {
   gw = GridWorld(path+"train/",nmaps);  
+  int nTr=(int)(trainSetProp*n), nTe = n-nTr;
   
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({4*n/5,nTimesteps,3,size,size});
-  torch::Tensor actionInputs = torch::zeros({4*n/5,nTimesteps,4});
-  torch::Tensor stateLabels = torch::zeros({4*n/5,nTimesteps,3,size,size});
-  torch::Tensor rewardLabels = torch::zeros({4*n/5,nTimesteps});
+  torch::Tensor stateInputs = torch::zeros({nTr,nTimesteps,3,size,size});
+  torch::Tensor actionInputs = torch::zeros({nTr,nTimesteps,4});
+  torch::Tensor stateLabels = torch::zeros({nTr,nTimesteps,3,size,size});
+  torch::Tensor rewardLabels = torch::zeros({nTr,nTimesteps});
    
   //Making the agent wander randomly for n episodes 
   
@@ -83,7 +84,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
       //Swapping to test set generation when training set generation is done
       
-      if (i==4*n/5)
+      if (i==nTr)
 	{
 	  gw = GridWorld(path+"test/",nmaps);
 	  j = 0;
@@ -92,10 +93,10 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  torch::save(actionInputs,path+"actionInputsTrain.pt");
 	  torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
 	  torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	  stateInputs = torch::zeros({n/5,nTimesteps,3,size,size});
-	  actionInputs = torch::zeros({n/5,nTimesteps,4});
-	  stateLabels = torch::zeros({n/5,nTimesteps,3,size,size});
-	  rewardLabels = torch::zeros({n/5,nTimesteps});
+	  stateInputs = torch::zeros({nTe,nTimesteps,3,size,size});
+	  actionInputs = torch::zeros({nTe,nTimesteps,4});
+	  stateLabels = torch::zeros({nTe,nTimesteps,3,size,size});
+	  rewardLabels = torch::zeros({nTe,nTimesteps});
 	}
 
       for (int t=0;t<nTimesteps;t++)
@@ -117,7 +118,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       
       //Adding win situations to the dataset as they occur rarely
 	  
-      if (i<winProp*4*n/5 || i>n-winProp*n/5)
+      if (i<winProp*nTr || i>n-winProp*nTe)
 	{
 	  vector<bool> available = {gw.getObstacles()[gw.getGoalX()-1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()+1]==0, gw.getObstacles()[gw.getGoalX()+1][gw.getGoalY()]==0, gw.getObstacles()[gw.getGoalX()][gw.getGoalY()-1]==0};	      	      
 	  while (available == vector<bool>({false,false,false,false})) //Starting over if the map contains a goal surrounded by walls

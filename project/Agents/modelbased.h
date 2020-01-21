@@ -25,6 +25,8 @@ template<class W, class F, class P>
   void saveTrainingData();
   F getForwardModel();
   vector<float> tensorToVector(torch::Tensor stateVector);
+  torch::Tensor splitDim(torch::Tensor x, int bs, int T);
+  torch::Tensor mergeDim(torch::Tensor x);
   
  private:
   F forwardModel;

@@ -284,7 +284,7 @@ void Commands::showActorOnMapGW(int argc, char* argv[])
 void Commands::generateDataSetGW()
 {
   ToolsGW t;
-  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_wp);
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T, FLAGS_trp, FLAGS_wp);
 }
 
 
@@ -315,14 +315,15 @@ void Commands::learnForwardModelGW()
     {
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);      
     }
-  actionInputsTr = torch::softmax(actionInputsTr,2);
+  //  actionInputsTr = torch::softmax(actionInputsTr,2);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
   forwardModel->to(torch::Device(torch::kCUDA));
   ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
   torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
-  
-  while(true)
+  int l=0;
+  while(l!=50)
     {
+      l++;
       agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta, FLAGS_asp);
       agent.saveTrainingData();
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
@@ -529,8 +530,8 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,s}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
-	    t.rewardAccuracy(model->predictedReward,rltrSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit);
+	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit,false);
+	    t.rewardAccuracy(model->predictedReward,rltrSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit,false);
 	  }
 	ftrp<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftrv<<pow(*t.vMSE.data<float>(),0.5)<<endl;
@@ -567,8 +568,8 @@ void Commands::learnForwardModelSS()
 	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,s}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
-	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
-	    t.rewardAccuracy(model->predictedReward,rlteSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit);
+	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit,true);
+	    t.rewardAccuracy(model->predictedReward,rlteSplit[i].reshape({nSpl*T}).to(model->usedDevice), nSplit,true);
 	  }	
 	ftep<<pow(*t.pMSE.data<float>(),0.5)<<endl;
 	ftev<<pow(*t.vMSE.data<float>(),0.5)<<endl;

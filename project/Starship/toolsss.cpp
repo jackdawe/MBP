@@ -195,7 +195,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(stateLabels,path+"stateLabelsTest.pt");    
 }
 
-void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)
+void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)
 {
   int s = testData.size(1);
   int n = testData.size(0);
@@ -203,10 +203,9 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;  
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));  
-
-  if (n<10000)
+  if (disp)
     {
-      torch::Tensor distance = torch::abs(testData-labels);   
+      torch::Tensor distance = torch::abs(testData.slice(-1,0,4,1)-labels);   
       for (int i=0;i<n;i++)
 	{
 	  for (int j=0;j<2;j++)
@@ -233,23 +232,23 @@ void ToolsSS::displayTAccuracy(int dataSetSize)
       cout<<"Correctly classified " + names[j] + ": " + to_string(tScores[j])+"/"+to_string(dataSetSize) + " (" + to_string(100.*tScores[j]/dataSetSize) + "%)" << endl;
     }
   cout<<endl;
-  cout<< "POSITION DELTA AVERAGE ERROR: ";
+  cout<< "POSITION AVERAGE ERROR: ";
   cout<<pow(*pMSE.data<float>(),0.5)<<endl;
-  cout<< "VELOCITY DELTA AVERAGE ERROR: ";
+  cout<< "VELOCITY DELTA ERROR: ";
   cout<<pow(*vMSE.data<float>(),0.5)<<endl;
   cout<<endl;  
   cout<<"################################################"<<endl;  
 }
 
 
-void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)
+void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)
 {
   int m = testData.size(0);
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));    
 
-  if (m<10000)
+  if (disp)
     {
       for (int s=0;s<m;s++)
 	{

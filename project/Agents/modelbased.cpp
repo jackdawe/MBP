@@ -23,8 +23,8 @@ template <class W, class F, class P>
 void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float beta, bool allStatesProvided)
 {
   int n = stateInputs.size(0);
-  int s = stateInputs.size(2);
-
+  int s;
+  
   //Training Loop
 
   default_random_engine generator(random_device{}());
@@ -41,14 +41,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
       for (int i=0;i<batchSize;i++)
 	{
 	  int index = dist(generator);
-	  if (allStatesProvided)
-	    {
-	      siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
-	    }
-	  else
-	    {
-	      siBatch = torch::cat({siBatch,stateInputs[index][0].unsqueeze(0)});
-	    }
+	  siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
 	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	  slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
 	  rlBatch[i] = rewardLabels[index]; 
@@ -60,15 +53,15 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 
       if (allStatesProvided)
 	{
-	  forwardModel->forward(siBatch.reshape({batchSize*nTimesteps,s}),aiBatch.reshape({batchSize*nTimesteps,aiBatch.size(2)})); //NE VA PAS MARCHER POUR DES IMAGES
+	  forwardModel->forward(mergeDim(siBatch),mergeDim(aiBatch));
 	}
       else
 	{
 	  torch::Tensor stateOutputs, rewardOutputs;
-	  stateOutputs = torch::zeros({nTimesteps,batchSize,s}).to(device);
+	  stateOutputs = torch::zeros(siBatch.sizes()).transpose(0,1).to(device);
 	  rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);	  
-	  forwardModel->forward(siBatch,aiBatch.transpose(0,1)[0]);	      
-	  stateOutputs[0] = forwardModel->predictedState.reshape({batchSize,s});      
+	  forwardModel->forward(siBatch.transpose(0,1)[0],aiBatch.transpose(0,1)[0]);	      
+	  stateOutputs[0] = forwardModel->predictedState;      
 	  rewardOutputs[0] = forwardModel->predictedReward;
 	  for (int t=1;t<nTimesteps;t++)
 	    {
@@ -76,12 +69,12 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	      stateOutputs[t] = forwardModel->predictedState;      
 	      rewardOutputs[t] = forwardModel->predictedReward;
 	    }
-	  rewardOutputs = rewardOutputs.transpose(0,1).reshape({nTimesteps*batchSize});
-	  stateOutputs = stateOutputs.transpose(0,1).reshape({nTimesteps*batchSize,s});
+	  rewardOutputs = mergeDim(rewardOutputs.transpose(0,1));
+	  stateOutputs = mergeDim(stateOutputs.transpose(0,1));
 	  forwardModel->predictedState = stateOutputs; //Regrouping the operation for loss computation
 	  forwardModel->predictedReward = rewardOutputs;
 	}
-      forwardModel->computeLoss(slBatch.reshape({batchSize*nTimesteps,4}),rlBatch.reshape({batchSize*nTimesteps}));
+      forwardModel->computeLoss(mergeDim(slBatch),mergeDim(rlBatch));
       torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
       torch::Tensor totalLoss = sLoss+rLoss;
       optimizer->zero_grad();
@@ -381,6 +374,48 @@ vector<float> ModelBased<W,F,P>::tensorToVector(torch::Tensor stateVector)
       vec.push_back(*stateVector[i].data<float>());
     }
   return vec;
+}
+
+template <class W, class F, class P>
+torch::Tensor ModelBased<W,F,P>::mergeDim(torch::Tensor x)
+{
+  int bs=x.size(0),T=x.size(1),c,s;
+  if (x.dim()==2)
+    {
+      return x.reshape({bs*T});
+    }
+  else if (x.dim()>3)
+    {
+      c=x.size(2);
+      s=x.size(3);
+      return x.reshape({bs*T,c,s,s});
+    }
+  else
+    {
+      s=x.size(2);
+      return x.reshape({bs*T,s});
+    }
+}
+
+template <class W, class F, class P>
+torch::Tensor ModelBased<W,F,P>::splitDim(torch::Tensor x, int bs, int T)
+{
+  int c,s;
+  if (x.dim()==1)
+    {
+      return x.reshape({bs,T});
+    }
+  else if (x.dim()>2)
+    {
+      c=x.size(1);
+      s=x.size(2);
+      return x.reshape({bs,T,c,s,s});
+    }
+  else
+    {
+      s=x.size(1);
+      return x.reshape({bs,T,s});
+    }  
 }
 
 template class ModelBased<GridWorld, ForwardGW, PlannerGW>;
