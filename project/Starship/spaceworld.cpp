@@ -33,7 +33,7 @@ void SpaceWorld::init()
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
+  svSize = 4+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
   ship.setWidth(SHIP_WIDTH);
   ship.setHeight(SHIP_HEIGHT);
@@ -155,15 +155,15 @@ void SpaceWorld::generateVectorStates()
   currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);
   for (unsigned int i=0;i<waypoints.size();i++)
     {
-      currentState.update(3*i+5,waypoints[i].getCentre().x);
-      currentState.update(3*i+6,waypoints[i].getCentre().y);
-      currentState.update(3*i+7,waypoints[i].getRadius());
+      currentState.update(3*i+4,waypoints[i].getCentre().x);
+      currentState.update(3*i+5,waypoints[i].getCentre().y);
+      currentState.update(3*i+6,waypoints[i].getRadius());
     }
   for (unsigned int i=0;i<planets.size();i++)
     {
-      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().x);
-      currentState.update(3*i+3*waypoints.size()+6,planets[i].getCentre().y);
-      currentState.update(3*i+3*waypoints.size()+7,planets[i].getRadius());
+      currentState.update(3*i+3*waypoints.size()+4,planets[i].getCentre().x);
+      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().y);
+      currentState.update(3*i+3*waypoints.size()+6,planets[i].getRadius());
     }
   previousState = currentState;
 }

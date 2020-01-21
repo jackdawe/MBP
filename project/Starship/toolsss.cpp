@@ -82,12 +82,10 @@ torch::Tensor ToolsSS::moduloMSE(torch::Tensor x, torch::Tensor target, bool nor
 {
   int bound = 1*normalized+800*(1-normalized);
   torch::Tensor compare = torch::cat({x.unsqueeze(0),target.unsqueeze(0)},0);
-  //  cout<<compare.transpose(0,1)[0]<<endl;
   torch::Tensor mini = get<0>(torch::min(compare,0));
   torch::Tensor maxi = get<0>(torch::max(compare,0));
   torch::Tensor a = (mini+bound-maxi).unsqueeze(0);
   compare = torch::cat({a,bound-a});
-  //  cout<<get<0>(torch::min(compare,0))[0]<<endl;
   return (get<0>(torch::min(compare,0)).pow(2).mean());
 }
 
@@ -155,6 +153,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		  default_random_engine generator(random_device{}());
 		  normal_distribution<float> dist(previousAction[1],SHIP_MAX_THRUST/10.);
 		  a[1] = dist(generator);
+		  dist = normal_distribution<float>(previousAction[2],SHIP_MAX_THRUST/10.);
 		  a[2] = dist(generator);		  
 		}
 	      sw.setTakenAction(a);

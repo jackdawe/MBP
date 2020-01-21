@@ -516,7 +516,7 @@ void Commands::learnForwardModelSS()
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nSpl,17}).to(model->usedDevice);
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,s}).to(model->usedDevice);
 		torch::Tensor predictedRewards = torch::zeros({T,nSpl}).to(model->usedDevice);
 		model->forward(sitrSplit[i].transpose(0,1)[0],aitrSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
@@ -527,7 +527,7 @@ void Commands::learnForwardModelSS()
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
-	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,s}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
 	    t.transitionAccuracy(model->predictedState,sltrSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
@@ -554,7 +554,7 @@ void Commands::learnForwardModelSS()
 	      }
 	    else
 	      {
-		torch::Tensor predictedStates = torch::zeros({T,nSpl,17}).to(model->usedDevice);
+		torch::Tensor predictedStates = torch::zeros({T,nSpl,s}).to(model->usedDevice);
 		torch::Tensor predictedRewards = torch::zeros({T,nSpl}).to(model->usedDevice);
 	        model->forward(siteSplit[i].transpose(0,1)[0],aiteSplit[i].transpose(0,1)[0]);
 		predictedStates[0] = forwardModel->predictedState;      
@@ -565,7 +565,7 @@ void Commands::learnForwardModelSS()
 		    predictedStates[t] = forwardModel->predictedState;      
 		    predictedRewards[t] = forwardModel->predictedReward;		    
 		  }
-	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,17}); 
+	        model->predictedState = predictedStates.transpose(0,1).reshape({nSpl*T,s}); 
 	        model->predictedReward = predictedRewards.transpose(0,1).reshape({nSpl*T});	       
 	      }
 	    t.transitionAccuracy(model->predictedState,slteSplit[i].reshape({nSpl*T,4}).to(model->usedDevice),nSplit);
@@ -627,11 +627,20 @@ void Commands::testModelBasedSS()
   torch::Tensor brl = rewardLabelsTe[FLAGS_n].unsqueeze(0);
   ForwardSS forwardModel(FLAGS_mdl+"_Params");
   torch::load(forwardModel,FLAGS_mdl+".pt");
-  torch::Tensor predictedStates = torch::zeros({T,1,17});
+  torch::Tensor predictedStates = torch::zeros({T,1,16});
   torch::Tensor predictedRewards = torch::zeros({T,1});
   forwardModel->forward(bsi.transpose(0,1)[0],bai.transpose(0,1)[0]);
   predictedStates[0] = forwardModel->predictedState;      
   predictedRewards[0] = forwardModel->predictedReward;
+  ofstream f("../temp/file");
+  cout<<stateInputsTe[0]<<endl;
+  cout<<stateLabelsTe[0]<<endl;
+  cout<<actionInputsTe[0]<<endl;  
+  cout<<rewardLabelsTe[0]<<endl;
+  for (int o=0;o<actionInputsTe.flatten().size(0);o++)
+    {
+      //      f<<*actionInputsTe.slice(-1,4,6,1).flatten()[o].data<float>()<<endl;
+    }
   for (int t=1;t<T;t++)
     {
       forwardModel->forward(predictedStates[t-1],bai.transpose(0,1)[t]);
@@ -645,5 +654,3 @@ void Commands::testModelBasedSS()
   cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
   cout<<ToolsSS().moduloMSE(bsl.slice(2,0,2,1),predictedStates.transpose(0,1).slice(2,0,2,1),false).pow(0.5)<<endl;
 }
-
-
