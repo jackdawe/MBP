@@ -1,4 +1,5 @@
 #include "vect2d.h"
+#include <iostream>
 
 Vect2d::Vect2d(): x(0),y(0)
 {
@@ -19,7 +20,7 @@ Vect2d Vect2d::sum(Vect2d v) //sum(u,v) returns the vector u+v
 
 Vect2d Vect2d::dilate(float k) //dilate(u,k) returns the vector k*u
 {
-    return Vect2d(k*x,k*y);
+  return Vect2d(k*x,k*y);
 }
 
 float Vect2d::scalarProduct(Vect2d v) //returns the scalar product between two vectors

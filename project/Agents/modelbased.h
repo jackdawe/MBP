@@ -25,6 +25,19 @@ template<class W, class F, class P>
   void saveTrainingData();
   F getForwardModel();
   vector<float> tensorToVector(torch::Tensor stateVector);
+  torch::Tensor splitDim(torch::Tensor x, int bs, int T);
+  torch::Tensor mergeDim(torch::Tensor x);
+
+  //GBP methods
+
+  torch::Tensor getInitTokens(vector<DiscreteAction> discreteActions, int T, int K);
+  torch::Tensor getInitCA(int nca, int T, int K);  
+  
+  vector<torch::Tensor> breakDAIntoTokens(vector<DiscreteAction> discreteActions, torch::Tensor toOptiDA);
+  torch::Tensor tokensToOneHot(vector<torch::Tensor> daTokens, int daSize, int t);
+
+  torch::Tensor getFinalDA(vector<DiscreteAction> discreteActions, torch::Tensor optiDA);
+  torch::Tensor getFinalCA(vector<ContinuousAction> continuousActions, torch::Tensor optiCA);
   
  private:
   F forwardModel;

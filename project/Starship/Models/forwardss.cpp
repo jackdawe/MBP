@@ -79,7 +79,6 @@ torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)
       x = torch::prelu(decoderLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
     }
   torch::Tensor posOut = decoderLayers[decoderLayers.size()-2]->forward(x);
-  //  posOut = torch::sigmoid(posOut);
   torch::Tensor veloOut = decoderLayers.back()->forward(x);
   veloOut = torch::tanh(veloOut);
   return torch::cat({posOut,veloOut},1);
@@ -107,7 +106,7 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
   predictedReward = rewardDecoderForward(x).squeeze();
 
   //Rebuilding state from deltas
-
+  
   predictedState = ToolsSS().normalizeDeltas(predictedState,true);
   predictedState = ToolsSS().deltaToState(stateBatch,predictedState);  
 }

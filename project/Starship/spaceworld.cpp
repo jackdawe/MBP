@@ -29,17 +29,16 @@ void SpaceWorld::init()
 {
   epCount=0;
   vector<DiscreteAction> dactions = {DiscreteAction(map.getWaypoints().size()+1)};
-  vector<ContinuousAction> cactions {ContinuousAction(0,SHIP_MAX_THRUST), ContinuousAction(0,2*M_PI)};
+  vector<ContinuousAction> cactions = {ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST), ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST)};
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
   size = map.getSize();
-  svSize = 5+3*(map.getPlanets().size()+map.getWaypoints().size());
+  svSize = 4+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
   ship.setWidth(SHIP_WIDTH);
   ship.setHeight(SHIP_HEIGHT);
   reset();
 }
-
 
 float SpaceWorld::transition()
 {
@@ -47,25 +46,14 @@ float SpaceWorld::transition()
   previousState.update(2,ship.getV().x), previousState.update(3,ship.getV().y);
   
   int signal = (int)takenAction[0];
-  float thrustPow = takenAction[1];
-  float thrustOri = takenAction[2];
-
-  if(thrustPow > SHIP_MAX_THRUST)
+  Vect2d thrust(takenAction[1],takenAction[2]);  
+  if(thrust.norm() > SHIP_MAX_THRUST)
     {
-      thrustPow = SHIP_MAX_THRUST;
+      thrust = thrust.dilate(SHIP_MAX_THRUST/thrust.norm());
     }
-  if (thrustPow < 0)
-    {
-      thrustPow = 0;
-    }
-  while (thrustOri > 2*M_PI)
-    {
-      thrustOri -= 2*M_PI;
-    }
-  while (thrustOri < 0)
-    {
-      thrustOri += 2*M_PI;
-    }      
+  ship.setThrust(thrust);
+  ship.setSignalColor(signal);
+  
   float r = 0;  
   if (!isTerminal(currentState))
     {
@@ -73,8 +61,6 @@ float SpaceWorld::transition()
 
       if (!isCrashed())
 	{
-	  ship.setThrust(Vect2d(cos(thrustOri),sin(thrustOri)).dilate(thrustPow));
-	  ship.setSignalColor(signal);
 	  Vect2d gravForce(0,0);
 	  for (unsigned int i=0;i<planets.size();i++)
 	    {
@@ -152,7 +138,7 @@ float SpaceWorld::transition()
 	    }	  
 	}
     }  
-  actionSequence.push_back({signal,thrustPow,thrustOri});
+  actionSequence.push_back({signal,thrust.x,thrust.y});
   stateSequence.push_back(currentState.getStateVector());
   rewardHistory.back()+=r;
   epCount++;
@@ -166,18 +152,18 @@ bool SpaceWorld::isTerminal(State s)
 
 void SpaceWorld::generateVectorStates()
 {
-  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y), currentState.update(4,ship.getHeight());    
+  currentState.update(0,ship.getP().x), currentState.update(1,ship.getP().y), currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);
   for (unsigned int i=0;i<waypoints.size();i++)
     {
-      currentState.update(3*i+5,waypoints[i].getCentre().x);
-      currentState.update(3*i+6,waypoints[i].getCentre().y);
-      currentState.update(3*i+7,waypoints[i].getRadius());
+      currentState.update(3*i+4,waypoints[i].getCentre().x);
+      currentState.update(3*i+5,waypoints[i].getCentre().y);
+      currentState.update(3*i+6,waypoints[i].getRadius());
     }
   for (unsigned int i=0;i<planets.size();i++)
     {
-      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().x);
-      currentState.update(3*i+3*waypoints.size()+6,planets[i].getCentre().y);
-      currentState.update(3*i+3*waypoints.size()+7,planets[i].getRadius());
+      currentState.update(3*i+3*waypoints.size()+4,planets[i].getCentre().x);
+      currentState.update(3*i+3*waypoints.size()+5,planets[i].getCentre().y);
+      currentState.update(3*i+3*waypoints.size()+6,planets[i].getRadius());
     }
   previousState = currentState;
 }

@@ -96,8 +96,9 @@ void EpisodePlayerSS::update()
     }
   else
     {
-      float thrustPow = actionSequence[stepCount][1];
-      float thrustO = actionSequence[stepCount][2];
+      Vect2d thrust(actionSequence[stepCount][1],actionSequence[stepCount][2]);
+      float thrustPow = thrust.norm();
+      float thrustO = thrust.angle();
       int signalColor = actionSequence[stepCount][0];
       if (thrustPow == 0)
 	{
