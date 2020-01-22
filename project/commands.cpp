@@ -431,7 +431,6 @@ void Commands::playRandomSS(int argc, char* argv[])
   for (int i=0;i<FLAGS_n;i++)
     {
       vector<float> a = sw.randomAction();
-      a[2] = i/20.;
       sw.setTakenAction(a);
       sw.transition();
     }
@@ -550,7 +549,7 @@ void Commands::learnForwardModelSS()
 	    int nSpl = siteSplit[i].size(0); 
 	    if (FLAGS_asp)
 	      {
-		model->forward(siteSplit[i].reshape({nTe*T,s}),aiteSplit[i].reshape({aiteSplit[i].size(0)*T,6}));
+		model->forward(siteSplit[i].reshape({nSpl*T,s}),aiteSplit[i].reshape({aiteSplit[i].size(0)*T,6}));
 	      }
 	    else
 	      {
