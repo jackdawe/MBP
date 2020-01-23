@@ -81,7 +81,7 @@ public:
     void setActions(const ActionSpace &value);
     void setTakenAction(const vector<float> &value);
     void setTakenReward(float value);
-
+    void setCurrentState(State s);
 
     string getTag() const;
 

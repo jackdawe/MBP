@@ -15,7 +15,8 @@ You can find all the details [here](https://arxiv.org/abs/1705.07177).
 # General Information 
 
 1. joliRL/project/ is the root directory.
-2. To use one of my commands, first go to the root directory. Then follow the general architecture: ./project -cmd=COMMAND_NAME -myflag1= -myflag2= ... -myflagn=
+2. To use one of my commands, first go to the root directory. Then follow the general architecture:
+./project -cmd=COMMAND_NAME -myflag1= -myflag2= (...) -myflag100= 
 3. Flags to indicate the path to a directory should end with a "/". 
 
 # GRIDWORLD TASK
@@ -97,14 +98,14 @@ Every sample contains T transitions. This is useful when you want your agent to 
 A train and test set are generated using the train and test maps respectively.
 
 Executing this command created 8 files in the map pool directory:
-- actionInputsTr.pt containing a n*trp x T x 4 tensor
-- stateInputsTr.pt containing a n*trp x T x size*size+4 tensor
-- stateLabelsTr.pt containing a n*trp x T x size*size+4 tensor
-- rewardLabelsTr.pt containing a n*trp x T tensor
-- actionInputsTe.pt containing a n*(1-trp) x T x 4 tensor
-- stateInputsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
-- stateLabelsTe.pt containing a n*(1-trp) x T x size*size+4 tensor
-- rewardLabelsTe.pt containing a n*(1-trp) x T tensor
+- actionInputsTr.pt containing a { n x trp | T | 4 } tensor
+- stateInputsTr.pt containing a { n x trp | T | size x size + 4 } tensor
+- stateLabelsTr.pt containing a { n x trp | T | size x size + 4 } tensor
+- rewardLabelsTr.pt containing a { n x trp | T } tensor
+- actionInputsTe.pt containing a { n x (1-trp) | T | 4 } tensor
+- stateInputsTe.pt containing a { n x (1-trp) | T | size x size + 4 } tensor
+- stateLabelsTe.pt containing a { n x (1-trp) | T | size x size + 4 } tensor
+- rewardLabelsTe.pt containing a { n x (1-trp) | T } tensor
 
 ### Command
 
