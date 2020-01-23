@@ -218,6 +218,11 @@ void World::setTakenReward(float value)
     takenReward = value;
 }
 
+void World::setCurrentState(State s)
+{
+  currentState = s;
+}
+
 string World::getTag() const
 {
     return tag;

@@ -95,7 +95,8 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 template <class W, class F, class P>
 void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradsteps, float lr, torch::Tensor initActions)
 {
-  ofstream f("../temp/hi");
+  ofstream f1("../temp/rewIllu");
+  ofstream f2("../temp/rewTrue");
   
   //Setting everything up
   
@@ -120,7 +121,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   vector<torch::Tensor> aa;
   aa.push_back(actions);
   torch::optim::Adam optimizer(aa,lr);
-
+  
   torch::Tensor savedCA = actions.slice(2,nda,nda+nca,1); //TO REMOVE
   
   //Looping over the number of optimisation steps 
@@ -149,7 +150,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  }
 	}
       //Predicting the rewards given the state and action sequences 
-
+	
       if (i<nGradsteps)
 	{      
 	  torch::Tensor softmaxActions = torch::zeros(0);
@@ -160,9 +161,12 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  softmaxActions = torch::cat({softmaxActions,toOptiCA},2);       
 	  forwardModel->forward(mergeDim(stateSequences.slice(0,0,nTimesteps,1)),mergeDim(softmaxActions));
 	  optimizer.zero_grad();
+
+	  f2<<computeTrueReward(initState, discreteActions, actionSpace.getContinuousActions(), actions, nda,nca,nTimesteps)<<endl; //TO REMOVE  
+
 	  costs = -forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
 	  cout<<-costs.mean()<<endl;
-	  f<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl;
+	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
 	  costs.backward(torch::ones({nRollouts}).to(device));
 	  optimizer.step();
 	}
@@ -172,7 +176,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   //Decoding action tensors back to their original form
 
   torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
-  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), actions.slice(2,nda,nda+nca,1));
+  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
   torch::Tensor actionSequences = torch::cat({finalDA,finalCA},2);
 
   int maxRewardIdx = *torch::argmax(-costs.to(torch::Device(torch::kCPU))).data<long>();
@@ -441,6 +445,23 @@ torch::Tensor ModelBased<W,F,P>::getFinalCA(vector<ContinuousAction> continuousA
     }
   return finalCA.transpose(0,-1);    
 
+}
+
+template <class W, class F, class P>
+float ModelBased<W,F,P>::computeTrueReward(torch::Tensor initState, vector<DiscreteAction> discreteActions, torch::Tensor actions, vector<ContinuousAction> continuousActions, int nca, int nda, int nTimesteps)
+{
+  auto w(this->world);
+  w.setCurrentState(State(tensorToVector(initState)));
+  w.generateVectorStates();
+  torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
+  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
+  torch::Tensor actact = torch::cat({finalDA,finalCA},2);
+  float r = 0;
+  for (int u=0;u<nTimesteps;u++)
+    {
+      w.setTakenAction(tensorToVector(actact[u][0]));
+      r+=w.transition();
+    }
 }
 
 template class ModelBased<GridWorld, ForwardGW, PlannerGW>;
