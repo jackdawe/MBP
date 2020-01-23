@@ -56,6 +56,7 @@ class Commands
   void generateSeedSS();
   void playModelBasedSS(int argc, char* argv[]);
   void testModelBasedSS();  
+  void tc4();
   
   //Other
   

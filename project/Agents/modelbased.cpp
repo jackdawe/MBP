@@ -95,11 +95,13 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 template <class W, class F, class P>
 void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradsteps, float lr, torch::Tensor initActions)
 {
+  ofstream f("../temp/hi");
+  
   //Setting everything up
   
   unsigned int s = initState.size(0);
   torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,s});  
-  torch::Tensor rewards = torch::zeros({nRollouts}).to(device);
+  torch::Tensor costs;
   
   unsigned int nca = actionSpace.getContinuousActions().size();
   unsigned int nda = actionSpace.nActions()-nca;
@@ -107,15 +109,19 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 
   //Randomly initialising discrete and continuous actions and merging them
 
-  torch::Tensor toOptimize = initActions;
+  torch::Tensor iactions = initActions;
   if (torch::equal(initActions,torch::zeros(0)))
     {
       torch::Tensor initTokens = getInitTokens(discreteActions, nTimesteps, nRollouts);
       torch::Tensor initCA = getInitCA(nca, nTimesteps, nRollouts);
-      toOptimize = torch::cat({initTokens, initCA},2);
+      iactions = torch::cat({initTokens, initCA},2);
     }
-  toOptimize = torch::autograd::Variable(toOptimize.clone().set_requires_grad(true));
-  torch::Tensor savedCA = toOptimize.slice(2,nda,nda+nca,1); //TO REMOVE
+  torch::autograd::Variable actions(iactions.clone().set_requires_grad(true));
+  vector<torch::Tensor> aa;
+  aa.push_back(actions);
+  torch::optim::Adam optimizer(aa,lr);
+
+  torch::Tensor savedCA = actions.slice(2,nda,nda+nca,1); //TO REMOVE
   
   //Looping over the number of optimisation steps 
 
@@ -125,8 +131,8 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
       
       //Putting each discrete action into a vector and putting continuous actions into one tensor  
       
-      torch::Tensor toOptiDA = toOptimize.slice(2,0,nda,1);
-      torch::Tensor toOptiCA = torch::clamp(toOptimize.slice(2,nda,nda+nca,1),0,1);
+      torch::Tensor toOptiDA = actions.slice(2,0,nda,1);
+      torch::Tensor toOptiCA = torch::clamp(actions.slice(2,nda,nda+nca,1),0,1);
       vector<torch::Tensor> daTokens = breakDAIntoTokens(discreteActions,toOptiDA);      
 
       //Predicting the state sequence given the initState and the action sequence
@@ -153,35 +159,32 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	    }      
 	  softmaxActions = torch::cat({softmaxActions,toOptiCA},2);       
 	  forwardModel->forward(mergeDim(stateSequences.slice(0,0,nTimesteps,1)),mergeDim(softmaxActions));
-	  rewards = forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
-	  //	  cout<<rewards.mean()<<endl;
-	  rewards.backward(torch::ones({nRollouts}).to(device));
-	  torch::Tensor grads = toOptimize.grad();
-	  //cout<<lr*grads.transpose(0,1)[0]<<endl;
-	  torch::Tensor optiActions = toOptimize.clone().detach() - lr*grads;      
-	  toOptimize = torch::autograd::Variable(optiActions.clone().detach().set_requires_grad(true));
+	  optimizer.zero_grad();
+	  costs = -forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
+	  cout<<-costs.mean()<<endl;
+	  f<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl;
+	  costs.backward(torch::ones({nRollouts}).to(device));
+	  optimizer.step();
 	}
     }
-  stateSequences = stateSequences.transpose(0,1), toOptimize = toOptimize.transpose(0,1);
+  stateSequences = stateSequences.transpose(0,1), actions = actions.transpose(0,1);
   
   //Decoding action tensors back to their original form
 
-  torch::Tensor finalDA = getFinalDA(discreteActions, toOptimize.slice(2,0,nda,1));
-  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), toOptimize.slice(2,nda,nda+nca,1));
-  cout<<finalDA.sizes()<<endl;
-  cout<<finalCA.sizes()<<endl;
+  torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
+  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), actions.slice(2,nda,nda+nca,1));
   torch::Tensor actionSequences = torch::cat({finalDA,finalCA},2);
 
-  int maxRewardIdx = *torch::argmax(rewards.to(torch::Device(torch::kCPU))).data<long>();
+  int maxRewardIdx = *torch::argmax(-costs.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
   //cout<<actionSequences[maxRewardIdx]<<endl;      
-  cout<<rewards[maxRewardIdx]<<endl;
+  cout<<-costs[maxRewardIdx]<<endl;
   //  cout<<rewards<<endl;
   //  cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
   
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
-  reward = rewards[maxRewardIdx].to(torch::Device(torch::kCPU));
+  reward = -costs[maxRewardIdx].to(torch::Device(torch::kCPU));
 }
 
 template <class W, class F, class P>

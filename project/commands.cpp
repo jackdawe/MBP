@@ -671,3 +671,57 @@ void Commands::testModelBasedSS()
   cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
   cout<<ToolsSS().moduloMSE(bsl.slice(2,0,2,1),predictedStates.transpose(0,1).slice(2,0,2,1),false).pow(0.5)<<endl;
 }
+
+void Commands::tc4()
+{
+  string path=FLAGS_mp;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+  torch::Tensor bsi = stateInputsTe.slice(0,0,2000,1);
+  torch::Tensor bai = actionInputsTe.slice(0,0,2000,1);
+  torch::Tensor bsl = stateLabelsTe.slice(0,0,2000,1);
+  torch::Tensor brl = rewardLabelsTe.slice(0,0,2000,1);
+  ForwardSS forwardModel(FLAGS_mdl+"_Params");
+  torch::load(forwardModel,FLAGS_mdl+".pt");
+  int n=bsi.size(0), T=bsi.size(1);
+  torch::Tensor predictedStates = torch::zeros({T,n,16});
+  torch::Tensor predictedRewards = torch::zeros({T,n});
+  forwardModel->forward(bsi.transpose(0,1)[0],bai.transpose(0,1)[0]);
+  predictedStates[0] = forwardModel->predictedState;
+  predictedRewards[0] = forwardModel->predictedReward;
+  ofstream f("../temp/file");
+  for (int o=0;o<actionInputsTe.flatten().size(0);o++)
+    {
+      //      f<<*actionInputsTe.slice(-1,4,6,1).flatten()[o].data<float>()<<endl;
+    }
+  for (int t=1;t<T;t++)
+    {
+      forwardModel->forward(predictedStates[t-1],bai.transpose(0,1)[t]);
+      predictedStates[t] = forwardModel->predictedState;      
+      predictedRewards[t] = forwardModel->predictedReward;		    
+    }
+  torch::Tensor x = predictedStates.transpose(0,1).slice(-1,0,2,1);
+  torch::Tensor y = bsl.slice(-1,0,2,1);  
+  forwardModel->predictedReward = predictedRewards.transpose(0,1);
+
+  torch::Tensor x1 = x;
+  torch::Tensor y1 = y;
+  torch::Tensor compare = torch::cat({x1.unsqueeze(0),y1.unsqueeze(0)},0);
+  torch::Tensor mini = get<0>(torch::min(compare,0));
+  torch::Tensor maxi = get<0>(torch::max(compare,0));
+  torch::Tensor a = (mini+800-maxi).unsqueeze(0);
+  compare = torch::cat({a,800-a});
+  torch::Tensor mse = get<0>(torch::min(compare,0)).mean(1).flatten();
+  for (int i=0;i<mse.size(0);i++)
+    {
+      f<<*mse[i].to(torch::Device(torch::kCPU)).data<float>()<<endl;
+      if (*mse[i].data<float>()>390)
+	{
+	  //	  cout<<torch::cat({x.slice(-1,0,2,1).flatten()[i].unsqueeze(0),bsl.slice(-1,0,2,1).flatten()[i].unsqueeze(0)})<<endl;
+	}
+    }
+}
+

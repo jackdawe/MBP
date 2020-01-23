@@ -271,4 +271,5 @@ Ship SpaceWorld::getShip()
 void SpaceWorld::repositionShip(Vect2d p)
 {
   ship.setP(p);
+  currentState.update(0,p.x), currentState.update(1,p.y);
 }
