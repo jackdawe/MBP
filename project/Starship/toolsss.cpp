@@ -319,7 +319,7 @@ void ToolsSS::displayRAccuracy()
     }
   cout<<endl;
   cout<< "REWARD AVERAGE ERROR : ";
-  cout<<pow(*rMSE.data<float>(),1)<<endl;
+  cout<<pow(*rMSE.data<float>(),0.5)<<endl;
   cout<<endl;
   cout<<"################################################"<<endl;
 

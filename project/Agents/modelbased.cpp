@@ -162,7 +162,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  forwardModel->forward(mergeDim(stateSequences.slice(0,0,nTimesteps,1)),mergeDim(softmaxActions));
 	  optimizer.zero_grad();
 
-	  f2<<computeTrueReward(initState, discreteActions, actionSpace.getContinuousActions(), actions, nda,nca,nTimesteps)<<endl; //TO REMOVE  
+	  f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nda,nca,nTimesteps)<<endl; //TO REMOVE  
 
 	  costs = -forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
 	  cout<<-costs.mean()<<endl;
@@ -454,7 +454,7 @@ float ModelBased<W,F,P>::computeTrueReward(torch::Tensor initState, vector<Discr
   w.setCurrentState(State(tensorToVector(initState)));
   w.generateVectorStates();
   torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
-  torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
+  torch::Tensor finalCA = getFinalCA(continuousActions, torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
   torch::Tensor actact = torch::cat({finalDA,finalCA},2);
   float r = 0;
   for (int u=0;u<nTimesteps;u++)
