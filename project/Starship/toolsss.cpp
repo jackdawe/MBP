@@ -101,15 +101,14 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Initialising the tensors that will contain the training set
 
   int size = sw.getSvSize();
-  torch::Tensor stateInputs = torch::zeros({nTr,nTimesteps,size});
-  torch::Tensor actionInputs = torch::zeros({nTr,nTimesteps,6});
-  torch::Tensor stateLabels = torch::zeros({nTr,nTimesteps,4});
-  torch::Tensor rewardLabels = torch::zeros({nTr,nTimesteps});
+  torch::Tensor stateInputs = torch::zeros({n,nTimesteps,size});
+  torch::Tensor actionInputs = torch::zeros({n,nTimesteps,6});
+  torch::Tensor stateLabels = torch::zeros({n,nTimesteps,4});
+  torch::Tensor rewardLabels = torch::zeros({n,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
 
   int i=0;
-  int j=0;
 
   while(i<n)
     {      
@@ -128,23 +127,13 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  if (i==nTr)
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
-	      j = 0;
-	      cout<< "Training set generation is complete! Now generating test set..."<<endl; 	      
-	      torch::save(stateInputs,path+"stateInputsTrain.pt");
-	      torch::save(normalizeActions(actionInputs),path+"actionInputsTrain.pt");
-	      torch::save(rewardLabels,path+"rewardLabelsTrain.pt");
-	      torch::save(stateLabels,path+"stateLabelsTrain.pt");
-	      stateInputs = torch::zeros({nTe,nTimesteps,size});
-	      actionInputs = torch::zeros({nTe,nTimesteps,6});
-	      stateLabels = torch::zeros({nTe,nTimesteps,4});
-	      rewardLabels = torch::zeros({nTe,nTimesteps});	      
 	    }
 	  	
 	  for (int t=0;t<nTimesteps;t++)
 	    {	    
 	      //Building the dataset tensors
 	      
-	      stateInputs[j][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
+	      stateInputs[i][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
 	      vector<float> a = sw.randomAction();	      
 	      if (t!=0)
 		{
@@ -156,21 +145,14 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		  a[2] = dist(generator);		  
 		}
 	      sw.setTakenAction(a);
-	      actionInputs[j][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
-	      actionInputs[j][t][4]=sw.getTakenAction()[1];
-	      actionInputs[j][t][5]=sw.getTakenAction()[2];
-	      rewardLabels[j][t] = sw.transition();
-
-	      //torch::Tensor nextState = torch::zeros({4});
-	      /*	      nextState[0] = sw.getPreviousState().getStateVector()[2]*STEP_SIZE;
-	      nextState[1] = sw.getPreviousState().getStateVector()[3]*STEP_SIZE;
-	      nextState[2] = sw.getShip().getA().x*STEP_SIZE;
-	      nextState[3] = sw.getShip().getA().y*STEP_SIZE;	      */
+	      actionInputs[i][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
+	      actionInputs[i][t][4]=sw.getTakenAction()[1];
+	      actionInputs[i][t][5]=sw.getTakenAction()[2];
+	      rewardLabels[i][t] = sw.transition();
 	      vector<float> nextStateVec  = sw.getCurrentState().getStateVector();
-	      stateLabels[j][t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
+	      stateLabels[i][t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
 	    }
 	  i++;
-	  j++;
 	}
       sw.reset();
 
@@ -186,13 +168,17 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	}
     }
       
-  //Saving the test set
+  //Saving the datatest set
 
-  cout<< "Test set generation is complete!"<<endl;
-  torch::save(stateInputs,path+"stateInputsTest.pt");
-  torch::save(normalizeActions(actionInputs),path+"actionInputsTest.pt");
-  torch::save(rewardLabels,path+"rewardLabelsTest.pt");
-  torch::save(stateLabels,path+"stateLabelsTest.pt");    
+  cout<< "Data set generation is complete!"<<endl;
+  torch::save(stateInputs.slice(0,0,nTr,1),path+"stateInputsTest.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,0,nTr,1),path+"actionInputsTest.pt");
+  torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTest.pt");
+  torch::save(stateLabels.slice(0,0,nTr,1),path+"stateLabelsTest.pt");    
+  torch::save(stateInputs.slice(0,nTr,n,1),path+"stateInputsTrain.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,nTr,n,1),path+"actionInputsTrain.pt");
+  torch::save(rewardLabels.slice(0,nTr,n,1),path+"rewardLabelsTrain.pt");
+  torch::save(stateLabels.slice(0,nTr,n,1),path+"stateLabelsTrain.pt");  
 }
 
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
