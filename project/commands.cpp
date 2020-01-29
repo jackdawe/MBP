@@ -504,7 +504,7 @@ void Commands::learnForwardModelSS()
 	ToolsSS t;
 	auto model = agent.getForwardModel();
 	int splitSize = 1000;
-	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr,splitSize,0);
+	/*	vector<torch::Tensor> sitrSplit = torch::split(stateInputsTr,splitSize,0);
 	vector<torch::Tensor> aitrSplit = torch::split(actionInputsTr,splitSize,0);
 	vector<torch::Tensor> sltrSplit = torch::split(stateLabelsTr,splitSize,0);
 	vector<torch::Tensor> rltrSplit = torch::split(rewardLabelsTr,splitSize,0);
@@ -540,12 +540,13 @@ void Commands::learnForwardModelSS()
 	ftrr<<pow(*t.rMSE.data<float>(),0.5)<<endl;	
 	t.displayTAccuracy(nTr*T);
 	t.displayRAccuracy();
-        t = ToolsSS(); 
+	*/
+	//        t = ToolsSS(); 
 	vector<torch::Tensor> siteSplit = torch::split(stateInputsTe,splitSize,0);
 	vector<torch::Tensor> aiteSplit = torch::split(actionInputsTe,splitSize,0);
 	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe,splitSize,0);
 	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe,splitSize,0);	
-        nSplit = siteSplit.size();
+        unsigned nSplit = siteSplit.size();
 	
 	for (unsigned int i=0;i<nSplit;i++)
 	  {

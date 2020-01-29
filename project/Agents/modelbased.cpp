@@ -377,7 +377,7 @@ torch::Tensor ModelBased<W,F,P>::getInitTokens(vector<DiscreteAction> discreteAc
 template <class W, class F, class P>
 torch::Tensor ModelBased<W,F,P>::getInitCA(int nca, int T, int K)
 {
-  torch::Tensor initCA = torch::zeros({K,nca,T});
+  /*  torch::Tensor initCA = torch::zeros({K,nca,T});
   for (unsigned int i=0;i<nca;i++)
     {
       torch::Tensor center = torch::rand({K});
@@ -386,7 +386,8 @@ torch::Tensor ModelBased<W,F,P>::getInitCA(int nca, int T, int K)
 	  initCA[k][i] = torch::zeros({T}).normal_(*center[k].data<float>(),0.1);
 	}      
     }
-  return torch::clamp(initCA,0,1).transpose(1,2).transpose(0,1);
+    return torch::clamp(initCA,0,1).transpose(1,2).transpose(0,1); */
+  return torch::rand({T,K,nca});
 }
 
 template <class W, class F, class P>

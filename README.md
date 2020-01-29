@@ -1,6 +1,6 @@
 # joliRL
 
-This project aims to reproduce Mikael Henaff, Will Whitney and Yann LeCun's work on model-based reinforcement learning.
+This project aims to reproduce Mikael Henaff, Will Whitney and Yann LeCun's work on model-based planning.
 
 In their research, they tested their algorithms on two tasks:
 
@@ -13,6 +13,8 @@ For this work, I reproduced the environment as described in the paper.
 You can find all the details [here](https://arxiv.org/abs/1705.07177).
 
 # General Information 
+
+My code provides a certain amount of commands to easily use the main functionalities of this project. Every commands are documented down below.  
 
 1. joliRL/project/ is the root directory.
 2. To use one of my commands, first go to the root directory. Then follow the general architecture:
@@ -222,8 +224,83 @@ You can show the map named MyMap in the Starship/Maps/MyMapPool/test/map0 using 
 
 Here is the type of window that you should get:
 
-![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2015-03-14.png "This is how the map should look like with Qt!")
+![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2016-37-06.png "This is how the map should look like with Qt!")
 
+The blue circle represents the planet. The other colored circles represent the waypoints.
+
+## Generating the data set
+
+An agent appears at a random location on a map randomly chosen from a map pool and randomly fires his thrusters and lights his signal for 80 timesteps. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
+
+Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. You should set T to 1 if you do not want to use this feature as batches are made by picking random samples of T timesteps from the dataset. 
+
+A train and test set are generated using the train and test maps respectively.
+
+Action tensors are generated with discrete actions being encoded as one-hot vectors and thrust vector values are put between 0 and 1 to be consistent with the planner. 
+
+Executing this command created 8 files in the map pool directory:
+- actionInputsTr.pt containing a { n x trp | T | a } tensor
+- stateInputsTr.pt containing a { n x trp | T | s } tensor
+- stateLabelsTr.pt containing a { n x trp | T | 4 } tensor
+- rewardLabelsTr.pt containing a { n x trp | T } tensor
+- actionInputsTe.pt containing a { n x (1-trp) | T | a } tensor
+- stateInputsTe.pt containing a { n x (1-trp) | T | s } tensor
+- stateLabelsTe.pt containing a { n x (1-trp) | T | 4 } tensor
+- rewardLabelsTe.pt containing a { n x (1-trp) | T } tensor
+
+s is the size of the state vector which is equal to 4 + 3 x (nPlanets + nWaypoints).
+a is the size of the action vector which is equel to nWaypoints + 3. 
+
+### Command
+
+ssdsgen
+
+### Parameters
+
+- string **mp** : the path to the directory containing your train and test map pools. Default: root directory.
+- int **nmaps** : the number of maps in the map pool. A value higher than the actual number of maps crashes the program. Default: 1
+- int **n** : the size of the dataset. Overall, the dataset thus contrains T*n transitions. Default : 10000 
+- int **T** : the number of transitions in a sample. If the agent reached a terminal state before the end of the T transitions, this same state is added to the State t and State t+1 tensors and 0 to the reward tensor. Default: 1
+- float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often, the agent is forced spwan on a waypoint during wp*n episodes. Thus, wp should range from 0 to 1. This will only result in 2 to 3 transitions on the waypoint which is not much for an episode that lasts for 80 timesteps. Default: 0.1
+- float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-trp. Default: 0.9
+
+### Example
+
+The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are trp*n x T for the training set and (1-trp)*n x T for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
+
+./project -cmd=gwdsgen -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
+
+
+## Training a forward model
+
+A neural network learns the physics of the SpaceWorld using a pre-generated dataset using the ssdsgen command. The neural network's inputs are preprocessed in such a way that:
+- Distances in the state vector are between 0 and 1
+- Velocities in the state vector are between -1 and 1 
+- Actions are unchanged as they were already preprocessed in the dataset
+The network returns increment in position and velocity gained from leaving the initial state. The output is post-processed in such a way that:
+- Position deltas and velocities are converted to their original pixel/pixel per timestep representation
+- The next state is reconstituted by adding the increments to the initial state and by concatenating the constant part of the state vector. The post-processed output of the network has thus the exact same form than the state inputs found in the dataset.
+
+Training generates two files:
+
+- The .pt file containing the weights of the model
+- A text file containing the initialisation parameters of the model 
+
+### Command
+
+ssmbfm
+
+### Parameters
+
+- string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their original names. Default: root directory.
+- string **mdl** : the path to the file that will contain the trained model.  
+- int **depth??** :
+- int **size??** : 
+- float **lr** : learning rate. Default: 0.001
+- int **n** : Number of iterations. Default: 10000
+- int **bs** : batch size. Default: 32
+- float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
+- bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
 
 
 [TUTORIAL] Making you own world class

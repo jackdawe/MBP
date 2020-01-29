@@ -1,11 +1,11 @@
 #include "toolsss.h"
 
 ToolsSS::ToolsSS():
-  tScores(vector<int>(4,0)), rScores(vector<int>(4,0)), rCounts(vector<int>(4,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
+  tScores(vector<int>(4,0)), rScores(vector<int>(5,0)), rCounts(vector<int>(5,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
 {}
 
 ToolsSS::ToolsSS(SpaceWorld sw):
-  tScores(vector<int>(4,0)), rScores(vector<int>(4,0)), rCounts(vector<int>(4,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
+  tScores(vector<int>(4,0)), rScores(vector<int>(5,0)), rCounts(vector<int>(5,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
 {}
 
 torch::Tensor ToolsSS::normalizeStates(torch::Tensor x, bool reverse)
@@ -109,7 +109,6 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Making the agent wander randomly for n episodes 
 
   int i=0;
-
   while(i<n)
     {      
       while(i<n && sw.epCount<EPISODE_LENGTH)
@@ -128,14 +127,16 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
 	    }
-	  	
+
+	  bool hitsWayp = false;
+	  
 	  for (int t=0;t<nTimesteps;t++)
 	    {	    
 	      //Building the dataset tensors
 	      
 	      stateInputs[i][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
 	      vector<float> a = sw.randomAction();	      
-	      if (t!=0)
+	      /*	      if (t!=0)
 		{
 		  vector<float> previousAction = sw.getTakenAction();
 		  default_random_engine generator(random_device{}());
@@ -144,20 +145,29 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		  dist = normal_distribution<float>(previousAction[2],SHIP_MAX_THRUST/10.);
 		  a[2] = dist(generator);		  
 		}
+	      */
 	      sw.setTakenAction(a);
 	      actionInputs[i][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
 	      actionInputs[i][t][4]=sw.getTakenAction()[1];
 	      actionInputs[i][t][5]=sw.getTakenAction()[2];
-	      rewardLabels[i][t] = sw.transition();
+	      float r = sw.transition();
+	      rewardLabels[i][t] = r;
+	      if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
+		{
+		  hitsWayp = true;
+		}
 	      vector<float> nextStateVec  = sw.getCurrentState().getStateVector();
 	      stateLabels[i][t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
 	    }
-	  i++;
+	  if ((i>=winProp*nTr && i<=n-winProp*nTe) || hitsWayp)
+	    {
+	      i++;
+	    }
 	}
       sw.reset();
 
       //Adding waypoint collision situations to the dataset as they occur more rarely
-      
+      /*
       if (i<=winProp*nTr || i>=n-winProp*nTe)
 	{
 	  default_random_engine generator(random_device{}());
@@ -166,19 +176,19 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  sw.repositionShip(sw.getWaypoints()[wpIdx].getCentre());	        
 	  sw.generateVectorStates();
 	}
+      */
     }
-      
   //Saving the datatest set
 
   cout<< "Data set generation is complete!"<<endl;
-  torch::save(stateInputs.slice(0,0,nTr,1),path+"stateInputsTest.pt");
-  torch::save(normalizeActions(actionInputs).slice(0,0,nTr,1),path+"actionInputsTest.pt");
-  torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTest.pt");
-  torch::save(stateLabels.slice(0,0,nTr,1),path+"stateLabelsTest.pt");    
-  torch::save(stateInputs.slice(0,nTr,n,1),path+"stateInputsTrain.pt");
-  torch::save(normalizeActions(actionInputs).slice(0,nTr,n,1),path+"actionInputsTrain.pt");
-  torch::save(rewardLabels.slice(0,nTr,n,1),path+"rewardLabelsTrain.pt");
-  torch::save(stateLabels.slice(0,nTr,n,1),path+"stateLabelsTrain.pt");  
+  torch::save(stateInputs.slice(0,0,nTr,1),path+"stateInputsTrain.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,0,nTr,1),path+"actionInputsTrain.pt");
+  torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTrain.pt");
+  torch::save(stateLabels.slice(0,0,nTr,1),path+"stateLabelsTrain.pt");    
+  torch::save(stateInputs.slice(0,nTr,n,1),path+"stateInputsTest.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,nTr,n,1),path+"actionInputsTest.pt");
+  torch::save(rewardLabels.slice(0,nTr,n,1),path+"rewardLabelsTest.pt");
+  torch::save(stateLabels.slice(0,nTr,n,1),path+"stateLabelsTest.pt");  
 }
 
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
@@ -274,16 +284,25 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
 	    {
 	      rCounts[3]++;
 	    }
+	  else if (rl == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
+	    {
+	      rCounts[4]++;
+	    }
+
 	  float precision = abs(*testData[s].data<float>()-rl);
 	  if (rl==CRASH_REWARD && precision<0.1)
 	    {
 	      rScores[0]++;
 	    }
+	  else if (rl == WRONG_SIGNAL_ON_WAYPOINT_REWARD && precision<0.2)
+	    {
+	      rScores[4]++;
+	    }
 	  else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001 && precision<0.05)
 	    {
 	      rScores[1]++;
 	    }
-	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.1)
+	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.25)
 	    {
 	      rScores[2]++;
 	    }
@@ -297,9 +316,9 @@ void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int n
 
 void ToolsSS::displayRAccuracy()
 {
-  vector<string> text = {"CRASH OR WRONG SIGNAL ON WAYPOINT","SIGNAL OFF WAYPOINT","RIGHT SIGNAL ON WAYPOINT","DID NOTHING"};
+  vector<string> text = {"CRASH","SIGNAL OFF WAYPOINT","RIGHT SIGNAL ON WAYPOINT","DID NOTHING","WRONG SIGNAL ON WAYPOINT"};
   cout<<"\n########## REWARD FUNCTION EVALUATION ##########\n " << endl;
-  for (int i=0;i<4;i++)
+  for (int i=0;i<5;i++)
     {
       cout<<text[i]+": "+ to_string(rScores[i]) + "/" + to_string(rCounts[i]) + " (" + to_string(100.*rScores[i]/rCounts[i]) + "%)"<<endl;
     }
