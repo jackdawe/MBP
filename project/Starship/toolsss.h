@@ -14,7 +14,8 @@ class ToolsSS
   torch::Tensor normalizeDeltas(torch::Tensor x, bool reverse=false);  
   torch::Tensor normalizeActions(torch::Tensor x, bool reverse=false);
   torch::Tensor deltaToState(torch::Tensor stateBatch, torch::Tensor deltas);
-  torch::Tensor moduloMSE(torch::Tensor x, torch::Tensor target, bool normalized=true);
+  torch::Tensor moduloMSE(torch::Tensor target, torch::Tensor label, bool normalized=true);
+  torch::Tensor penalityMSE(torch::Tensor target, torch::Tensor label, float valToPenalize, float weight);
   void generateSeed(int nTimesteps, int nRollouts, string filename);
   void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp);

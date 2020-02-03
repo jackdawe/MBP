@@ -249,6 +249,7 @@ Executing this command created 8 files in the map pool directory:
 - rewardLabelsTe.pt containing a { n x (1-trp) | T } tensor
 
 s is the size of the state vector which is equal to 4 + 3 x (nPlanets + nWaypoints).
+
 a is the size of the action vector which is equel to nWaypoints + 3. 
 
 ### Command
@@ -268,7 +269,7 @@ ssdsgen
 
 The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are trp*n x T for the training set and (1-trp)*n x T for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
 
-./project -cmd=gwdsgen -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
+./project -cmd=ssdsgen -mp=../Starship/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
 
 
 ## Training a forward model
@@ -302,6 +303,56 @@ ssmbfm
 - float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
 - bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
 
+## Full example on how to make the model based planner work
+
+In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner perform well.
+In this example, we take the standard case with one planet and three waypoints. 
+
+### Step 1: Generate a map pool 
+
+You first need to create maps on which your starship can fly. These maps will be used to generate your datasets. The more maps you have, the better your forward model will be able to generalise. 1000 maps is usually enough, but you can have more without any additionnal computationnal cost. 
+
+./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000
+
+By executing this command, the MapPool1 directory is created in the ../Starship/Maps/ directory. MapPool1 contains the test and train subdirectories whith 1000 maps each. The default values are used for the map parameters (waypoint and planet radii, etc...).
+
+## Step 2: Generate your dataset using your map pool
+
+We know want to use the maps we just created to make a dataset. You can use the following command to do so: 
+
+./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000 -n=250000 -T=40 -wp=0.5 -trp=0.99
+
+With the first two flags you indicate that you want to use the map pool you previously generated.
+The n flag will determine the size of your dataset. A rather large dataset is required to prevent overfitting.
+The T flag determines how many timesteps there are in one data sample. We set T to 40 so that the neural network can learn to take into account its errors while predicting the next state and reward. Training is way more challenging that way, but prediction errors not build up way less during inference, even if you want to predict 80 timesteps ahead.
+Since an episode lasts for 80 timesteps, your dataset will contain 125000 episodes.
+If you ask the ship to wander randomly on a map, the probability of encountering a waypoint is very low. As a result, the forward model will have alot of trouble to predict a positive reward. By setting wp to 0.5, I ask my dataset to only keep samples that contain at least one encounter with a waypoint for 50% of the dataset.
+Finally, 2500 samples (100 000 transitions) is enough for the test set, thus I set trp to 0.99.
+
+Please note that this command does not use the GPU. The higher n, T and wp the longer it will take to execute. Generating such a dataset can take up to 2 hours. Lowering wp greatly reduces computational time.
+
+## Step 3: Learn a forward model
+
+My neural network will use the dataset generated in step 2 to learn the transition and reward function of the space world.
+
+./project -cmd=ssmbfm -mp=../Starship/Maps/MapPool1/ -mdl=../myForward -tag?? -lr=0.0001 -bs=128 -n=100 -wn -sd=0.25
+
+You should give the directory containing your 8 ".pt" dataset files to the mp flag.
+By setting mdl to "../myForward", two files will be created and updated in the root's parent directory: myForward.pt containing the weights of the model and myForward_Params containing the parameters that you set to create the model. 
+lr and bs are hyperparameters that you can change, but training goes well with the ones I chose.
+wn enables white noise to be added to the discrete action one-hot encoding. sd represents the standard deviation of the white noise. The white noise is supposed to smooth the reward function in the space between the one-hot encoded vectors in such a way that optimisation using gradient descent works better. If sd is too low, there will be little effect. If it is too high, there will be a non-negligeable probability that the original action value becomes lower than another one, thus creating an inconsistency in the dataset.
+
+Every n forward passes, training pauses to do the following operations:
+
+- Replacing the myForward.pt file with a file containing the updated weights
+- Printing the performance of the network on the test set
+- Saving some training data such as state and reward loss for you to plot
+
+Training then resumes for n other forward passes. 
+
+In this configuration, you should see less than 20 pixel position error after 30 minutes of training. If left for a few hours, you should be able to have less than 10 pixel of position error on all the test set.
+
+## Step 4: Use the forward model to plan your actions 
 
 [TUTORIAL] Making you own world class
 

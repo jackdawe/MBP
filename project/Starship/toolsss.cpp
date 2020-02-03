@@ -78,10 +78,10 @@ torch::Tensor ToolsSS::deltaToState(torch::Tensor stateBatch, torch::Tensor delt
   return newStates;
 }
 
-torch::Tensor ToolsSS::moduloMSE(torch::Tensor x, torch::Tensor target, bool normalized)
+torch::Tensor ToolsSS::moduloMSE(torch::Tensor target, torch::Tensor label, bool normalized)
 {
   int bound = 1*normalized+800*(1-normalized);
-  torch::Tensor compare = torch::cat({x.unsqueeze(0),target.unsqueeze(0)},0);
+  torch::Tensor compare = torch::cat({target.unsqueeze(0),label.unsqueeze(0)},0);
   torch::Tensor mini = get<0>(torch::min(compare,0));
   torch::Tensor maxi = get<0>(torch::max(compare,0));
   torch::Tensor a = (mini+bound-maxi).unsqueeze(0);
@@ -89,94 +89,108 @@ torch::Tensor ToolsSS::moduloMSE(torch::Tensor x, torch::Tensor target, bool nor
   return (get<0>(torch::min(compare,0)).pow(2).mean());
 }
 
+torch::Tensor ToolsSS::penalityMSE(torch::Tensor target, torch::Tensor label, float valToPenalize, float weight)
+{
+  torch::Tensor selected = torch::eq(label,torch::full(target.sizes(),valToPenalize).to(label.device()));  
+  int nValToPenalize = *selected.sum().to(torch::Device(torch::kCPU)).data<long>(); 
+  if (nValToPenalize==0)
+    {
+      return torch::zeros({1});
+    }
+  else
+    {
+      return weight*((label-target)*selected).pow(2).sum()/nValToPenalize;
+    }
+}
+
+
+
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
 {
   cout<<"Generating a dataset for the Starship task containing " + to_string(n) + " samples of " + to_string(nTimesteps) + " time steps. An episode ends after "+to_string(EPISODE_LENGTH)+" time steps."<<endl;
   cout<<"The training set contains " +to_string((int)(100*trainSetProp))+"% of the dataset and the test set the remaining samples."<<endl;
   cout<<"To help with the training, the agent is forced to spawn on a waypoint in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
 
+  if (EPISODE_LENGTH % nTimesteps!=0)
+    {
+      cout<<"Warning: impossible to make samples of equal length."<<endl;
+    }
+  int nSplits = EPISODE_LENGTH/nTimesteps;
+  
   sw = SpaceWorld(path+"train/",nmaps);
-  int nTr=(int)(trainSetProp*n), nTe = n-nTr;
+  int nTr=(int)(trainSetProp*n*nSplits), nTe = nSplits*n-nTr;
   
   //Initialising the tensors that will contain the training set
 
   int size = sw.getSvSize();
-  torch::Tensor stateInputs = torch::zeros({n,nTimesteps,size});
-  torch::Tensor actionInputs = torch::zeros({n,nTimesteps,6});
-  torch::Tensor stateLabels = torch::zeros({n,nTimesteps,4});
-  torch::Tensor rewardLabels = torch::zeros({n,nTimesteps});
+  torch::Tensor stateInputs = torch::zeros({n*nSplits,nTimesteps,size});
+  torch::Tensor actionInputs = torch::zeros({n*nSplits,nTimesteps,6});
+  torch::Tensor stateLabels = torch::zeros({n*nSplits,nTimesteps,4});
+  torch::Tensor rewardLabels = torch::zeros({n*nSplits,nTimesteps});
 
   //Making the agent wander randomly for n episodes 
 
+  //  bool dispPerc = true;
   int i=0;
+  bool dispPerc = true;
   while(i<n)
-    {      
-      while(i<n && sw.epCount<EPISODE_LENGTH)
+    {
+      //Displaying a progression bar in the terminal
+      
+      if (dispPerc && n > 100 && i%(n/100) == 0)
 	{
+	  cout << "Your agent is crashing into planets for science... " + to_string((int)(i/(n/100.))) + "%" << endl;
+	  dispPerc = false;
+	}	  
+      //Swapping to test set generation when training set generation is done
 
-	  //Displaying a progression bar in the terminal
+      if (i==nTr)
+	{
+	  sw = SpaceWorld(path+"test/",nmaps);
+	}            
+      torch::Tensor si = torch::zeros({EPISODE_LENGTH,size});
+      torch::Tensor ai = torch::zeros({EPISODE_LENGTH,6});
+      torch::Tensor sl = torch::zeros({EPISODE_LENGTH,4});
+      torch::Tensor rl = torch::zeros({EPISODE_LENGTH});      
+      bool hitsWayp=false;
+      for (int t=0;t<EPISODE_LENGTH;t++)	  	  
+	{	    
+	  //Building the dataset tensors
 	  
-	  if (n > 100 && i%(5*n/100) == 0)
+	  si[t] = torch::tensor(sw.getCurrentState().getStateVector());	  
+	  vector<float> a = sw.randomAction();	      	  	  
+	  sw.setTakenAction(a);
+	  ai[t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
+	  ai[t][4]=sw.getTakenAction()[1];
+	  ai[t][5]=sw.getTakenAction()[2];
+	  float r = sw.transition();
+	  rl[t] = r;	      
+	  if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
 	    {
-	      cout << "Your agent is crashing into planets for science... " + to_string((int)(i/(n/100.))) + "%" << endl;
-	    }	  
-	  
-	  //Swapping to test set generation when training set generation is done
-	  
-	  if (i==nTr)
-	    {
-	      sw = SpaceWorld(path+"test/",nmaps);
+	      hitsWayp = true;
 	    }
+	  vector<float> nextStateVec  = sw.getCurrentState().getStateVector();
+	  sl[t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
+	}
 
-	  bool hitsWayp = false;
-	  
-	  for (int t=0;t<nTimesteps;t++)
-	    {	    
-	      //Building the dataset tensors
-	      
-	      stateInputs[i][t] = torch::tensor(sw.getCurrentState().getStateVector());	  
-	      vector<float> a = sw.randomAction();	      
-	      /*	      if (t!=0)
-		{
-		  vector<float> previousAction = sw.getTakenAction();
-		  default_random_engine generator(random_device{}());
-		  normal_distribution<float> dist(previousAction[1],SHIP_MAX_THRUST/10.);
-		  a[1] = dist(generator);
-		  dist = normal_distribution<float>(previousAction[2],SHIP_MAX_THRUST/10.);
-		  a[2] = dist(generator);		  
-		}
-	      */
-	      sw.setTakenAction(a);
-	      actionInputs[i][t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
-	      actionInputs[i][t][4]=sw.getTakenAction()[1];
-	      actionInputs[i][t][5]=sw.getTakenAction()[2];
-	      float r = sw.transition();
-	      rewardLabels[i][t] = r;
-	      if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
-		{
-		  hitsWayp = true;
-		}
-	      vector<float> nextStateVec  = sw.getCurrentState().getStateVector();
-	      stateLabels[i][t] = torch::tensor(vector<float>(nextStateVec.begin(),nextStateVec.begin()+4));
-	    }
-	  if ((i>=winProp*nTr && i<=n-winProp*nTe) || hitsWayp)
+      if ((i>=winProp*nTr/nSplits && i<=n-winProp*nTe/nSplits) || hitsWayp)
+	{	  		
+	  vector<torch::Tensor> siSplit = torch::split(si,nTimesteps,0);
+	  vector<torch::Tensor> aiSplit = torch::split(ai,nTimesteps,0);
+	  vector<torch::Tensor> slSplit = torch::split(sl,nTimesteps,0);   
+	  vector<torch::Tensor> rlSplit = torch::split(rl,nTimesteps,0);
+	  for (int j=0;j<nSplits;j++)
 	    {
-	      i++;
+	      stateInputs[i*nSplits+j]=siSplit[j];
+	      actionInputs[i*nSplits+j]=aiSplit[j];
+	      stateLabels[i*nSplits+j]=slSplit[j];
+	      rewardLabels[i*nSplits+j]=rlSplit[j];	  
 	    }
+	  i++;
+	  dispPerc = true;
+	  hitsWayp = false;
 	}
       sw.reset();
-
-      //Adding waypoint collision situations to the dataset as they occur more rarely
-      /*
-      if (i<=winProp*nTr || i>=n-winProp*nTe)
-	{
-	  default_random_engine generator(random_device{}());
-	  uniform_int_distribution<int> dist(0,sw.getWaypoints().size()-1);
-	  int wpIdx = dist(generator);
-	  sw.repositionShip(sw.getWaypoints()[wpIdx].getCentre());	        
-	  sw.generateVectorStates();
-	}
-      */
     }
   //Saving the datatest set
 
@@ -185,12 +199,12 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(normalizeActions(actionInputs).slice(0,0,nTr,1),path+"actionInputsTrain.pt");
   torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTrain.pt");
   torch::save(stateLabels.slice(0,0,nTr,1),path+"stateLabelsTrain.pt");    
-  torch::save(stateInputs.slice(0,nTr,n,1),path+"stateInputsTest.pt");
-  torch::save(normalizeActions(actionInputs).slice(0,nTr,n,1),path+"actionInputsTest.pt");
-  torch::save(rewardLabels.slice(0,nTr,n,1),path+"rewardLabelsTest.pt");
-  torch::save(stateLabels.slice(0,nTr,n,1),path+"stateLabelsTest.pt");  
+  torch::save(stateInputs.slice(0,nTr,-1,1),path+"stateInputsTest.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,nTr,-1,1),path+"actionInputsTest.pt");
+  torch::save(rewardLabels.slice(0,nTr,-1,1),path+"rewardLabelsTest.pt");
+  torch::save(stateLabels.slice(0,nTr,-1,1),path+"stateLabelsTest.pt");  
 }
-
+      
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
 {
   torch::Tensor actions = torch::zeros(0);
@@ -220,20 +234,11 @@ void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, i
   labels = labels.to(torch::Device(torch::kCPU));  
   if (disp)
     {
-      torch::Tensor distance = torch::abs(testData.slice(-1,0,4,1)-labels);   
-      for (int i=0;i<n;i++)
+      vector<float> thresholds = {5,5,0.2,0.2};
+      for (int i=0;i<4;i++)
 	{
-	  for (int j=0;j<2;j++)
-	    {
-	      if (*distance[i][j].data<float>()<5)
-		{
-		  tScores[j]++;
-		}
-	      if (*distance[i][j+2].data<float>()<0.2)
-		{
-		  tScores[j+2]++;
-		}
-	    }
+	  torch::Tensor precision = torch::abs(testData.slice(-1,i,i+1,1)-labels.slice(-1,i,i+1,1));
+	  tScores[i] += *(torch::lt(precision,thresholds[i]).sum()).data<long>();
 	}
     }
 }
@@ -259,57 +264,20 @@ void ToolsSS::displayTAccuracy(int dataSetSize)
 void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)
 {
   int m = testData.size(0);
+  cout<<penalityMSE(testData,labels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,1).pow(0.5)<<endl;
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
   testData = testData.to(torch::Device(torch::kCPU));
-  labels = labels.to(torch::Device(torch::kCPU));    
-
+  labels = labels.to(torch::Device(torch::kCPU));  
   if (disp)
     {
-      for (int s=0;s<m;s++)
+      vector<float> rewards = {CRASH_REWARD,SIGNAL_OFF_WAYPOINT_REWARD,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,0,WRONG_SIGNAL_ON_WAYPOINT_REWARD};
+      torch::Tensor precision = torch::abs(testData-labels);
+      vector<float> thresholds = {0.2,0.1,0.2,0.1,0.2};
+      for (int i=0;i<5;i++)
 	{
-	  float rl = *labels[s].data<float>();
-	  if (rl==CRASH_REWARD)
-	    {
-	      rCounts[0]++;
-	    }
-	  else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001) //had to do this because of -0.1 float approximation
-	    {
-	      rCounts[1]++;
-	    }
-	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD)
-	    {
-	      rCounts[2]++;
-	    }
-	  else if (rl==0)
-	    {
-	      rCounts[3]++;
-	    }
-	  else if (rl == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
-	    {
-	      rCounts[4]++;
-	    }
-
-	  float precision = abs(*testData[s].data<float>()-rl);
-	  if (rl==CRASH_REWARD && precision<0.1)
-	    {
-	      rScores[0]++;
-	    }
-	  else if (rl == WRONG_SIGNAL_ON_WAYPOINT_REWARD && precision<0.2)
-	    {
-	      rScores[4]++;
-	    }
-	  else if (abs(rl-SIGNAL_OFF_WAYPOINT_REWARD)<0.001 && precision<0.05)
-	    {
-	      rScores[1]++;
-	    }
-	  else if (rl == RIGHT_SIGNAL_ON_WAYPOINT_REWARD && precision<0.25)
-	    {
-	      rScores[2]++;
-	    }
-	  else if (rl == 0 && precision<0.05)
-	    {
-	      rScores[3]++;
-	    }
+	  torch::Tensor forCounting = torch::eq(labels,torch::full(labels.sizes(),rewards[i]));
+	  rCounts[i] += *forCounting.sum().data<long>();
+	  rScores[i] += *(torch::lt(precision,torch::full(labels.sizes(),thresholds[i])*forCounting)).sum().data<long>();
 	}
     }
 }

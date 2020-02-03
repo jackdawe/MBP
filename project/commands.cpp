@@ -37,6 +37,8 @@ DEFINE_double(lr,0.001,"Learning Rate");
 DEFINE_double(beta,1,"Coefficient applied to the entropy loss");
 DEFINE_double(zeta,1,"Coefficient applied to the value loss");
 DEFINE_int32(bs,32,"Batch Size");
+DEFINE_double(lp1,0,"Loss penality parameter");
+DEFINE_double(lp2,0,"Loss penality parameter");
 
 //Planning flags
 
@@ -463,14 +465,13 @@ void Commands::learnForwardModelSS()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  
   int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(2);  
   if (FLAGS_wn)
     {
-      actionInputsTr+=torch::cat({torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd),torch::zeros({actionInputsTr.size(0),T,2})},2);
+      actionInputsTr+=torch::cat({torch::zeros({nTr,T,4}).normal_(0,FLAGS_sd),torch::zeros({nTr,T,2})},2);
     }
-  ForwardSS forwardModel(stateInputsTr.size(2),512,2);
-  forwardModel->to(torch::Device(torch::kCUDA)); //OOIEJFOEWJFOI
+  ForwardSS forwardModel(stateInputsTr.size(2),512,3, FLAGS_lp1, FLAGS_lp2);
+  forwardModel->to(forwardModel->usedDevice); 
   //ForwardSS forwardModel(FLAGS_mdl+"_Params");
   //  torch::load(forwardModel,FLAGS_mdl+".pt");  
   ModelBased<SpaceWorld,ForwardSS, PlannerGW> agent(sw,forwardModel);
@@ -483,18 +484,19 @@ void Commands::learnForwardModelSS()
   ofstream ftrr("../temp/trr_mse"+FLAGS_tag);
   ofstream fter("../temp/ter_mse"+FLAGS_tag);  
   
-  while(l!=40000)
+  while(l!=5000)
     {
       l++;
       agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta, FLAGS_asp);
       if (l%40 == 0)
 	{
-	  torch::save(agent.getForwardModel(),FLAGS_mdl+"cp"+to_string(l)+".pt");
+	  torch::save(agent.getForwardModel(),"../temp/cps/"+FLAGS_tag+"cp"+to_string(l)+".pt");
 	  agent.getForwardModel()->saveParams(FLAGS_mdl+"cp"+to_string(l)+"_Params");
 	  cout<<"Checkpointing..."<<endl;
 	}
       agent.saveTrainingData();
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
+      torch::save(optimizer,FLAGS_mdl+"_opti.pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
 
       //Computing accuracy
@@ -630,7 +632,7 @@ void Commands::testModelBasedSS()
       agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
       f<<agent.rewardHistory().back()<<endl;
       agent.resetWorld();
-    }*/
+    }*/  
   int T=40;
   string path=FLAGS_mp;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
@@ -638,7 +640,6 @@ void Commands::testModelBasedSS()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  cout<<stateInputsTe.slice(0,1,1,1)<<endl;
   torch::Tensor bsi = stateInputsTe[FLAGS_n].unsqueeze(0);
   torch::Tensor bai = actionInputsTe[FLAGS_n].unsqueeze(0);
   torch::Tensor bsl = stateLabelsTe[FLAGS_n].unsqueeze(0);
@@ -651,10 +652,6 @@ void Commands::testModelBasedSS()
   predictedStates[0] = forwardModel->predictedState;      
   predictedRewards[0] = forwardModel->predictedReward;
   ofstream f("../temp/file");
-  cout<<stateInputsTe[0]<<endl;
-  cout<<stateLabelsTe[0]<<endl;
-  cout<<actionInputsTe[0]<<endl;  
-  cout<<rewardLabelsTe[0]<<endl;
   for (int o=0;o<actionInputsTe.flatten().size(0);o++)
     {
       //      f<<*actionInputsTe.slice(-1,4,6,1).flatten()[o].data<float>()<<endl;

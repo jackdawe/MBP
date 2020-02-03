@@ -7,7 +7,7 @@ class ForwardSSImpl: public ForwardImpl
 {
  public:
   ForwardSSImpl();
-  ForwardSSImpl(int size, int nfc, int depth);
+  ForwardSSImpl(int size, int nfc, int depth, float wpWinWeight=0, float wpLoseWeight=0);
   ForwardSSImpl(std::string filename);
   torch::Tensor stateEncoderForward(torch::Tensor x);
   torch::Tensor actionEncoderForward(torch::Tensor x);
@@ -25,6 +25,8 @@ class ForwardSSImpl: public ForwardImpl
   int size;
   int nfc;
   int depth;
+  float wpWinWeight;
+  float wpLoseWeight;
   
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> encoderLayers;
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> actionLayers;

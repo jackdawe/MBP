@@ -2,8 +2,8 @@
 
 ForwardSSImpl::ForwardSSImpl(){}
 
-ForwardSSImpl::ForwardSSImpl(int size, int nfc, int depth):
-  size(size), nfc(nfc), depth(depth), savedStates(torch::zeros(0).to(usedDevice))
+ForwardSSImpl::ForwardSSImpl(int size, int nfc, int depth, float wpWinWeight, float wpLoseWeight):
+  size(size), nfc(nfc), depth(depth), savedStates(torch::zeros(0).to(usedDevice)), wpWinWeight(wpWinWeight), wpLoseWeight(wpLoseWeight)
 {
   init();
 }
@@ -113,14 +113,11 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch)
 
 void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {
-  //  cout<<torch::cat({predictedState.slice(1,0,4,1),stateLabels},1)[0].unsqueeze(0)<<endl;
   predictedState = ToolsSS().normalizeStates(predictedState);
   stateLabels = ToolsSS().normalizeStates(stateLabels);
   stateLoss = ToolsSS().moduloMSE(predictedState.slice(1,0,2,1),stateLabels.slice(1,0,2,1))+
   torch::mse_loss(predictedState.slice(1,2,4,1),stateLabels.slice(1,2,4,1));
-  rewardLoss = torch::mse_loss(predictedReward,rewardLabels);
-  //cout<<torch::cat({predictedState.slice(2,0,4,1),stateLabels.slice(2,0,4,1)},2)[0]<<endl;
-  //  cout<<stateLabels[1000000000000000]<<endl;
+  rewardLoss = torch::mse_loss(predictedReward,rewardLabels) + ToolsSS().penalityMSE(predictedReward,rewardLabels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,wpWinWeight);
 }
 
 void ForwardSSImpl::saveParams(std::string filename)
