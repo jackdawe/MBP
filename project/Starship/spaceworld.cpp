@@ -105,6 +105,7 @@ float SpaceWorld::transition()
 	}
       else
 	{
+	  /*
 	  if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize()-1)
 	    {
 	      for (unsigned int i=0;i<waypoints.size();i++)
@@ -129,7 +130,8 @@ float SpaceWorld::transition()
 		    }
 		}
 	    }
-	  /*
+	  */
+	  ///*
 	  for (unsigned int i=0;i<waypoints.size();i++)
 	    {
 	      if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
@@ -137,7 +139,7 @@ float SpaceWorld::transition()
 		  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
 		}
 	    }	  
-	  */
+	  //*/
 	}
     }  
   actionSequence.push_back({signal,thrust.x,thrust.y});

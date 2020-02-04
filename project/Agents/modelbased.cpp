@@ -183,7 +183,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   cout<<-costs[maxRewardIdx]<<endl;
   //  cout<<rewards<<endl;
   //  cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
-  cout<<actionSequences<<endl;
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = -costs[maxRewardIdx].to(torch::Device(torch::kCPU));
