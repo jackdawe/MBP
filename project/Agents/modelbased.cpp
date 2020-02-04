@@ -102,7 +102,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   
   unsigned int s = initState.size(0);
   torch::Tensor stateSequences = torch::zeros({nTimesteps+1,nRollouts,s});  
-  torch::Tensor costs;
+  torch::Tensor costs = torch::zeros({nRollouts});
   
   unsigned int nca = actionSpace.getContinuousActions().size();
   unsigned int nda = actionSpace.nActions()-nca;
@@ -150,7 +150,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  }
 	}
       //Predicting the rewards given the state and action sequences 
-	
       if (i<nGradsteps)
 	{      
 	  torch::Tensor softmaxActions = torch::zeros(0);
@@ -178,14 +177,13 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
   torch::Tensor finalCA = getFinalCA(actionSpace.getContinuousActions(), torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
   torch::Tensor actionSequences = torch::cat({finalDA,finalCA},2);
-
   int maxRewardIdx = *torch::argmax(-costs.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
   //cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<-costs[maxRewardIdx]<<endl;
   //  cout<<rewards<<endl;
   //  cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
-  
+  cout<<actionSequences<<endl;
   actionSequence = actionSequences[maxRewardIdx].to(torch::Device(torch::kCPU));   
   trajectory = stateSequences[maxRewardIdx].to(torch::Device(torch::kCPU));
   reward = -costs[maxRewardIdx].to(torch::Device(torch::kCPU));
@@ -213,7 +211,7 @@ void ModelBased<W,F,P>::playOne(torch::Tensor initState, ActionSpace actionSpace
       cout<<this->rewardHistory()<<endl;
     }
   b = torch::cat({b,trajectory[-1].unsqueeze(0)},0);      
-  cout<<torch::cat({a.slice(1,0,2,1),b.slice(1,0,2,1)},1)<<endl;
+  //  cout<<torch::cat({a.slice(1,0,2,1),b.slice(1,0,2,1)},1)<<endl;
   cout<<ToolsSS().moduloMSE(a.slice(1,0,2,1),b.slice(1,0,2,1),false).pow(0.5)<<endl;
   /*
   torch::Tensor aaa = actionSequence.slice(1,1,3,1);

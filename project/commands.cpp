@@ -613,6 +613,7 @@ void Commands::playModelBasedSS(int argc, char* argv[])
     {
       torch::load(actions,FLAGS_seed);
     }
+  cout<<sw.getCurrentState().getStateVector()<<endl;
   agent.playOne(torch::tensor(agent.currentState().getStateVector()),sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr,actions);
   QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
@@ -622,17 +623,20 @@ void Commands::playModelBasedSS(int argc, char* argv[])
 
 void Commands::testModelBasedSS()
 {
-  /*  ForwardSS fm(FLAGS_mdl+"_Params");
+  ///*  
+  ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   ofstream f("../temp/gbpAccSS");
   SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm,PlannerGW());
   for (int i=0;i<FLAGS_n;i++)
-    {      
-      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+    {
+      agent.playOne(torch::tensor(agent.currentState().getStateVector()),sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
       f<<agent.rewardHistory().back()<<endl;
       agent.resetWorld();
-    }*/  
+    }
+  //*/  
+  /*
   int T=40;
   string path=FLAGS_mp;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
@@ -668,6 +672,7 @@ void Commands::testModelBasedSS()
   cout<<torch::cat({bsl,predictedStates.transpose(0,1).slice(2,0,4,1)},2)<<endl;
   cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
   cout<<ToolsSS().moduloMSE(bsl.slice(2,0,2,1),predictedStates.transpose(0,1).slice(2,0,2,1),false).pow(0.5)<<endl;
+  */
 }
 
 void Commands::tc4()

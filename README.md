@@ -303,12 +303,12 @@ ssmbfm
 - float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
 - bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
 
-## Full example on how to make the model based planner work
+# Full example on how to make the model based planner work
 
 In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner perform well.
 In this example, we take the standard case with one planet and three waypoints. 
 
-### Step 1: Generate a map pool 
+## Step 1: Generate a map pool 
 
 You first need to create maps on which your starship can fly. These maps will be used to generate your datasets. The more maps you have, the better your forward model will be able to generalise. 1000 maps is usually enough, but you can have more without any additionnal computationnal cost. 
 
@@ -324,6 +324,7 @@ We know want to use the maps we just created to make a dataset. You can use the 
 
 With the first two flags you indicate that you want to use the map pool you previously generated.
 The n flag will determine the size of your dataset. A rather large dataset is required to prevent overfitting.
+
 The T flag determines how many timesteps there are in one data sample. We set T to 40 so that the neural network can learn to take into account its errors while predicting the next state and reward. Training is way more challenging that way, but prediction errors not build up way less during inference, even if you want to predict 80 timesteps ahead.
 Since an episode lasts for 80 timesteps, your dataset will contain 125000 episodes.
 If you ask the ship to wander randomly on a map, the probability of encountering a waypoint is very low. As a result, the forward model will have alot of trouble to predict a positive reward. By setting wp to 0.5, I ask my dataset to only keep samples that contain at least one encounter with a waypoint for 50% of the dataset.
