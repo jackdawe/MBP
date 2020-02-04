@@ -58,7 +58,7 @@ torch::Tensor ForwardSSImpl::actionEncoderForward(torch::Tensor x)
 {
   for (unsigned int i=0;i<actionLayers.size();i++)
     {
-      x = torch::prelu(actionLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
+      x = actionLayers[i]->forward(x);
     }
   return x;
 }

@@ -150,6 +150,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  }
 	}
       //Predicting the rewards given the state and action sequences 
+      f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nca,nda,nTimesteps)<<endl; //TO REMOVE  
       if (i<nGradsteps)
 	{      
 	  torch::Tensor softmaxActions = torch::zeros(0);
@@ -160,9 +161,6 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  softmaxActions = torch::cat({softmaxActions,toOptiCA},2);       
 	  forwardModel->forward(mergeDim(stateSequences.slice(0,0,nTimesteps,1)),mergeDim(softmaxActions));
 	  optimizer.zero_grad();
-
-	  f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nda,nca,nTimesteps)<<endl; //TO REMOVE  
-
 	  costs = -forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
 	  cout<<-costs.mean()<<endl;
 	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
