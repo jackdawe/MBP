@@ -226,7 +226,7 @@ float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Ten
       sw.transition();
       labels[t] = torch::tensor(sw.getCurrentState().getStateVector());
     }
-  return *moduloMSE(estimate,labels,false).data<float>();
+  return *moduloMSE(estimate.slice(-1,0,2,1),labels.slice(-1,0,2,1),false).data<float>();
 }
 
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)

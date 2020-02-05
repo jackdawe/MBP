@@ -14,7 +14,7 @@ MapSS::MapSS(vector<float> stateVector, int nWaypoints): size(SIZE)
       wp.setRadius(stateVector[6+i*3]);
       waypoints.push_back(wp);
     }
-  int nPlanets = (stateVector.size() - 4+3*nWaypoints)/3;
+  int nPlanets = (stateVector.size() - 4-3*nWaypoints)/3;
   for (int i=0;i<nPlanets;i++)
     {
       Planet p;
