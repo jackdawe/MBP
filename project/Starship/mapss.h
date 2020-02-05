@@ -11,6 +11,8 @@
 
 using namespace std;
 
+#define SIZE 800 //You shouldn't change this too much
+
 #define N_PLANETS 1
 #define PLANET_MIN_SIZE 50
 #define PLANET_MAX_SIZE 100
@@ -22,7 +24,7 @@ class MapSS
 {
  public:
   MapSS();
-  MapSS(int size);
+  MapSS(vector<float> stateVector, int nWaypoints);
   void generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius);
   void generateMapPool(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius, string path, int nMaps);
   void save(string filename);

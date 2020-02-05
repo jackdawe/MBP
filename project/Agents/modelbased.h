@@ -24,7 +24,6 @@ template<class W, class F, class P>
   void playOne(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
   void saveTrainingData();
   F getForwardModel();
-  vector<float> tensorToVector(torch::Tensor stateVector);
   torch::Tensor splitDim(torch::Tensor x, int bs, int T);
   torch::Tensor mergeDim(torch::Tensor x);
 

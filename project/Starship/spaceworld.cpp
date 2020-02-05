@@ -5,9 +5,18 @@ SpaceWorld::SpaceWorld(){}
 SpaceWorld::SpaceWorld(string filename):
   randomStart(true), mapPoolSize(-1)
 {
-  //    paramLabels = {"Gavity", "Damping","Planet Density", "Ship Mass", "Ship Maximum Thrust", "Step Size", "Win Reward", "Lose Reward", "Wrong signal on Waypoint Reward", "Signal Off Waypoint Reward"};
-  //   paramValues = {GRAVITY,DAMPING,PLANET_DENSITY,SHIP_MASS,SHIP_MAX_THRUST,STEP_SIZE,RIGHT_SIGNAL_ON_WAYPOINT_REWARD, CRASH_REWARD, WRONG_SIGNAL_ON_WAYPOINT_REWARD,SIGNAL_OFF_WAYPOINT_REWARD};
   map.load(filename);
+  init();
+}
+
+SpaceWorld::SpaceWorld(vector<float> initStateVector, int nWaypoints):
+  randomStart(false), mapPoolSize(-1)
+{
+  ship.setA(Vect2d(0,0));
+  ship.setV(Vect2d(initStateVector[2],initStateVector[3]));
+  ship.setP(Vect2d(initStateVector[0],initStateVector[1]));
+  initShip = Ship(ship);
+  map = MapSS(initStateVector, nWaypoints);
   init();
 }
 

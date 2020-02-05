@@ -8,6 +8,16 @@ ToolsSS::ToolsSS(SpaceWorld sw):
   tScores(vector<int>(4,0)), rScores(vector<int>(5,0)), rCounts(vector<int>(5,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
 {}
 
+vector<float> ToolsSS::tensorToVector(torch::Tensor stateVector)
+{
+  vector<float> vec;
+  for (int i=0;i<stateVector.size(0);i++)
+    {
+      vec.push_back(*stateVector[i].data<float>());
+    }
+  return vec;
+}
+
 torch::Tensor ToolsSS::normalizeStates(torch::Tensor x, bool reverse)
 {
   torch::Tensor y = x.clone();
@@ -204,7 +214,21 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(rewardLabels.slice(0,nTr,-1,1),path+"rewardLabelsTest.pt");
   torch::save(stateLabels.slice(0,nTr,-1,1),path+"stateLabelsTest.pt");  
 }
-      
+
+float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Tensor actionSequence, torch::Tensor estimate)
+{
+  sw = SpaceWorld(tensorToVector(initState),nWaypoints);
+  int T = actionSequence.size(0);
+  torch::Tensor labels = torch::zeros({T,initState.size(0)});
+  for (int t=0;t<T;t++)
+    {
+      sw.setTakenAction(tensorToVector(actionSequence[t]));
+      sw.transition();
+      labels[t] = torch::tensor(sw.getCurrentState().getStateVector());
+    }
+  return *moduloMSE(estimate,labels,false).data<float>();
+}
+
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
 {
   torch::Tensor actions = torch::zeros(0);

@@ -407,14 +407,14 @@ void Commands::tc3()
 
 void Commands::generateMapSS()
 {
-  MapSS map(800);
+  MapSS map;
   map.generate(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp);
   map.save(FLAGS_map);
 }
 
 void Commands::generateMapPoolSS()
 {
-  MapSS map(800); 
+  MapSS map; 
   map.generateMapPool(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp,FLAGS_mp,FLAGS_nmaps);
 }
 
@@ -429,7 +429,7 @@ void Commands::showMapSS(int argc, char* argv[])
 
 void Commands::playRandomSS(int argc, char* argv[])
 {
-  MapSS map(800);
+  MapSS map;
   map.generate(FLAGS_nplan,FLAGS_pmin,FLAGS_pmax,FLAGS_nwp,FLAGS_rwp);
   map.save("../Starship/Maps/test");
   SpaceWorld sw("../Starship/Maps/test");

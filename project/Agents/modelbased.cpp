@@ -306,17 +306,6 @@ F ModelBased<W,F,P>::getForwardModel()
 }
 
 template <class W, class F, class P>
-vector<float> ModelBased<W,F,P>::tensorToVector(torch::Tensor stateVector)
-{
-  vector<float> vec;
-  for (int i=0;i<stateVector.size(0);i++)
-    {
-      vec.push_back(*stateVector[i].data<float>());
-    }
-  return vec;
-}
-
-template <class W, class F, class P>
 torch::Tensor ModelBased<W,F,P>::mergeDim(torch::Tensor x)
 {
   int bs=x.size(0),T=x.size(1),c,s;
@@ -447,7 +436,7 @@ template <class W, class F, class P>
 float ModelBased<W,F,P>::computeTrueReward(torch::Tensor initState, vector<DiscreteAction> discreteActions, torch::Tensor actions, vector<ContinuousAction> continuousActions, int nca, int nda, int nTimesteps)
 {
   auto w(this->world);
-  w.setCurrentState(State(tensorToVector(initState)));
+  w.setCurrentState(State(ToolsSS().tensorToVector(initState)));
   w.generateVectorStates();
   torch::Tensor finalDA = getFinalDA(discreteActions, actions.slice(2,0,nda,1));
   torch::Tensor finalCA = getFinalCA(continuousActions, torch::clamp(actions.slice(2,nda,nda+nca,1),0,1));
@@ -455,7 +444,7 @@ float ModelBased<W,F,P>::computeTrueReward(torch::Tensor initState, vector<Discr
   float r = 0;
   for (int u=0;u<nTimesteps;u++)
     {
-      w.setTakenAction(tensorToVector(actact[u][0]));
+      w.setTakenAction(ToolsSS().tensorToVector(actact[u][0]));
       r+=w.transition();
     }
 }

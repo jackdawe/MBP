@@ -1,12 +1,27 @@
 #include "mapss.h"
 
-MapSS::MapSS()
+MapSS::MapSS(): size(SIZE)
 {
 
 }
 
-MapSS::MapSS(int size): size(size)
+MapSS::MapSS(vector<float> stateVector, int nWaypoints): size(SIZE)
 {
+  for (int i=0;i<nWaypoints;i++)
+    {
+      Waypoint wp;
+      wp.setCentre(Vect2d(stateVector[4+3*i], stateVector[5+3*i]));
+      wp.setRadius(stateVector[6+i*3]);
+      waypoints.push_back(wp);
+    }
+  int nPlanets = (stateVector.size() - 4+3*nWaypoints)/3;
+  for (int i=0;i<nPlanets;i++)
+    {
+      Planet p;
+      p.setCentre(Vect2d(stateVector[4+3*(i+nWaypoints)], stateVector[5+3*(i+nWaypoints)]));
+      p.setRadius(stateVector[6+3*(i+nWaypoints)]);
+      planets.push_back(p);      
+    }
 }
 
 void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWaypoints, int wpRadius)

@@ -23,6 +23,7 @@ public:
 
     SpaceWorld();
     SpaceWorld(string filename);
+    SpaceWorld(vector<float> initStateVector, int nWaypoints);
     SpaceWorld(string filename, Ship s);
     SpaceWorld(string pathToDir, int mapPoolSize);
     
