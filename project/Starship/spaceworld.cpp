@@ -15,16 +15,17 @@ SpaceWorld::SpaceWorld(vector<float> initStateVector, int nWaypoints):
   ship.setA(Vect2d(0,0));
   ship.setV(Vect2d(initStateVector[2],initStateVector[3]));
   ship.setP(Vect2d(initStateVector[0],initStateVector[1]));
-  initShip = Ship(ship);
   map = MapSS(initStateVector, nWaypoints);
   init();
+  initShip = Ship(ship);
 }
 
 SpaceWorld::SpaceWorld(string filename, Ship s):
-  ship(s), initShip(s), randomStart(false), mapPoolSize(-1)
+  ship(s), randomStart(false), mapPoolSize(-1)
 {
   map.load(filename);
   init();
+  initShip = Ship(ship);
 }
 
 SpaceWorld::SpaceWorld(string pathToDir, int mapPoolSize):
@@ -245,7 +246,10 @@ void SpaceWorld::placeShip()
     }
   else
     {
-      ship = initShip;
+      if (initShip.getWidth()>0)
+	{
+	  ship = initShip;
+	}
     }
 }
 

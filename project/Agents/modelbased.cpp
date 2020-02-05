@@ -209,7 +209,7 @@ void ModelBased<W,F,P>::playOne(torch::Tensor initState, ActionSpace actionSpace
     }
   b = torch::cat({b,trajectory[-1].unsqueeze(0)},0);      
   //  cout<<torch::cat({a.slice(1,0,2,1),b.slice(1,0,2,1)},1)<<endl;
-  cout<<ToolsSS().moduloMSE(a.slice(1,0,2,1),b.slice(1,0,2,1),false).pow(0.5)<<endl;
+  cout<<ToolsSS().moduloMSE(b.slice(1,0,2,1).slice(0,1,nTimesteps+1,1),a.slice(1,0,2,1).slice(0,1,nTimesteps+1,1),false).pow(0.5)<<endl;
   /*
   torch::Tensor aaa = actionSequence.slice(1,1,3,1);
   torch::Tensor bb = actionSequence.slice(1,0,1,1);

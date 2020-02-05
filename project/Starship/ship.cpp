@@ -2,7 +2,13 @@
 
 Ship::Ship()
 {
-
+  a = Vect2d(0,0);
+  v = Vect2d(0,0);
+  p = Vect2d(0,0);
+  width = 0;
+  height = 0;
+  thrust = Vect2d(0,0);
+  signalColor = 0;
 }
 
 Vect2d Ship::getA()

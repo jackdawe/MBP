@@ -219,6 +219,7 @@ float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Ten
 {
   sw = SpaceWorld(tensorToVector(initState),nWaypoints);
   int T = actionSequence.size(0);
+  actionSequence = torch::cat({torch::zeros({T,1}),actionSequence},-1);
   torch::Tensor labels = torch::zeros({T,initState.size(0)});
   for (int t=0;t<T;t++)
     {
