@@ -12,11 +12,11 @@ class ForwardImpl: public torch::nn::Module
 {
  public:
   ForwardImpl();
-  virtual void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore=false);
+  virtual void forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch);
   virtual void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);  
   
-  torch::Tensor predictedState;
-  torch::Tensor predictedReward;
+  torch::Tensor predictedStates;
+  torch::Tensor predictedRewards;
   torch::Tensor stateLoss;
   torch::Tensor rewardLoss;  
   torch::Device usedDevice;

@@ -13,7 +13,8 @@ class ForwardSSImpl: public ForwardImpl
   torch::Tensor actionEncoderForward(torch::Tensor x);
   torch::Tensor stateDecoderForward(torch::Tensor x);
   torch::Tensor rewardDecoderForward(torch::Tensor x);
-  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void forwardOne(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch);
   void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
@@ -27,6 +28,8 @@ class ForwardSSImpl: public ForwardImpl
   int depth;
   float wpWinWeight;
   float wpLoseWeight;
+  torch::Tensor predictedState;
+  torch::Tensor predictedReward;
   
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> encoderLayers;
   std::vector<std::shared_ptr<torch::nn::LinearImpl>> actionLayers;

@@ -21,7 +21,7 @@ vector<float> ToolsSS::tensorToVector(torch::Tensor stateVector)
 torch::Tensor ToolsSS::normalizeStates(torch::Tensor x, bool reverse)
 {
   torch::Tensor y = x.clone();
-  y = y.transpose(0,1);
+  y = y.transpose(0,-1);
   float vmax = 20;
   float size = 800;
   if (!reverse)    
@@ -36,14 +36,14 @@ torch::Tensor ToolsSS::normalizeStates(torch::Tensor x, bool reverse)
       y[2]=y[2]/size*vmax;
       y[3]=y[3]/size*vmax;
     }
-  y = y.transpose(0,1);		
+  y = y.transpose(0,-1);		
   return y;
 }
 
 torch::Tensor ToolsSS::normalizeDeltas(torch::Tensor x, bool reverse)
 {
   torch::Tensor y = x.clone();
-  y = y.transpose(0,1);
+  y = y.transpose(0,-1);
   float vmax = 10;
   float size = 50;
   if (!reverse)    
@@ -58,7 +58,7 @@ torch::Tensor ToolsSS::normalizeDeltas(torch::Tensor x, bool reverse)
       y[2]=y[2]/size*vmax;
       y[3]=y[3]/size*vmax;
     }
-  y = y.transpose(0,1);		
+  y = y.transpose(0,-1);		
   return y;
 }
 
@@ -105,14 +105,13 @@ torch::Tensor ToolsSS::penalityMSE(torch::Tensor target, torch::Tensor label, fl
   int nValToPenalize = *selected.sum().to(torch::Device(torch::kCPU)).data<long>(); 
   if (nValToPenalize==0)
     {
-      return torch::zeros({1});
+      return torch::zeros({1}).to(target.device());
     }
   else
     {
       return weight*((label-target)*selected).pow(2).sum()/nValToPenalize;
     }
 }
-
 
 
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
@@ -133,7 +132,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Initialising the tensors that will contain the training set
 
   int size = sw.getSvSize();
-  torch::Tensor stateInputs = torch::zeros({n*nSplits,nTimesteps,size});
+  torch::Tensor stateInputs = torch::zeros({n*nSplits,size});
   torch::Tensor actionInputs = torch::zeros({n*nSplits,nTimesteps,6});
   torch::Tensor stateLabels = torch::zeros({n*nSplits,nTimesteps,4});
   torch::Tensor rewardLabels = torch::zeros({n*nSplits,nTimesteps});
@@ -158,7 +157,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	{
 	  sw = SpaceWorld(path+"test/",nmaps);
 	}            
-      torch::Tensor si = torch::zeros({EPISODE_LENGTH,size});
+      torch::Tensor si = torch::zeros(0);
       torch::Tensor ai = torch::zeros({EPISODE_LENGTH,6});
       torch::Tensor sl = torch::zeros({EPISODE_LENGTH,4});
       torch::Tensor rl = torch::zeros({EPISODE_LENGTH});      
@@ -166,8 +165,11 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       for (int t=0;t<EPISODE_LENGTH;t++)	  	  
 	{	    
 	  //Building the dataset tensors
-	  
-	  si[t] = torch::tensor(sw.getCurrentState().getStateVector());	  
+
+	  if(t%nTimesteps == 0)
+	    {
+	      si = torch::cat({si,torch::tensor(sw.getCurrentState().getStateVector()).unsqueeze(0)},0);
+	    }
 	  vector<float> a = sw.randomAction();	      	  	  
 	  sw.setTakenAction(a);
 	  ai[t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
@@ -185,13 +187,12 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
       if ((i>=winProp*nTr/nSplits && i<=n-winProp*nTe/nSplits) || hitsWayp)
 	{	  		
-	  vector<torch::Tensor> siSplit = torch::split(si,nTimesteps,0);
 	  vector<torch::Tensor> aiSplit = torch::split(ai,nTimesteps,0);
 	  vector<torch::Tensor> slSplit = torch::split(sl,nTimesteps,0);   
 	  vector<torch::Tensor> rlSplit = torch::split(rl,nTimesteps,0);
 	  for (int j=0;j<nSplits;j++)
 	    {
-	      stateInputs[i*nSplits+j]=siSplit[j];
+	      stateInputs[i*nSplits+j]=si[j];
 	      actionInputs[i*nSplits+j]=aiSplit[j];
 	      stateLabels[i*nSplits+j]=slSplit[j];
 	      rewardLabels[i*nSplits+j]=rlSplit[j];	  
@@ -209,10 +210,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   torch::save(normalizeActions(actionInputs).slice(0,0,nTr,1),path+"actionInputsTrain.pt");
   torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTrain.pt");
   torch::save(stateLabels.slice(0,0,nTr,1),path+"stateLabelsTrain.pt");    
-  torch::save(stateInputs.slice(0,nTr,-1,1),path+"stateInputsTest.pt");
-  torch::save(normalizeActions(actionInputs).slice(0,nTr,-1,1),path+"actionInputsTest.pt");
-  torch::save(rewardLabels.slice(0,nTr,-1,1),path+"rewardLabelsTest.pt");
-  torch::save(stateLabels.slice(0,nTr,-1,1),path+"stateLabelsTest.pt");  
+  torch::save(stateInputs.slice(0,nTr,nTr+nTe,1),path+"stateInputsTest.pt");
+  torch::save(normalizeActions(actionInputs).slice(0,nTr,nTr+nTe,1),path+"actionInputsTest.pt");
+  torch::save(rewardLabels.slice(0,nTr,nTr+nTe,1),path+"rewardLabelsTest.pt");
+  torch::save(stateLabels.slice(0,nTr,nTr+nTe,1),path+"stateLabelsTest.pt");  
 }
 
 float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Tensor actionSequence, torch::Tensor estimate)
@@ -251,10 +252,8 @@ void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
 
 void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)
 {
-  int s = testData.size(1);
-  int n = testData.size(0);
-  pMSE+=moduloMSE(testData.slice(1,0,2,1),labels.slice(1,0,2,1),false)/nSplit;
-  vMSE+=torch::mse_loss(testData.slice(1,2,4,1),labels.slice(1,2,4,1))/nSplit;  
+  pMSE+=moduloMSE(testData.slice(-1,0,2,1),labels.slice(-1,0,2,1),false)/nSplit;
+  vMSE+=torch::mse_loss(testData.slice(-1,2,4,1),labels.slice(-1,2,4,1))/nSplit;  
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));  
   if (disp)
@@ -288,7 +287,6 @@ void ToolsSS::displayTAccuracy(int dataSetSize)
 
 void ToolsSS::rewardAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)
 {
-  int m = testData.size(0);
   cout<<penalityMSE(testData,labels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,1).pow(0.5)<<endl;
   rMSE+=torch::mse_loss(testData,labels)/nSplit;
   testData = testData.to(torch::Device(torch::kCPU));

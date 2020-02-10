@@ -163,7 +163,7 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
   
   if(imState)
     {      
-      predictedState = torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state;
+      predictedStates = torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state;
     }
   else
     {
@@ -175,19 +175,19 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
 	  y[s][0] = xmax;
 	  y[s][1] = ymax;
 	}
-      predictedState = y;
+      predictedStates = y;
     }
 
   /*PREDICTING THE REWARD ASSOCIATED TO THE TRANSITION*/
 
   x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
-  predictedReward = rewardForward(x).squeeze();  
+  predictedRewards = rewardForward(x).squeeze();  
 }
 
 void ForwardGWImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {
-  stateLoss = torch::mse_loss(predictedState, stateLabels);
-  rewardLoss = torch::mse_loss(predictedReward, rewardLabels);
+  stateLoss = torch::mse_loss(predictedStates, stateLabels);
+  rewardLoss = torch::mse_loss(predictedRewards, rewardLabels);
 }
 
 void ForwardGWImpl::saveParams(std::string filename)

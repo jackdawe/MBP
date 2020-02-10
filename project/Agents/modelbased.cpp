@@ -7,23 +7,23 @@ ModelBased<W,F,P>::ModelBased():
 
 template <class W, class F, class P>
 ModelBased<W,F,P>::ModelBased(W world, F forwardModel):
-  forwardModel(forwardModel), device(forwardModel->usedDevice)
+  forwardModel(forwardModel), device(forwardModel->usedDevice), epoch(0)
 {
+  cout<<epoch<<endl;
   this->world = world;
 }
 
 template <class W, class F, class P>
 ModelBased<W,F,P>::ModelBased(W world, F forwardModel, P planner):
-  forwardModel(forwardModel),planner(planner),device(forwardModel->usedDevice)
+  forwardModel(forwardModel),planner(planner),device(forwardModel->usedDevice), epoch(0)
 {
   this->world = world;
 }
 
 template <class W, class F, class P>
-void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float beta,  bool allStatesProvided)
+void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float beta)
 {
   int n = stateInputs.size(0);
-  int s;
   
   //Training Loop
 
@@ -31,65 +31,44 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
   uniform_int_distribution<int> dist(0,n-1);
   for (int e=0;e<epochs;e++)
     {
-      //Extracting batch from dataset
-      
-      int nTimesteps = rewardLabels.size(1);
-      torch::Tensor siBatch = torch::zeros(0);
-      torch::Tensor aiBatch = torch::zeros(0);
-      torch::Tensor slBatch = torch::zeros(0);
-      torch::Tensor rlBatch = torch::zeros({batchSize,nTimesteps});
-      for (int i=0;i<batchSize;i++)
+      epoch++;
+      for (int i=0;i<n/batchSize;i++)
 	{
-	  int index = dist(generator);
-	  siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
-	  aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
-	  slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
-	  rlBatch[i] = rewardLabels[index]; 
-	}
-      siBatch = siBatch.to(device), aiBatch = aiBatch.to(device), slBatch = slBatch.to(device);
-      rlBatch = rlBatch.to(device);
-      
-      //Forward and backward pass
-
-      if (allStatesProvided)
-	{
-	  forwardModel->forward(mergeDim(siBatch),mergeDim(aiBatch));
-	}
-      else
-	{
-	  torch::Tensor stateOutputs, rewardOutputs;
-	  stateOutputs = torch::zeros(siBatch.sizes()).transpose(0,1).to(device);
-	  rewardOutputs = torch::zeros({nTimesteps,batchSize}).to(device);	  
-	  forwardModel->forward(siBatch.transpose(0,1)[0],aiBatch.transpose(0,1)[0]);	      
-	  stateOutputs[0] = forwardModel->predictedState;      
-	  rewardOutputs[0] = forwardModel->predictedReward;
-	  for (int t=1;t<nTimesteps;t++)
+	  //Extracting batch from dataset
+	  
+	  int nTimesteps = rewardLabels.size(1);
+	  torch::Tensor siBatch = torch::zeros(0);
+	  torch::Tensor aiBatch = torch::zeros(0);
+	  torch::Tensor slBatch = torch::zeros(0);
+	  torch::Tensor rlBatch = torch::zeros({batchSize,nTimesteps});
+	  for (int i=0;i<batchSize;i++)
 	    {
-	      forwardModel->forward(stateOutputs[t-1],aiBatch.transpose(0,1)[t]);	      
-	      stateOutputs[t] = forwardModel->predictedState;      
-	      rewardOutputs[t] = forwardModel->predictedReward;
+	      int index = dist(generator);
+	      siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
+	      aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
+	      slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
+	      rlBatch[i] = rewardLabels[index]; 
 	    }
-	  rewardOutputs = mergeDim(rewardOutputs.transpose(0,1));
-	  stateOutputs = mergeDim(stateOutputs.transpose(0,1));
-	  forwardModel->predictedState = stateOutputs; //Regrouping the operation for loss computation
-	  forwardModel->predictedReward = rewardOutputs;
-	}
-      forwardModel->computeLoss(mergeDim(slBatch),mergeDim(rlBatch));
-      torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
-      torch::Tensor totalLoss = sLoss+rLoss;
-      optimizer->zero_grad();
-      totalLoss.backward();
-      optimizer->step();
-      sLossHistory.push_back(*sLoss.to(torch::Device(torch::kCPU)).data<float>());
-      rLossHistory.push_back(*rLoss.to(torch::Device(torch::kCPU)).data<float>());
+	  //Forward and backward pass
+	  
+	  forwardModel->forward(siBatch,aiBatch);
+	  forwardModel->computeLoss(slBatch,rlBatch);
+	  torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
+	  torch::Tensor totalLoss = sLoss+rLoss;
+	  optimizer->zero_grad();
+	  totalLoss.backward();
+	  optimizer->step();
+	  sLossHistory.push_back(*sLoss.to(torch::Device(torch::kCPU)).data<float>());
+	  rLossHistory.push_back(*rLoss.to(torch::Device(torch::kCPU)).data<float>());
       
-      //Printing some stuff
-      
-      if (e%(epochs/25) == 0)
-	{	  
-	  cout<< "Training loss at iteration " + to_string(e)+"/"+to_string(epochs)+" : " + to_string(*totalLoss.to(torch::Device(torch::kCPU)).data<float>())<<endl; 
+	  //Printing some stuff
+	  
+	  if (i%10 == 0 || i == n/batchSize-1)
+	    {	  
+	      cout<< "Epoch " + to_string(epoch) + " - Iteration " + to_string(i+1)+"/"+to_string(n/batchSize)+" : " + to_string(*totalLoss.to(torch::Device(torch::kCPU)).data<float>())<<endl; 
+	    }
 	}
-    }  
+    }
 }
 
 template <class W, class F, class P>
@@ -146,7 +125,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	    torch::Tensor ohev = tokensToOneHot(daTokens,discreteActions.size(),t);
 	    ohev = torch::cat({ohev,toOptiCA[t]},1);	    
 	    forwardModel->forward(stateSequences[t],ohev);
-	    stateSequences[t+1]=forwardModel->predictedState;
+	    stateSequences[t+1]=forwardModel->predictedStates;
 	  }
 	}
       //Predicting the rewards given the state and action sequences 
@@ -161,7 +140,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  softmaxActions = torch::cat({softmaxActions,toOptiCA},2);       
 	  forwardModel->forward(mergeDim(stateSequences.slice(0,0,nTimesteps,1)),mergeDim(softmaxActions));
 	  optimizer.zero_grad();
-	  costs = -forwardModel->predictedReward.reshape({nTimesteps,nRollouts}).sum(0);	
+	  costs = -forwardModel->predictedRewards.reshape({nTimesteps,nRollouts}).sum(0);	
 	  cout<<-costs.mean()<<endl;
 	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
 	  costs.backward(torch::ones({nRollouts}).to(device));

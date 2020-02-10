@@ -14,6 +14,6 @@ ForwardImpl::ForwardImpl(): usedDevice(torch::Device(torch::kCPU))
   this->to(usedDevice);
 }
 
-void ForwardImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore){}
+void ForwardImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch){}
 
 void ForwardImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels){}  
