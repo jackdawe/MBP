@@ -40,13 +40,13 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	  torch::Tensor aiBatch = torch::zeros(0);
 	  torch::Tensor slBatch = torch::zeros(0);
 	  torch::Tensor rlBatch = torch::zeros({batchSize,nTimesteps});
-	  for (int i=0;i<batchSize;i++)
+	  for (int j=0;j<batchSize;j++)
 	    {
 	      int index = dist(generator);
 	      siBatch = torch::cat({siBatch,stateInputs[index].unsqueeze(0)});
 	      aiBatch = torch::cat({aiBatch,actionInputs[index].unsqueeze(0)});
 	      slBatch = torch::cat({slBatch,stateLabels[index].unsqueeze(0)});
-	      rlBatch[i] = rewardLabels[index]; 
+	      rlBatch[j] = rewardLabels[index]; 
 	    }
 	  //Forward and backward pass
 	  
