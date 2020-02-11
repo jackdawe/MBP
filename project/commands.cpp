@@ -480,10 +480,10 @@ void Commands::learnForwardModelSS()
   ofstream ftev("../temp/tev_mse"+FLAGS_tag);  
   ofstream fter("../temp/ter_mse"+FLAGS_tag);  
   
-  while(e!=5000)
+  while(e!=FLAGS_e)
     {
       e++;
-      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_e,FLAGS_bs, FLAGS_beta);
+      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,1,FLAGS_bs, FLAGS_beta);
       if (e%40 == 0)
 	{
 	  torch::save(agent.getForwardModel(),"../temp/cps/"+FLAGS_tag+"cp"+to_string(e)+".pt");
@@ -546,7 +546,7 @@ void Commands::playModelBasedSS(int argc, char* argv[])
     {
       torch::load(actions,FLAGS_seed);
     }
-  agent.playOne(torch::tensor(agent.currentState().getStateVector()),sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr,actions);
+  agent.playOne(sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr,actions);
   QApplication a(argc,argv);
   EpisodePlayerSS ep(FLAGS_map);
   ep.playEpisode(agent.getWorld().getActionSequence(),agent.getWorld().getStateSequence(), SHIP_MAX_THRUST);
@@ -566,23 +566,15 @@ void Commands::testModelBasedSS()
   actionInputsTe = actionInputsTe.slice(0,0,1000,1);
   rewardLabelsTe = rewardLabelsTe.slice(0,0,1000,1);
   int T=actionInputsTe.size(1), n=actionInputsTe.size(0);
-  torch::Tensor bsi = stateInputsTe[FLAGS_n].unsqueeze(0);
-  torch::Tensor bai = actionInputsTe[FLAGS_n].unsqueeze(0);
-  torch::Tensor bsl = stateLabelsTe[FLAGS_n].unsqueeze(0);
-  torch::Tensor brl = rewardLabelsTe[FLAGS_n].unsqueeze(0);
   ForwardSS forwardModel(FLAGS_mdl+"_Params");
   torch::load(forwardModel,FLAGS_mdl+".pt");
-  torch::Tensor predictedStates = torch::zeros({T,n,16});
-  torch::Tensor predictedRewards = torch::zeros({T,n});
-  forwardModel->forward(stateInputsTe.slice(1,0,1,1),actionInputsTe);
-  //  cout<<torch::cat({bsl,predictedStates.transpose(0,1).slice(2,0,4,1)},2)<<endl;
-  //  cout<<torch::cat({brl.unsqueeze(2),predictedRewards.transpose(0,1).unsqueeze(2)},2)<<endl;  
+  forwardModel->forward(stateInputsTe,actionInputsTe);
   ofstream f("../temp/f2");
   for (int i=0;i<stateLabelsTe.size(0);i++)
     {
-      f<<*ToolsSS().moduloMSE(stateLabelsTe[i].slice(-1,0,2,1),forwardModel->predictedStates.transpose(0,1)[i].slice(-1,0,2,1),false).pow(0.5).data<float>()<<endl;
+      f<<*ToolsSS().moduloMSE(stateLabelsTe[i].slice(-1,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates[i].slice(-1,0,2,1),false).pow(0.5).to(torch::Device(torch::kCPU)).data<float>()<<endl;
     }
-  cout<<ToolsSS().moduloMSE(stateLabelsTe.slice(2,0,2,1),forwardModel->predictedStates.transpose(0,1).slice(2,0,2,1),false).pow(0.5)<<endl;
+  cout<<ToolsSS().moduloMSE(stateLabelsTe.slice(2,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates.slice(2,0,2,1),false).pow(0.5)<<endl;
 }
 
 void Commands::tc4()
@@ -599,7 +591,7 @@ void Commands::tc4()
       ofstream f("../temp/score"+to_string(l+1));
       for (int i=0;i<FLAGS_n;i++)
 	{
-	  agent.playOne(torch::tensor(agent.currentState().getStateVector()),sw.getActions(),rollouts[l],FLAGS_T,ngs[l],lrs[l]);
+	  agent.playOne(sw.getActions(),rollouts[l],FLAGS_T,ngs[l],lrs[l]);
 	  f<<agent.rewardHistory().back()<<endl;
 	  agent.resetWorld();
 	}

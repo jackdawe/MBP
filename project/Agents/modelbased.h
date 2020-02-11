@@ -21,7 +21,7 @@ template<class W, class F, class P>
   void learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize, float beta);
   void gradientBasedPlanner(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
   void trainPolicyNetwork(torch::Tensor actionInputs, torch::Tensor stateInputs, int epochs, int batchSize=32, float lr=0.001);
-  void playOne(torch::Tensor initState, ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
+  void playOne(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions=torch::zeros(0));
   void saveTrainingData();
   F getForwardModel();
   torch::Tensor splitDim(torch::Tensor x, int bs, int T);
@@ -33,7 +33,7 @@ template<class W, class F, class P>
   torch::Tensor getInitCA(int nca, int T, int K);  
   
   vector<torch::Tensor> breakDAIntoTokens(vector<DiscreteAction> discreteActions, torch::Tensor toOptiDA);
-  torch::Tensor tokensToOneHot(vector<torch::Tensor> daTokens, int daSize, int t);
+  torch::Tensor tokensToOneHot(vector<torch::Tensor> daTokens, int daSize);
 
   torch::Tensor getFinalDA(vector<DiscreteAction> discreteActions, torch::Tensor optiDA);
   torch::Tensor getFinalCA(vector<ContinuousAction> continuousActions, torch::Tensor optiCA);

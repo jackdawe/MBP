@@ -96,7 +96,15 @@ float SpaceWorld::transition()
 		  newP.y+=size;
 		}
 	      ship.setP(newP);
-	      ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));	      
+	      if (!isCrashed())
+		{
+		  ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
+		}
+	      else
+		{
+		ship.setA(Vect2d(0,0));
+		ship.setV(Vect2d(0,0));		
+		}
 	    }
 	}
       else

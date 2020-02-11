@@ -33,7 +33,7 @@ void ForwardSSImpl::init()
       actionLayers.push_back(register_module("Action Encoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
     }
   actionLayers.push_back(register_module("Action Encoder OUT",torch::nn::Linear(nfc,nfc)));
-
+  
     //Adding the layers of the state decoder
 
   decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(2*nfc,nfc)));
@@ -104,16 +104,15 @@ void ForwardSSImpl::forwardOne(torch::Tensor stateBatch, torch::Tensor actionBat
   predictedReward = rewardDecoderForward(x).squeeze();
   
   //Rebuilding state from deltas
-
+  
   predictedState = ToolsSS().normalizeDeltas(predictedState,true);
   predictedState = ToolsSS().deltaToState(stateBatch,predictedState);  
 }
 
 void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch)
 {
-  stateBatch = stateBatch.to(usedDevice), actionSequenceBatch = actionSequenceBatch.to(usedDevice);
-  int bs=stateBatch.size(0), T=actionSequenceBatch.size(1);
-  torch::Tensor actIn = actionSequenceBatch.clone();
+  stateBatch = stateBatch.to(usedDevice);
+  torch::Tensor actIn = actionSequenceBatch.clone().to(usedDevice);
   if (actionSequenceBatch.dim()==2)
     {
       actIn = actIn.unsqueeze(0);
@@ -121,7 +120,8 @@ void ForwardSSImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequen
   else
     {
       actIn = actIn.transpose(0,1);
-    }  
+    }
+  int bs=stateBatch.size(0), T=actIn.size(0);
   predictedStates = torch::zeros({T,bs,size}).to(usedDevice);
   predictedRewards = torch::zeros({T,bs}).to(usedDevice);
   forwardOne(stateBatch,actIn[0]);

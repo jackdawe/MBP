@@ -113,6 +113,16 @@ torch::Tensor ToolsSS::penalityMSE(torch::Tensor target, torch::Tensor label, fl
     }
 }
 
+torch::Tensor ToolsSS::generateActions(int n, int nTimesteps)
+{
+  torch::Tensor signal = torch::zeros({4,nTimesteps,n});
+  signal = signal.scatter_(0,torch::randint(0,4,{1,nTimesteps,n}).to(torch::kLong),torch::ones_like(signal)).transpose(0,2);
+  torch::Tensor r = torch::rand({n,nTimesteps,2})*SHIP_MAX_THRUST;
+  torch::Tensor theta = torch::rand({n,nTimesteps,2})*2*M_PI;
+  torch::Tensor thrust = r*torch::cat({torch::cos(theta.slice(-1,0,1,1)),torch::sin(theta.slice(-1,1,2,1))},-1);
+  return torch::cat({signal,thrust},-1);
+}
+
 
 void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
 {
@@ -133,10 +143,15 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
   int size = sw.getSvSize();
   torch::Tensor stateInputs = torch::zeros({n*nSplits,size});
-  torch::Tensor actionInputs = torch::zeros({n*nSplits,nTimesteps,6});
+  torch::Tensor actionInputs = generateActions(n*nSplits,nTimesteps);
   torch::Tensor stateLabels = torch::zeros({n*nSplits,nTimesteps,4});
   torch::Tensor rewardLabels = torch::zeros({n*nSplits,nTimesteps});
 
+  //Generating another action tensor where signal is encoded as an int
+
+  torch::Tensor signalInt = torch::argmax(actionInputs.slice(-1,0,4,1),-1).to(torch::kFloat32);
+  torch::Tensor ieActions = torch::cat({signalInt.unsqueeze(-1),actionInputs.slice(-1,4,6,1)},-1);
+    
   //Making the agent wander randomly for n episodes 
 
   //  bool dispPerc = true;
@@ -157,8 +172,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	{
 	  sw = SpaceWorld(path+"test/",nmaps);
 	}            
-      torch::Tensor si = torch::zeros(0);
-      torch::Tensor ai = torch::zeros({EPISODE_LENGTH,6});
+      torch::Tensor si = torch::zeros(0);      
       torch::Tensor sl = torch::zeros({EPISODE_LENGTH,4});
       torch::Tensor rl = torch::zeros({EPISODE_LENGTH});      
       bool hitsWayp=false;
@@ -170,11 +184,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	    {
 	      si = torch::cat({si,torch::tensor(sw.getCurrentState().getStateVector()).unsqueeze(0)},0);
 	    }
-	  vector<float> a = sw.randomAction();	      	  	  
-	  sw.setTakenAction(a);
-	  ai[t][(int)sw.getTakenAction()[0]]=1; //one-hot encoding
-	  ai[t][4]=sw.getTakenAction()[1];
-	  ai[t][5]=sw.getTakenAction()[2];
+	  sw.setTakenAction(tensorToVector(ieActions[t/nTimesteps][t%nTimesteps]));
 	  float r = sw.transition();
 	  rl[t] = r;	      
 	  if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
@@ -187,13 +197,11 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
       if ((i>=winProp*nTr/nSplits && i<=n-winProp*nTe/nSplits) || hitsWayp)
 	{	  		
-	  vector<torch::Tensor> aiSplit = torch::split(ai,nTimesteps,0);
 	  vector<torch::Tensor> slSplit = torch::split(sl,nTimesteps,0);   
 	  vector<torch::Tensor> rlSplit = torch::split(rl,nTimesteps,0);
 	  for (int j=0;j<nSplits;j++)
 	    {
 	      stateInputs[i*nSplits+j]=si[j];
-	      actionInputs[i*nSplits+j]=aiSplit[j];
 	      stateLabels[i*nSplits+j]=slSplit[j];
 	      rewardLabels[i*nSplits+j]=rlSplit[j];	  
 	    }
