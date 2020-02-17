@@ -36,7 +36,7 @@ void ForwardSSImpl::init()
   
     //Adding the layers of the state decoder
 
-  decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(2*nfc,nfc)));
+  decoderLayers.push_back(register_module("State Decoder IN",torch::nn::Linear(nfc,nfc)));
   for (int i=0;i<depth;i++)
     {
       decoderLayers.push_back(register_module("State Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
@@ -46,7 +46,7 @@ void ForwardSSImpl::init()
 
     //Adding the layers of the reward decoder
 
-  rewardLayers.push_back(register_module("Reward Decoder IN",torch::nn::Linear(2*nfc,nfc)));
+  rewardLayers.push_back(register_module("Reward Decoder IN",torch::nn::Linear(nfc,nfc)));
   for (int i=0;i<depth;i++)
     {
       rewardLayers.push_back(register_module("Reward Decoder FC"+std::to_string(i+1),torch::nn::Linear(nfc,nfc)));
@@ -80,6 +80,7 @@ torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)
     }
   torch::Tensor posOut = decoderLayers[decoderLayers.size()-2]->forward(x);
   torch::Tensor veloOut = decoderLayers.back()->forward(x);
+  posOut = torch::tanh(posOut);
   veloOut = torch::tanh(veloOut);
   return torch::cat({posOut,veloOut},-1);
 }
@@ -99,7 +100,7 @@ void ForwardSSImpl::forwardOne(torch::Tensor stateBatch, torch::Tensor actionBat
 
   torch::Tensor seOut = stateEncoderForward(ToolsSS().normalizeStates(stateBatch));
   torch::Tensor aeOut = actionEncoderForward(actionBatch);
-  torch::Tensor x = torch::cat({seOut,aeOut},-1);
+  torch::Tensor x = seOut+aeOut;
   predictedState = stateDecoderForward(x);
   predictedReward = rewardDecoderForward(x).squeeze();
   

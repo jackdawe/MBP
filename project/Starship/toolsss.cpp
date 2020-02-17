@@ -84,7 +84,7 @@ torch::Tensor ToolsSS::deltaToState(torch::Tensor stateBatch, torch::Tensor delt
   torch::Tensor pos = stateBatch.slice(1,0,2,1);
   torch::Tensor velo = stateBatch.slice(1,2,4,1);  
   torch::Tensor constPart = stateBatch.slice(1,4,stateBatch.size(1),1);  
-  torch::Tensor newStates = torch::cat({torch::remainder(pos+deltas.slice(1,0,2,1),800),velo+deltas.slice(1,2,4,1),constPart},1);
+  torch::Tensor newStates = torch::cat({torch::remainder(pos+deltas.slice(1,0,2,1),800),torch::clamp(velo+deltas.slice(1,2,4,1),-20,20),constPart},1);
   return newStates;
 }
 
@@ -117,9 +117,11 @@ torch::Tensor ToolsSS::generateActions(int n, int nTimesteps)
 {
   torch::Tensor signal = torch::zeros({4,nTimesteps,n});
   signal = signal.scatter_(0,torch::randint(0,4,{1,nTimesteps,n}).to(torch::kLong),torch::ones_like(signal)).transpose(0,2);
-  torch::Tensor r = torch::rand({n,nTimesteps,2})*SHIP_MAX_THRUST;
+  /*  torch::Tensor r = torch::rand({n,nTimesteps,2})*SHIP_MAX_THRUST;
   torch::Tensor theta = torch::rand({n,nTimesteps,2})*2*M_PI;
   torch::Tensor thrust = r*torch::cat({torch::cos(theta.slice(-1,0,1,1)),torch::sin(theta.slice(-1,1,2,1))},-1);
+  */
+  torch::Tensor thrust = torch::rand({n,nTimesteps,2})*2*SHIP_MAX_THRUST-SHIP_MAX_THRUST;
   return torch::cat({signal,thrust},-1);
 }
 
