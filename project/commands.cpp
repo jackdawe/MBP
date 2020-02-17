@@ -297,7 +297,6 @@ void Commands::generateDataSetGW()
 void Commands::learnForwardModelGW()
 {
   GridWorld gw;
-  ToolsGW t(gw);
   string path = FLAGS_mp;
   torch::Tensor stateInputsTr, actionInputsTr, stateLabelsTr, rewardLabelsTr;
   torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
@@ -310,37 +309,46 @@ void Commands::learnForwardModelGW()
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
 
-  int nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);
-
-  stateInputsTe = stateInputsTe.reshape({nTe*T,3,s,s});
-  stateLabelsTe = stateLabelsTe.reshape({nTe*T,3,s,s});
-  actionInputsTe = actionInputsTe.reshape({nTe*T,4});
-  rewardLabelsTe = rewardLabelsTe.reshape({nTe*T});
-  
+  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);  
   if (FLAGS_wn)
     {
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);      
     }
   //  actionInputsTr = torch::softmax(actionInputsTr,2);
   ForwardGW forwardModel(stateInputsTr.size(3),FLAGS_sc1);
-  forwardModel->to(torch::Device(torch::kCUDA));
+  forwardModel->to(forwardModel->usedDevice);
   ModelBased<GridWorld,ForwardGW, PlannerGW> agent(gw,forwardModel);
   torch::optim::Adam optimizer(forwardModel->parameters(),FLAGS_lr); 
-  int l=0;
-  while(l!=50)
+  int e=0;
+  while(e!=FLAGS_e)
     {
-      l++;
-      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,FLAGS_n,FLAGS_bs, FLAGS_beta);
+      e++;
+      agent.learnForwardModel(&optimizer, actionInputsTr, stateInputsTr,stateLabelsTr, rewardLabelsTr,1,FLAGS_bs, FLAGS_beta);
       agent.saveTrainingData();
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
+      torch::save(optimizer,FLAGS_mdl+"_opti.pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
       //Computing accuracy
-      {
+
+      {	
 	torch::NoGradGuard no_grad;
+	ToolsGW t;
 	auto model = agent.getForwardModel();
-	model->forward(stateInputsTe.to(model->usedDevice),actionInputsTe.to(model->usedDevice));
-	t.rewardAccuracy(model->predictedRewards.to(torch::Device(torch::kCPU)),rewardLabelsTe); 
-	t.transitionAccuracy(model->predictedStates.to(torch::Device(torch::kCPU)),stateLabelsTe);    
+	int splitSize = 1000;
+	vector<torch::Tensor> siteSplit = torch::split(stateInputsTe,splitSize,0);
+	vector<torch::Tensor> aiteSplit = torch::split(actionInputsTe,splitSize,0);
+	vector<torch::Tensor> slteSplit = torch::split(stateLabelsTe,splitSize,0);
+	vector<torch::Tensor> rlteSplit = torch::split(rewardLabelsTe,splitSize,0);	
+        unsigned int nSplit = siteSplit.size();	
+	for (unsigned int i=0;i<nSplit;i++)
+	  {
+	    int nSpl = siteSplit[i].size(0); 
+	    model->forward(siteSplit[i],aiteSplit[i]);
+	    t.transitionAccuracy(model->predictedStates,slteSplit[i].to(model->usedDevice),nSplit);
+	    t.rewardAccuracy(model->predictedRewards,rlteSplit[i].to(model->usedDevice), nSplit);
+	  }	
+	t.displayTAccuracy(nTe*T);
+	t.displayRAccuracy();
       }
     }
 }

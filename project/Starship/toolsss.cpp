@@ -5,7 +5,7 @@ ToolsSS::ToolsSS():
 {}
 
 ToolsSS::ToolsSS(SpaceWorld sw):
-  tScores(vector<int>(4,0)), rScores(vector<int>(5,0)), rCounts(vector<int>(5,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
+  sw(sw), tScores(vector<int>(4,0)), rScores(vector<int>(5,0)), rCounts(vector<int>(5,0)), pMSE(torch::zeros({1})), vMSE(torch::zeros({1})), rMSE(torch::zeros({1}))
 {}
 
 vector<float> ToolsSS::tensorToVector(torch::Tensor stateVector)
@@ -130,7 +130,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 {
   cout<<"Generating a dataset for the Starship task containing " + to_string(n) + " samples of " + to_string(nTimesteps) + " time steps. An episode ends after "+to_string(EPISODE_LENGTH)+" time steps."<<endl;
   cout<<"The training set contains " +to_string((int)(100*trainSetProp))+"% of the dataset and the test set the remaining samples."<<endl;
-  cout<<"To help with the training, the agent is forced to spawn on a waypoint in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
+  cout<<"To help with the training, only samples containing at least one waypoint connexion are kept in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
 
   if (EPISODE_LENGTH % nTimesteps!=0)
     {
@@ -156,7 +156,6 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
     
   //Making the agent wander randomly for n episodes 
 
-  //  bool dispPerc = true;
   int i=0;
   bool dispPerc = true;
   while(i<n)
@@ -168,7 +167,8 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  cout << "Your agent is crashing into planets for science... " + to_string((int)(i/(n/100.))) + "%" << endl;
 	  dispPerc = false;
 	}	  
-      //Swapping to test set generation when training set generation is done
+
+      //Swapping to test set generation when training set generation is done      
 
       if (i==nTr)
 	{
