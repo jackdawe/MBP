@@ -53,6 +53,7 @@ DEFINE_int32(e,1,"Number of training epochs");
 DEFINE_double(wp,0.1,"Percentage of forced win scenarios during the dataset generation"); 
 DEFINE_bool(wn,false,"Adding white noise to the one-hot encoded action vectors");
 DEFINE_double(sd,0.25,"Standard deviation");
+DEFINE_int32(dist,0,"Chose your distribution");
 
 Commands::Commands(){}
 
@@ -457,7 +458,7 @@ void Commands::playRandomSS(int argc, char* argv[])
 void Commands::generateDataSetSS()
 {
   ToolsSS t;
-  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp);
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp, FLAGS_dist, FLAGS_sd);
 }
 
 void Commands::learnForwardModelSS()

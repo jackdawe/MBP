@@ -113,20 +113,57 @@ torch::Tensor ToolsSS::penalityMSE(torch::Tensor target, torch::Tensor label, fl
     }
 }
 
-torch::Tensor ToolsSS::generateActions(int n, int nTimesteps)
+torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, float std)
 {
+  torch::Tensor thrust;
+  switch(distribution)
+    {
+    case 0: //Uniform cartesian coordinate distribution
+      {
+	thrust = torch::rand({n,nTimesteps,2})*2*SHIP_MAX_THRUST-SHIP_MAX_THRUST;
+      }
+      break;
+    case 1: //Uniform polar coordinate distribution
+      {
+	torch::Tensor r = torch::rand({n,nTimesteps,1})*SHIP_MAX_THRUST;
+	torch::Tensor theta = torch::rand({n,nTimesteps,1})*2*M_PI;
+	thrust = torch::cat({r*torch::cos(theta),r*torch::sin(theta)},-1);
+      }
+      break;
+    case 2: //Gaussian cartesian coordinate distribution
+      {
+	torch::Tensor centre = torch::rand({n,2})*2*SHIP_MAX_THRUST-SHIP_MAX_THRUST;
+	thrust = torch::zeros({n,nTimesteps,2});
+	for (int i=0;i<n;i++)
+	  {
+	    thrust[i] = torch::cat({torch::zeros({nTimesteps,1}).normal_(*centre[i][0].data<float>(),std),torch::zeros({nTimesteps,1}).normal_(*centre[i][1].data<float>(),std)},-1);
+	  }
+      }
+      break;
+    case 3: //Gaussian polar coordinate distribution
+      {
+	torch::Tensor centreR = torch::rand({n})*SHIP_MAX_THRUST;
+	torch::Tensor centreTheta = torch::rand({n})*2*M_PI;            
+	thrust = torch::zeros({n,nTimesteps,2});
+	for (int i=0;i<n;i++)
+	  {
+	    thrust[i] = torch::cat({torch::zeros({nTimesteps,1}).normal_(*centreR[i].data<float>(),std),torch::zeros({nTimesteps,1}).normal_(*centreTheta[i].data<float>(),std)},-1);
+	  }
+	torch::Tensor r = thrust.slice(-1,0,1,1);
+	torch::Tensor theta = thrust.slice(-1,1,2,1);
+	thrust = torch::cat({r*torch::cos(theta),r*torch::sin(theta)},-1);
+      }
+      break;      
+    default:
+      thrust = torch::zeros({n,nTimesteps,2});
+    }
   torch::Tensor signal = torch::zeros({4,nTimesteps,n});
   signal = signal.scatter_(0,torch::randint(0,4,{1,nTimesteps,n}).to(torch::kLong),torch::ones_like(signal)).transpose(0,2);
-  /*  torch::Tensor r = torch::rand({n,nTimesteps,2})*SHIP_MAX_THRUST;
-  torch::Tensor theta = torch::rand({n,nTimesteps,2})*2*M_PI;
-  torch::Tensor thrust = r*torch::cat({torch::cos(theta.slice(-1,0,1,1)),torch::sin(theta.slice(-1,1,2,1))},-1);
-  */
-  torch::Tensor thrust = torch::rand({n,nTimesteps,2})*2*SHIP_MAX_THRUST-SHIP_MAX_THRUST;
   return torch::cat({signal,thrust},-1);
 }
 
 
-void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp)
+void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, int aDist, float std)
 {
   cout<<"Generating a dataset for the Starship task containing " + to_string(n) + " samples of " + to_string(nTimesteps) + " time steps. An episode ends after "+to_string(EPISODE_LENGTH)+" time steps."<<endl;
   cout<<"The training set contains " +to_string((int)(100*trainSetProp))+"% of the dataset and the test set the remaining samples."<<endl;
@@ -145,10 +182,10 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
   int size = sw.getSvSize();
   torch::Tensor stateInputs = torch::zeros({n*nSplits,size});
-  torch::Tensor actionInputs = generateActions(n*nSplits,nTimesteps);
+  torch::Tensor actionInputs = generateActions(n*nSplits,nTimesteps, aDist, std);
   torch::Tensor stateLabels = torch::zeros({n*nSplits,nTimesteps,4});
   torch::Tensor rewardLabels = torch::zeros({n*nSplits,nTimesteps});
-
+  
   //Generating another action tensor where signal is encoded as an int
 
   torch::Tensor signalInt = torch::argmax(actionInputs.slice(-1,0,4,1),-1).to(torch::kFloat32);
