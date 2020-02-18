@@ -65,11 +65,11 @@ torch::Tensor ForwardSSImpl::actionEncoderForward(torch::Tensor x)
 
 torch::Tensor ForwardSSImpl::stateEncoderForward(torch::Tensor x)
 {
-  for (unsigned int i=0;i<encoderLayers.size();i++)
+  for (unsigned int i=0;i<encoderLayers.size()-1;i++)
     {
       x = torch::prelu(encoderLayers[i]->forward(x),torch::full({1},0.001).to(usedDevice));
     }
-  return x;
+  return encoderLayers.back()->forward(x);
 }
 
 torch::Tensor ForwardSSImpl::stateDecoderForward(torch::Tensor x)

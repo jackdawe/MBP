@@ -142,15 +142,15 @@ torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, 
       break;
     case 3: //Gaussian polar coordinate distribution
       {
-	torch::Tensor centreR = torch::rand({n})*SHIP_MAX_THRUST;
-	torch::Tensor centreTheta = torch::rand({n})*2*M_PI;            
+	torch::Tensor centreR = torch::rand({n});
+	torch::Tensor centreTheta = torch::rand({n});            
 	thrust = torch::zeros({n,nTimesteps,2});
 	for (int i=0;i<n;i++)
 	  {
 	    thrust[i] = torch::cat({torch::zeros({nTimesteps,1}).normal_(*centreR[i].data<float>(),std),torch::zeros({nTimesteps,1}).normal_(*centreTheta[i].data<float>(),std)},-1);
 	  }
-	torch::Tensor r = thrust.slice(-1,0,1,1);
-	torch::Tensor theta = thrust.slice(-1,1,2,1);
+	torch::Tensor r = thrust.slice(-1,0,1,1)*SHIP_MAX_THRUST;
+	torch::Tensor theta = thrust.slice(-1,1,2,1)*2*M_PI;
 	thrust = torch::cat({r*torch::cos(theta),r*torch::sin(theta)},-1);
       }
       break;      
@@ -223,7 +223,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	    {
 	      si = torch::cat({si,torch::tensor(sw.getCurrentState().getStateVector()).unsqueeze(0)},0);
 	    }
-	  sw.setTakenAction(tensorToVector(ieActions[t/nTimesteps][t%nTimesteps]));
+	  sw.setTakenAction(tensorToVector(ieActions[nSplits*i+t/nTimesteps][t%nTimesteps]));
 	  float r = sw.transition();
 	  rl[t] = r;	      
 	  if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
