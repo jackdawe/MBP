@@ -362,6 +362,15 @@ ssmbfm
 
 ### Example
 
+## Planning actions with Gradient Based Planner (GBP)
+
+An agent uses a learnt forward model to find the actions that will maximize its reward. The command randomly puts an agent on a chosen map, executes GBP and 
+
+### Command
+
+
+
+
 # Full example on how to make the model based planner work
 
 In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner perform well.
