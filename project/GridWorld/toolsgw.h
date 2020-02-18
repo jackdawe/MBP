@@ -9,7 +9,6 @@ class ToolsGW
   ToolsGW(GridWorld gw);
   vector<float> tensorToVector(torch::Tensor stateVector);
   torch::Tensor toRGBTensor(torch::Tensor batch);
-  //  cv::Mat toRGBMat(torch::Tensor stateTensor);
   torch::Tensor generateActions(int n, int nTimesteps);
   void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);

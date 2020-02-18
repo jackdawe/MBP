@@ -36,36 +36,6 @@ torch::Tensor ToolsGW::toRGBTensor(torch::Tensor batch)
   return rgbState;
 }
 
-/*
-cv::Mat ToolsGW::toRGBMat(torch::Tensor batch)
-{
-    cv::Mat rgbState(size,size,CV_8UC3);
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            for (int k=0;k<3;k++)
-            {
-                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
-            }
-        }
-    }
-
-    for (int i=0;i<size;i++)
-    {
-        for (int j=0;j<size;j++)
-        {
-            if (stateVector[i*size+j+4] == 1)
-            {
-                rgbState.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255);
-            }
-        }
-    }
-
-    rgbState.at<cv::Vec3b>(stateVector[0],stateVector[1]) += cv::Vec3b(255,0,0);
-    rgbState.at<cv::Vec3b>(stateVector[2],stateVector[3]) += cv::Vec3b(0,255,0);
-    return rgbState;
-    }*/
 torch::Tensor ToolsGW::generateActions(int n, int nTimesteps)
 {
   torch::Tensor direction = torch::zeros({4,nTimesteps,n});

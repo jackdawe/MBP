@@ -21,6 +21,27 @@ My code provides a certain amount of commands to easily use the main functionali
 ./project -cmd=COMMAND_NAME -myflag1= -myflag2= (...) -myflag100= 
 3. Flags to indicate the path to a directory should end with a "/". 
 
+# Installing Dependancies
+
+You'll need to have the three libraries installed to run this code:
+
+- Qt5
+- libtorch
+- gflags
+
+## Qt5
+
+I use Qt5 for the GridWorld and Starship GUIs. You can do so with the following command:
+```
+sudo apt-get install qt-sdk
+```
+
+## libtorch
+
+libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.org/](https://pytorch.org/) by selecting Linux, Conda, C++/Java and Cuda 10.1 and clicking on the second link. You should then unzip the directory and move it such as it is in the same directory as joliRL.
+
+### gflags
+
 # GRIDWORLD TASK
 
 ## Map Generation
@@ -186,7 +207,7 @@ To generate a map pool of test and train maps of the Starship environment.
 
 ### Command name
 
-ssmgen
+ssmpgen
 
 ### Parameters
 
@@ -232,11 +253,23 @@ The blue circle represents the planet. The other colored circles represent the w
 
 An agent appears at a random location on a map randomly chosen from a map pool and randomly fires his thrusters and lights his signal for 80 timesteps. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
 
-Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. You should set T to 1 if you do not want to use this feature as batches are made by picking random samples of T timesteps from the dataset. 
+Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. 
 
 A train and test set are generated using the train and test maps respectively.
 
-Action tensors are generated with discrete actions being encoded as one-hot vectors and thrust vector values are put between 0 and 1 to be consistent with the planner. 
+Action tensors are generated with discrete actions being encoded as one-hot vectors and thrust vector values are put between 0 and 1 as the planner will only take actions between these bounds. You can chose from 4 distributions for your actions:
+
+#### Uniform over thrust vector coordinates (dist = 0)
+
+[dist1](https://github.com/jackdawe/joliRL/blob/master/img/dist1.png)
+
+#### Uniform over thrust norm and angle
+
+[dist2](https://github.com/jackdawe/joliRL/blob/master/img/dist2.png)
+
+#### Per trajectory isotopic gaussian over thrust vector coordinates
+
+#### Per trajectory isotopic gaussian over thrust norm and angle
 
 Executing this command created 8 files in the map pool directory:
 - actionInputsTr.pt containing a { n x trp | T | a } tensor

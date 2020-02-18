@@ -20,7 +20,6 @@ QMAKE_LFLAGS += -fopenmp -D_GLIBCXX_USE_CXX11_ABI=1
 QMAKE_CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=1 -fopenmp -g -ggdb $(WARN)
 INCLUDEPATH += "$$PWD/../../libtorch/include"
 INCLUDEPATH += "$$PWD/../../libtorch/include/torch/csrc/api/include"
-LIBS += `pkg-config --libs opencv`
 LIBS += -lstdc++fs
 LIBS += -L"$$PWD/../../libtorch/lib" -ltorch -lc10 -lc10_cuda
 LIBS += -L"/usr/local/cuda-9.2/lib64" -lcudart 
