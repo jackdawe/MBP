@@ -65,7 +65,7 @@ gwmgen
 
 ### Example
 
-To generate a map named myMap of size 16 with a maximum of 50 obstacles in the GridWorld/Maps/ directory, execute the following command:
+To generate a map named **myMap** of size **16** with a maximum of **50** obstacles in the **GridWorld/Maps/** directory, execute the following command:
 ```
 ./project -cmd=gwmgen -size=16 -maxObst=50 -map=../GridWorld/Maps/myMap 
 ```
@@ -86,7 +86,7 @@ gwmpgen
 
 ### Example 
 
-To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 1000 maps of size 8 with a maximum of 10 obstacles:
+To create a directory named **MyMapPool** in the **GridWorld/Maps/** directory containing two sub directories (test and train) each containing **1000** maps of size **8** with a maximum of **10** obstacles:
 ```
 ./project -cmd=gwmpgen -size=8 -maxObst=10 -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000
 ```
@@ -104,7 +104,7 @@ You can use the GUI to display the map on your screen.
 
 ### Example
 
-You can show the map named MyMap in the GridWorld/Maps/MyMapPool/test/map0 using the following command line:
+You can show the map named **map0** in the **GridWorld/Maps/MyMapPool/test/** directory using the following command line:
 ```
 ./project -cmd=gwmshow -map=../GridWorld/Maps/MyMapPool/test/map0
 ```
@@ -145,7 +145,7 @@ gwdsgen
 
 ### Example
 
-The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimension are trp*n x T for the training set and (1-trp)*n x T for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
+The following command uses the **1000** first maps of the **../GridWorld/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimension are (trp x n | T) for the training set and ((1-trp) x n | T) for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
 ```
 ./project -cmd=gwdsgen -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
 ```
@@ -197,7 +197,7 @@ ssmgen
 
 ### Example
 
-To generate a map named myMap with 2 planets of radius ranging from 60 to 80, 4 waypoints of radius 15 in the Starship/Maps/ directory, execute the following command:
+To generate a map named **myMap** with **2** planets of radius ranging from **60** to **80**, **4** waypoints of radius **15** in the **Starship/Maps/** directory, execute the following command:
 ```
 ./project -cmd=ssmgen -nplan=2 -pmin=60 -pmax=80 -nwp=4 -rwp=15 -map=../Starship/Maps/myMap 
 ```
@@ -221,7 +221,7 @@ ssmpgen
 
 ### Example
 
-To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 100 maps using the default values for the planet and waypoint parameters:
+To create a directory named **MyMapPool** in the **GridWorld/Maps/** directory containing two sub directories (test and train) each containing **100** maps using the **default values** for the planet and waypoint parameters:
 ```
 ./project -cmd=ssmpgen -mp=../Starship/Maps/myMapPool/ -nmaps=100 
 ```
@@ -239,7 +239,7 @@ You can use the GUI to display the map on your screen.
 
 ### Example
 
-You can show the map named MyMap in the Starship/Maps/MyMapPool/test/map0 using the following command line:
+You can show the map named **MyMap** in the **Starship/Maps/MyMapPool/test/map0** using the following command line:
 ```
 ./project -cmd=gwmshow -map=../Starship/Maps/MyMapPool/test/map0
 ```
@@ -313,7 +313,7 @@ ssdsgen
 
 ### Example
 
-The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are (trp x n x 80/T | T) for the training set and ((1-trp) x n x 80/T | T) for the test set. 10% of the dataset contains samples where the agent passes on a waypoint. The actions follow a per trajectory isotopic gaussian over thrust vector coordinates with a standard deviation of 0.1 .
+The following command uses the **1000** first maps of the **../Starship/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are (**trp** x **n** x 80/**T** | **T**) for the training set and ((1-**trp**) x **n** x 80/**T** | **T**) for the test set. **10%** of the dataset contains samples where the agent passes on a waypoint. The actions follow a **per trajectory isotopic gaussian over thrust vector coordinates** with a standard deviation of **0.1** .
 ```
 ./project -cmd=ssdsgen -mp=../Starship/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 -dist=2 -sd=0.1 
 ```
@@ -362,14 +362,59 @@ ssmbfm
 
 ### Example
 
-## Planning actions with Gradient Based Planner (GBP)
+## Generating a seed for Gradient Based Planner (GBP)
 
-An agent uses a learnt forward model to find the actions that will maximize its reward. The command randomly puts an agent on a chosen map, executes GBP and 
+You can provide a seed to GBP if you do not want it to randomly initialise the actions. This command will generate a random set of actions and save them in a .pt file. 
 
 ### Command
 
+sssgen
 
+### Parameters
 
+- int **T** : the number of timesteps to unroll. Default: 1
+- int **K** : the number of rollouts. Default: 1
+- string **seed** : the path and filename of the tensor file. You should not put the ".pt" extension as it will be done automatically. Default: root directory.  
+
+### Example
+
+To generate an action seed to use GBP with **80** timesteps and **100** rollouts that will be saved as **mySeed**.pt in the temp directory: 
+
+``` 
+./project -cmd=sssgen -T=80 -K=100 -seed=../temp/mySeed 
+```
+## Launch a trial of Gradient Based Planner (GBP)
+
+The agent appears on a map of your choice and uses GBP to plan actions for a whole episode. At the end of optimization, you can see the result on the GUI. 
+
+### Command
+
+ssmbplay
+
+### Parameters
+
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **map** : the path and name of the map on which you would like to run GBP.
+- string **seed** : the path and filename to an action seed file. Default: "".  
+- int **px** : the initial x coordinate of the ship. If left to default the ship spawns randomly. Default: -1
+- int **py** : the initial y coordinate of the ship. If left to default the ship spawns randomly. Default: -1
+- int **K** : the number of rollouts. Unnecessary if a seed is provided. Default: 1
+- int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
+- int **gs** : the number of gradient/optimization steps. Default: 1
+- float **lr** : the learning rate. Default: 0.001
+
+# Example
+
+By executing the following command, an agent randomly appears on **map1** with **20** random sets of 80 actions. GBP used the trained model **myForward.pt** for inference and performs **20** gradient steps with a learning rate of **0.01** and returns the set of optimized actions that leads to the highest reward. The GUI is then used to visualize the result.  
+
+```
+./project -cmd=ssmbplay -mdl=../temp/myForward -map=../Starship/Maps/myMapPool/test/map1 -K=20 -T=80 -lr=0.001 -gs=20
+```
+Now if instead you want to use your seed **mySeed** and have your ship start at (**100**,**200**) coordinates:
+
+```
+./project -cmd=ssmbplay -mdl=../temp/myForward -map=../Starship/Maps/myMapPool/test/map1 -seed=../temp/mySeed -px=100 -py=200 -lr=0.001 -gs=20
+```
 
 # Full example on how to make the model based planner work
 
@@ -483,3 +528,4 @@ The ForwardImpl method also provides a public usedDevice attribute that contains
 -Initialise an optimizer (/!\ only Adam atm)
 -Restrictions on the dataset
 -can use method to save loss data
+
