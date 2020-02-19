@@ -309,11 +309,12 @@ ssdsgen
 - float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often,  wp x n trajectories contain at least one transition towards a waypoint. wp should range from 0 to 1. Default: 0.1
 - float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-trp. Default: 0.9
 - int **dist** : The action distribution. Default: 0. 
+- float **alpha** : How much you want to spread the actions beyond their original boundaries. Default: 1 
 - float **sd** : The standard deviation of the gaussian distribution if dist is set to 2 or 3. Default: 0.25
 
 ### Example
 
-The following command uses the **1000** first maps of the **../Starship/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are (**trp** x **n** x 80/**T** | **T**) for the training set and ((1-**trp**) x **n** x 80/**T** | **T**) for the test set. **10%** of the dataset contains samples where the agent passes on a waypoint. The actions follow a **per trajectory isotopic gaussian over thrust vector coordinates** with a standard deviation of **0.1** .
+The following command uses the **1000** first maps of the **../Starship/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are (**trp** x **n** x 80/**T** | **T**) for the training set and ((1-**trp**) x **n** x 80/**T** | **T**) for the test set. **10%** of the dataset contains samples where the agent passes on a waypoint. The actions follow a **per trajectory isotopic gaussian over thrust vector coordinates** with a standard deviation of **0.1**.
 ```
 ./project -cmd=ssdsgen -mp=../Starship/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 -dist=2 -sd=0.1 
 ```
@@ -351,8 +352,6 @@ ssmbfm
 - string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their original names. Default: root directory.
 - string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
 - string **tag** : a suffix for some files generated during training. Default: root directory. 
-- int **depth??** :
-- int **size??** : 
 - float **lr** : learning rate. Default: 0.001
 - int **e** : Number of epochs. Default: 100
 - int **bs** : batch size. Default: 32
@@ -361,6 +360,12 @@ ssmbfm
 - float **lp2** : This is a coefficient ranging from 0 to infinity. The higher the value, the more the model is penalized for having a high error when predicting a reward corresponding to the agent reaching the waypoint and turning the wrong signal on. Default: 0
 
 ### Example
+
+You can train **myForward** on the datasets generated in **myMapPool** for **100** epochs with batches of size **128** and a learning rate of **0.0001**. You can speed up training by modifying the loss function by making the state loss **10** time more important or by penalizing the reward loss for its mistakes when predicting rare events by setting lp1 and lp2 to **0.1**
+
+```
+./project -cmd=ssmbfm
+```
 
 ## Generating a seed for Gradient Based Planner (GBP)
 
@@ -403,7 +408,7 @@ ssmbplay
 - int **gs** : the number of gradient/optimization steps. Default: 1
 - float **lr** : the learning rate. Default: 0.001
 
-# Example
+### Example
 
 By executing the following command, an agent randomly appears on **map1** with **20** random sets of 80 actions. GBP used the trained model **myForward.pt** for inference and performs **20** gradient steps with a learning rate of **0.01** and returns the set of optimized actions that leads to the highest reward. The GUI is then used to visualize the result.  
 
