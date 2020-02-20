@@ -8,17 +8,17 @@ In their research, they tested their algorithms on two tasks:
 
 2. **Starship**, a more complex environment with an infinite state and action space. Many state of the art RL algorithms such as Q-Learning or TD-Lambda cannot be applied without using tricks such as discretizing the state space. The agent controls the thrusters of a small ship and has to fight the gravitational pull of the planets to reach the closest waypoint. Once the agent reaches the waypoint he has to fire the correct signal to indicate that he has reached this precise waypoint to collect a reward.  
 
-For this work, I reproduced the environment as described in the paper. 
+For this work, I reproduced the environments as described in the paper. 
 
-You can find all the details [here](https://arxiv.org/abs/1705.07177).
+You can find it [here](https://arxiv.org/abs/1705.07177).
 
 # General Information 
 
 My code provides a certain amount of commands to easily use the main functionalities of this project. Every commands are documented down below.  
 
-1. joliRL/project/ is the root directory.
+1. joliRL/project/ is the root directory for any path you have to provide as parameter.
 2. To use one of my commands, first go to the root directory. Then follow the general architecture:
-./project -cmd=COMMAND_NAME -myflag1= -myflag2= (...) -myflag100= 
+./project -cmd=COMMAND_NAME -myflag1=val1 -myflag2=val2 (...) -myflag100=val100 
 3. Flags to indicate the path to a directory should end with a "/". 
 
 # Installing Dependancies
@@ -46,12 +46,12 @@ libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.or
 
 ## Map Generation
 
+To generate a GridWorld map file that you can use for your tasks. 
+
 Map files contain a simple matrix:
 - 0 for an empty space
 - 1 for an obstacle
 - 2 for the goal
-You can generate a GridWorld map of the size of your choice with this command. 
-
 
 ### Command name
 
@@ -65,13 +65,13 @@ gwmgen
 
 ### Example
 
-To generate a map named myMap of size 16 with a maximum of 50 obstacles in the GridWorld/Maps/ directory, execute the following command:
-
+To generate a map named **myMap** of size **16** with a maximum of **50** obstacles in the **GridWorld/Maps/** directory, execute the following command:
+```
 ./project -cmd=gwmgen -size=16 -maxObst=50 -map=../GridWorld/Maps/myMap 
+```
+## Map pool generation
 
-#Map pool generation
-
-For my algorithms to generalize well, I needed to train my agent on several maps. You can easily generate a pool of training and test maps using this command. 
+For my algorithms to generalize well, I needed to train my agent on several maps. You can generate a pool of training and test maps using this command. 
 
 ### Command name
 
@@ -86,10 +86,10 @@ gwmpgen
 
 ### Example 
 
-To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 1000 maps of size 8 with a maximum of 10 obstacles:
-
+To create a directory named **MyMapPool** in the **GridWorld/Maps/** directory containing two sub directories (test and train) each containing **1000** maps of size **8** with a maximum of **10** obstacles:
+```
 ./project -cmd=gwmpgen -size=8 -maxObst=10 -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000
-
+```
 ## Showing the map using the implemented GUI
 
 You can use the GUI to display the map on your screen.
@@ -104,31 +104,31 @@ You can use the GUI to display the map on your screen.
 
 ### Example
 
-You can show the map named MyMap in the GridWorld/Maps/MyMapPool/test/map0 using the following command line:
-
+You can show the map named **map0** in the **GridWorld/Maps/MyMapPool/test/** directory using the following command line:
+```
 ./project -cmd=gwmshow -map=../GridWorld/Maps/MyMapPool/test/map0
-
+```
 Here is the type of window that you should get:
 
 ![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2015-03-14.png "This is how the map should look like with Qt!")
 
 ## Generating the data set
 
-An agent appears at a random location on a map randomly chosen from a map pool and wanders randomly until some conditions are met. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
+An agent appears at a random location on a map randomly chosen from a map pool and wanders randomly until he reaches a terminal state. Additionnal states beyond this terminal state are padded until reaching **T**. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
 
-Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. You should set T to 1 if you do not want to use this feature as batches are made by picking random samples of T timesteps from the dataset. 
+Every sample contains **T** transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards.
 
 A train and test set are generated using the train and test maps respectively.
 
-Executing this command created 8 files in the map pool directory:
-- actionInputsTr.pt containing a { n x trp | T | 4 } tensor
-- stateInputsTr.pt containing a { n x trp | T | size x size + 4 } tensor
-- stateLabelsTr.pt containing a { n x trp | T | size x size + 4 } tensor
-- rewardLabelsTr.pt containing a { n x trp | T } tensor
-- actionInputsTe.pt containing a { n x (1-trp) | T | 4 } tensor
-- stateInputsTe.pt containing a { n x (1-trp) | T | size x size + 4 } tensor
-- stateLabelsTe.pt containing a { n x (1-trp) | T | size x size + 4 } tensor
-- rewardLabelsTe.pt containing a { n x (1-trp) | T } tensor
+Executing this command creates 8 files in the map pool directory:
+- actionInputsTr.pt containing a { **n** x **trp** | **T** | 4 } tensor
+- stateInputsTr.pt containing a { **n** x **trp** | **T** | **size** x **size** + 4 } tensor
+- stateLabelsTr.pt containing a { **n** x **trp** | **T** | **size x **size** + 4 } tensor
+- rewardLabelsTr.pt containing a { **n** x **trp** | **T** } tensor
+- actionInputsTe.pt containing a { **n** x (1-**trp**) | **T** | 4 } tensor
+- stateInputsTe.pt containing a { **n** x (1-**trp**) | **T** | **size** x **size** + 4 } tensor
+- stateLabelsTe.pt containing a { **n** x (1-**trp**) | **T** | **size** x **size** + 4 } tensor
+- rewardLabelsTe.pt containing a { **n** x (1-**trp**) | **T** } tensor
 
 ### Command
 
@@ -145,10 +145,10 @@ gwdsgen
 
 ### Example
 
-The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimension are trp*n x T for the training set and (1-trp)*n x T for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
-
+The following command uses the **1000** first maps of the **../GridWorld/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimension are (trp x n | T) for the training set and ((1-trp) x n | T) for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
+```
 ./project -cmd=gwdsgen -mp=../GridWorld/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
-
+```
 ## Training a forward model
 
 A neural network learns the physics of the GridWorld using a pre-generated dataset using the gwdsgen command. The model uses RGB images of the state as input, thus it automatically converts the state tensor dataset into a RGB image. 
@@ -197,10 +197,10 @@ ssmgen
 
 ### Example
 
-To generate a map named myMap with 2 planets of radius ranging from 60 to 80, 4 waypoints of radius 15 in the Starship/Maps/ directory, execute the following command:
-
+To generate a map named **myMap** with **2** planets of radius ranging from **60** to **80**, **4** waypoints of radius **15** in the **Starship/Maps/** directory, execute the following command:
+```
 ./project -cmd=ssmgen -nplan=2 -pmin=60 -pmax=80 -nwp=4 -rwp=15 -map=../Starship/Maps/myMap 
-
+```
 ## Map Pool Generation
 
 To generate a map pool of test and train maps of the Starship environment. 
@@ -221,10 +221,10 @@ ssmpgen
 
 ### Example
 
-To create a directory named MyMapPool in the GridWorld/Maps/ directory containing two sub directories (test and train) each containing 100 maps using the default values for the planet and waypoint parameters:
-
+To create a directory named **MyMapPool** in the **Starship/Maps/** directory containing two sub directories (test and train) each containing **100** maps using the **default values** for the planet and waypoint parameters:
+```
 ./project -cmd=ssmpgen -mp=../Starship/Maps/myMapPool/ -nmaps=100 
-
+```
 ## Showing the map using the implemented GUI
 
 You can use the GUI to display the map on your screen.
@@ -239,10 +239,10 @@ You can use the GUI to display the map on your screen.
 
 ### Example
 
-You can show the map named MyMap in the Starship/Maps/MyMapPool/test/map0 using the following command line:
-
+You can show the map named **MyMap** in the **Starship/Maps/MyMapPool/test/map0** using the following command line:
+```
 ./project -cmd=gwmshow -map=../Starship/Maps/MyMapPool/test/map0
-
+```
 Here is the type of window that you should get:
 
 ![Map example](https://github.com/jackdawe/joliRL/blob/master/img/Screenshot%20from%202020-01-16%2016-37-06.png "This is how the map should look like with Qt!")
@@ -253,7 +253,7 @@ The blue circle represents the planet. The other colored circles represent the w
 
 An agent appears at a random location on a map randomly chosen from a map pool and randomly fires his thrusters and lights his signal for 80 timesteps. Actions, State t, State t+1 and rewards are recorded and are each stored in a tensor.
 
-Every sample contains T transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. 
+Every sample contains **T** transitions. This is useful when you want your agent to learn only from the initial state, using its own predictions as inputs afterwards. 
 
 A train and test set are generated using the train and test maps respectively.
 
@@ -261,25 +261,37 @@ Action tensors are generated with discrete actions being encoded as one-hot vect
 
 #### Uniform over thrust vector coordinates (dist = 0)
 
-[dist1](https://github.com/jackdawe/joliRL/blob/master/img/dist1.png)
+![dist1](https://github.com/jackdawe/joliRL/blob/master/img/dist1.png)
 
-#### Uniform over thrust norm and angle
+#### Uniform over thrust norm and angle (dist = 1)
 
-[dist2](https://github.com/jackdawe/joliRL/blob/master/img/dist2.png)
+![dist2](https://github.com/jackdawe/joliRL/blob/master/img/dist2.png)
 
-#### Per trajectory isotopic gaussian over thrust vector coordinates
+#### Per trajectory isotopic gaussian over thrust vector coordinates (dist = 2)
 
-#### Per trajectory isotopic gaussian over thrust norm and angle
+On this plot you see the action distribution over one trajectory with a 0.1 standard deviation
 
-Executing this command created 8 files in the map pool directory:
-- actionInputsTr.pt containing a { n x trp | T | a } tensor
-- stateInputsTr.pt containing a { n x trp | T | s } tensor
-- stateLabelsTr.pt containing a { n x trp | T | 4 } tensor
-- rewardLabelsTr.pt containing a { n x trp | T } tensor
-- actionInputsTe.pt containing a { n x (1-trp) | T | a } tensor
-- stateInputsTe.pt containing a { n x (1-trp) | T | s } tensor
-- stateLabelsTe.pt containing a { n x (1-trp) | T | 4 } tensor
-- rewardLabelsTe.pt containing a { n x (1-trp) | T } tensor
+![dist3](https://github.com/jackdawe/joliRL/blob/master/img/dist3.png)
+
+#### Per trajectory isotopic gaussian over thrust norm and angle (dist = 3)
+
+On this plot you also see the action distribution over one trajectory with a 0.1 standard deviation
+
+![dist4](https://github.com/jackdawe/joliRL/blob/master/img/dist4.png)
+
+#### Default
+
+If **dist** is set to any other value, the thrusters will be turned off during dataset generation.  
+
+Dataset generation leads to the creation of 8 files in the map pool directory:
+- actionInputsTr.pt containing a { **n** x **trp** x 80/**T** | **T** | a } tensor
+- stateInputsTr.pt containing a { **n** x **trp** x 80/**T** | **T** | s } tensor
+- stateLabelsTr.pt containing a { **n** x **trp** x 80/**T** | **T** | 4 } tensor
+- rewardLabelsTr.pt containing a { **n** x **trp** x 80/**T** | **T** } tensor
+- actionInputsTe.pt containing a { **n** x (1-**trp**) x 80/**T** | **T** | a } tensor
+- stateInputsTe.pt containing a { **n** x (1-**trp**) x 80/**T** | **T** | s } tensor
+- stateLabelsTe.pt containing a { **n** x (1-**trp**) x 80/**T** | **T** | 4 } tensor
+- rewardLabelsTe.pt containing a { **n** x (1-**trp**) x 80/**T** | **T** } tensor
 
 s is the size of the state vector which is equal to 4 + 3 x (nPlanets + nWaypoints).
 
@@ -293,32 +305,45 @@ ssdsgen
 
 - string **mp** : the path to the directory containing your train and test map pools. Default: root directory.
 - int **nmaps** : the number of maps in the map pool. A value higher than the actual number of maps crashes the program. Default: 1
-- int **n** : the size of the dataset. Overall, the dataset thus contrains T*n transitions. Default : 10000 
-- int **T** : the number of transitions in a sample. If the agent reached a terminal state before the end of the T transitions, this same state is added to the State t and State t+1 tensors and 0 to the reward tensor. Default: 1
-- float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often, the agent is forced spwan on a waypoint during wp*n episodes. Thus, wp should range from 0 to 1. This will only result in 2 to 3 transitions on the waypoint which is not much for an episode that lasts for 80 timesteps. Default: 0.1
-- float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-trp. Default: 0.9
+- int **n** : the number of trajectories. Overall, the dataset contrains **T** x **n** transitions. Default : 10000 
+- int **T** : the number of transitions in a sample. **T** must divide 80 or the command won't execute itself. Default: 1
+- float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often,  **wp** x **n** trajectories contain at least one transition towards a waypoint. **wp** should range from 0 to 1. Default: 0.1
+- float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-**trp**. Default: 0.9
+- int **dist** : The action distribution. Default: 0. 
+- float **alpha** : How much you want to spread the actions beyond their original boundaries. Default: 1 
+- float **sd** : The standard deviation of the gaussian distribution if **dist** is set to 2 or 3. Default: 0.25
 
 ### Example
 
-The following command uses the 1000 first maps of the ../GridWorld/Maps/MyMapPool/ map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are trp*n x T for the training set and (1-trp)*n x T for the test set. 10% of the dataset contains samples where the agent appears next to the goal and makes a transition towards it. 
-
-./project -cmd=ssdsgen -mp=../Starship/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 
-
+The following command uses the **1000** first maps of the **../Starship/Maps/MyMapPool/** map pool directory to generate 8 tensor files forming both the test and training set. The tensor' first two dimensions are (**trp** x **n** x 80/**T** | **T**) for the training set and ((1-**trp**) x **n** x 80/**T** | **T**) for the test set. **10%** of the dataset contains samples where the agent passes on a waypoint. The actions follow a **per trajectory isotopic gaussian over thrust vector coordinates** with a standard deviation of **0.1**.
+```
+./project -cmd=ssdsgen -mp=../Starship/Maps/MyMapPool/ -nmaps=1000 -n=10000 -T=10 -wp=0.1 -trp=0.9 -dist=2 -sd=0.1 
+```
 
 ## Training a forward model
 
-A neural network learns the physics of the SpaceWorld using a pre-generated dataset using the ssdsgen command. The neural network's inputs are preprocessed in such a way that:
+A neural network learns the physics of the SpaceWorld using a pre-generated . The neural network's inputs are preprocessed in such a way that:
 - Distances in the state vector are between 0 and 1
 - Velocities in the state vector are between -1 and 1 
-- Actions are unchanged as they were already preprocessed in the dataset
-The network returns increment in position and velocity gained from leaving the initial state. The output is post-processed in such a way that:
+
+Actions are unchanged as they were already preprocessed in the dataset.
+
+
+The network returns increments in position and velocity gained from leaving the initial state. The output is post-processed in such a way that:
 - Position deltas and velocities are converted to their original pixel/pixel per timestep representation
 - The next state is reconstituted by adding the increments to the initial state and by concatenating the constant part of the state vector. The post-processed output of the network has thus the exact same form than the state inputs found in the dataset.
 
-Training generates two files:
+Training generates three files:
 
 - The .pt file containing the weights of the model
 - A text file containing the initialisation parameters of the model 
+- A _opti.pt file containing the weights of the optimizer  
+
+Other files containing training data are also generated in the temp directory
+
+- Checkpoints every 40 epochs in the temp/cps/ directory 
+- rewardLoss and stateLoss which contains the reward and state loss at each iteration 
+- tep_mse+suffix, tev_mse+suffix, ter_mse+suffix containing the position, velocity and reward MSE loss on the test set at each epoch
 
 ### Command
 
@@ -327,34 +352,98 @@ ssmbfm
 ### Parameters
 
 - string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their original names. Default: root directory.
-- string **mdl** : the path to the file that will contain the trained model.  
-- int **depth??** :
-- int **size??** : 
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **tag** : a suffix for some files generated during training. Default: root directory. 
 - float **lr** : learning rate. Default: 0.001
-- int **n** : Number of iterations. Default: 10000
+- int **e** : Number of epochs. Default: 100
 - int **bs** : batch size. Default: 32
-- float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
-- bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
+- float **beta** : state loss multiplicative coefficient. Total loss = **beta** * stateloss + reward loss. Default: 1. 
+- float **lp1** : The reward loss is penalized when it has a high error on rare events to speed training. This is a coefficient ranging from 0 to infinity. The higher the value, the more the model is penalized for having a high error when predicting a reward corresponding to the agent reaching the waypoint and turning the right signal on. Default: 0
+- float **lp2** : This is a coefficient ranging from 0 to infinity. The higher the value, the more the model is penalized for having a high error when predicting a reward corresponding to the agent reaching the waypoint and turning the wrong signal on. Default: 0
 
-# Full example on how to make the model based planner work
+### Example
 
-In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner perform well.
+You can train **myForward** on the datasets generated in **myMapPool** for **100** epochs with batches of size **128** and a learning rate of **0.0001**. You can speed up training by modifying the loss function by making the state loss **10** time more important or by penalizing the reward loss for its mistakes when predicting rare events by setting **lp1** and **lp2** to **0.1**
+
+```
+./project -cmd=ssmbfm -mdl=../temp/myForward -mp=../Starship/Maps/myMapPool -e=100 -bs=128 -lr=0.0001 -beta=10 -lp1=0.1 -lp2=0.1
+```
+
+## Generating a seed for Gradient Based Planner (GBP)
+
+You can provide a seed to GBP if you do not want it to randomly initialise the actions. This command will generate a random set of actions and save them in a .pt file. 
+
+### Command
+
+sssgen
+
+### Parameters
+
+- int **T** : the number of timesteps to unroll. Default: 1
+- int **K** : the number of rollouts. Default: 1
+- string **seed** : the path and filename of the tensor file. You should not put the ".pt" extension as it will be done automatically. Default: root directory.  
+
+### Example
+
+To generate an action seed to use GBP with **80** timesteps and **100** rollouts that will be saved as **mySeed**.pt in the temp directory: 
+
+``` 
+./project -cmd=sssgen -T=80 -K=100 -seed=../temp/mySeed 
+```
+## Launch a trial of Gradient Based Planner (GBP)
+
+The agent appears on a map of your choice and uses GBP to plan actions for a whole episode. At the end of optimization, you can see the result on the GUI. 
+
+### Command
+
+ssmbplay
+
+### Parameters
+
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **map** : the path and name of the map on which you would like to run GBP.
+- string **seed** : the path and filename to an action seed file. Default: "".  
+- int **px** : the initial x coordinate of the ship. If left to default the ship spawns randomly. Default: -1
+- int **py** : the initial y coordinate of the ship. If left to default the ship spawns randomly. Default: -1
+- int **K** : the number of rollouts. Unnecessary if a seed is provided. Default: 1
+- int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
+- int **gs** : the number of gradient/optimization steps. Default: 1
+- float **lr** : the learning rate. Default: 0.001
+
+### Example
+
+By executing the following command, an agent randomly appears on **map1** with **20** random sets of **80** actions. GBP uses the trained model **myForward.pt** for inference and performs **20** gradient steps with a learning rate of **0.01** and returns the set of optimized actions that leads to the highest reward. The GUI is then used to visualize the result.  
+
+```
+./project -cmd=ssmbplay -mdl=../temp/myForward -map=../Starship/Maps/myMapPool/test/map1 -K=20 -T=80 -lr=0.001 -gs=20
+```
+Now if instead you want to use your seed **mySeed** and have your ship start at (**100**,**200**) coordinates:
+
+```
+./project -cmd=ssmbplay -mdl=../temp/myForward -map=../Starship/Maps/myMapPool/test/map1 -seed=../temp/mySeed -px=100 -py=200 -lr=0.001 -gs=20
+```
+
+# Full example on how to reproduce my best results so far
+
+In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner produce the best results that I was able to get. 
 In this example, we take the standard case with one planet and three waypoints. 
 
 ## Step 1: Generate a map pool 
 
 You first need to create maps on which your starship can fly. These maps will be used to generate your datasets. The more maps you have, the better your forward model will be able to generalise. 1000 maps is usually enough, but you can have more without any additionnal computationnal cost. 
-
+```
 ./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000
-
+```
 By executing this command, the MapPool1 directory is created in the ../Starship/Maps/ directory. MapPool1 contains the test and train subdirectories whith 1000 maps each. The default values are used for the map parameters (waypoint and planet radii, etc...).
 
 ## Step 2: Generate your dataset using your map pool
 
-We know want to use the maps we just created to make a dataset. You can use the following command to do so: 
+We know want to use the maps we just created to make a dataset. As described above, you can chose from different action distributions which can have an impact on training. In this example, we can take the most basic distribution.  
 
-./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000 -n=250000 -T=40 -wp=0.5 -trp=0.99
-
+You can use the following command: 
+```
+./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000 -n=50000 -T=40 -wp=0.5 -trp=0.99
+```
 With the first two flags you indicate that you want to use the map pool you previously generated.
 The n flag will determine the size of your dataset. A rather large dataset is required to prevent overfitting.
 
@@ -368,23 +457,24 @@ Please note that this command does not use the GPU. The higher n, T and wp the l
 ## Step 3: Learn a forward model
 
 My neural network will use the dataset generated in step 2 to learn the transition and reward function of the space world.
-
-./project -cmd=ssmbfm -mp=../Starship/Maps/MapPool1/ -mdl=../myForward -tag?? -lr=0.0001 -bs=128 -n=100 -wn -sd=0.25
-
+```
+./project -cmd=ssmbfm -mp=../Starship/Maps/MapPool1/ -mdl=../myForward -tag?? -lr=0.0001 -bs=128 -n=100 -wn -sd=0.25 -lp1=0.1 -lp2=0.05
+```
 You should give the directory containing your 8 ".pt" dataset files to the mp flag.
-By setting mdl to "../myForward", two files will be created and updated in the root's parent directory: myForward.pt containing the weights of the model and myForward_Params containing the parameters that you set to create the model. 
+By setting mdl to "../myForward", three files will be created and updated in the root's parent directory: myForward.pt containing the weights of the model, myForward_Params containing the parameters that you set to create the model and myForward_opti.pt containing the weights of the optimizer. 
 lr and bs are hyperparameters that you can change, but training goes well with the ones I chose.
 wn enables white noise to be added to the discrete action one-hot encoding. sd represents the standard deviation of the white noise. The white noise is supposed to smooth the reward function in the space between the one-hot encoded vectors in such a way that optimisation using gradient descent works better. If sd is too low, there will be little effect. If it is too high, there will be a non-negligeable probability that the original action value becomes lower than another one, thus creating an inconsistency in the dataset.
+lp1 and lp2 are coefficients that affect the reward penality loss. Penality loss is here to speed up training by penalizing the model whenever it makes an error when trying to predict rare events. In Starship, these rare events correspond to reaching a waypoint and firing a signal (correct or incorrect). With the value I chose, the penality loss is not too high and becomes significant later on during training.   
 
-Every n forward passes, training pauses to do the following operations:
+Every epoch, training pauses to do the following operations:
 
-- Replacing the myForward.pt file with a file containing the updated weights
+- Replacing the myForward.pt and myForward_opti.pt files with files containing the updated weights
 - Printing the performance of the network on the test set
 - Saving some training data such as state and reward loss for you to plot
 
-Training then resumes for n other forward passes. 
+Training then resumes for another epoch. 
 
-In this configuration, you should see less than 20 pixel position error after 30 minutes of training. If left for a few hours, you should be able to have less than 10 pixel of position error on all the test set.
+In this configuration, you should see hover around 10 pixel position error after 1 hour of training on a GPU. If left for a few hours, you should be able to have less than 10 pixel of position error on all the test set.
 
 ## Step 4: Use the forward model to plan your actions 
 
@@ -439,9 +529,3 @@ stateLabels and rewardLabels are batches from your provided dataset also have th
 
 The ForwardImpl method also provides a public usedDevice attribute that contains the nature of the device on which the training will be done on (GPU or CPU). usedDevice will be updated upon initialisation of an object of your forward model class.    
 
-
--Having your own nn class: must have forward method, must have compute loss method, must have predictedState and predictedReward public attribute, 
--Adding to the template
--Initialise an optimizer (/!\ only Adam atm)
--Restrictions on the dataset
--can use method to save loss data
