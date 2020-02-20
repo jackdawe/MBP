@@ -113,7 +113,7 @@ torch::Tensor ToolsSS::penalityMSE(torch::Tensor target, torch::Tensor label, fl
     }
 }
 
-torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, float std)
+torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, float alpha, float std)
 {
   torch::Tensor thrust;
   switch(distribution)
@@ -125,7 +125,7 @@ torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, 
       break;
     case 1: //Uniform polar coordinate distribution
       {
-	torch::Tensor r = 1.2*torch::rand({n,nTimesteps,1})*SHIP_MAX_THRUST;
+	torch::Tensor r = torch::rand({n,nTimesteps,1})*SHIP_MAX_THRUST;
 	torch::Tensor theta = torch::rand({n,nTimesteps,1})*2*M_PI;
 	thrust = torch::cat({r*torch::cos(theta),r*torch::sin(theta)},-1);
       }
@@ -154,16 +154,16 @@ torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, 
 	thrust = torch::cat({r*torch::cos(theta),r*torch::sin(theta)},-1);
       }
       break;      
-    default:
+    default:      
       thrust = torch::ones({n,nTimesteps,2});
     }
   torch::Tensor signal = torch::zeros({4,nTimesteps,n});
   signal = signal.scatter_(0,torch::randint(0,4,{1,nTimesteps,n}).to(torch::kLong),torch::ones_like(signal)).transpose(0,2);
-  return torch::cat({signal,thrust},-1);
+  return torch::cat({signal,alpha*thrust},-1);
 }
 
 
-void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, int aDist, float std)
+void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, int aDist, float alpha, float std)
 {
 
   if (EPISODE_LENGTH % nTimesteps!=0)
@@ -185,7 +185,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       
       int size = sw.getSvSize();
       torch::Tensor stateInputs = torch::zeros({n*nSplits,size});
-      torch::Tensor actionInputs = generateActions(n*nSplits,nTimesteps, aDist, std);
+      torch::Tensor actionInputs = generateActions(n*nSplits,nTimesteps, aDist,alpha, std);
       torch::Tensor stateLabels = torch::zeros({n*nSplits,nTimesteps,4});
       torch::Tensor rewardLabels = torch::zeros({n*nSplits,nTimesteps});
       
@@ -286,7 +286,7 @@ void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
 {
   torch::Tensor actions = torch::zeros(0);
   //  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1)},2);
-  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1000)},2); 
+  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1)},2); 
   for (unsigned int i=0;i<2;i++)
     {
       torch::Tensor center = torch::rand({nRollouts});
@@ -298,7 +298,7 @@ void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
       actions = torch::cat({actions,initCA.transpose(0,1)},2);
     }
   cout<<actions<<endl;
-  torch::save(actions,filename);
+  torch::save(actions,filename+".pt");
 }
 
 void ToolsSS::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp)

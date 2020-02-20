@@ -18,8 +18,8 @@ class ToolsSS
   torch::Tensor moduloMSE(torch::Tensor target, torch::Tensor label, bool normalized=true);
   torch::Tensor penalityMSE(torch::Tensor target, torch::Tensor label, float valToPenalize, float weight);
   void generateSeed(int nTimesteps, int nRollouts, string filename);
-  torch::Tensor generateActions(int n, int nTimesteps, int distribution, float std);
-  void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1, int aDist=0, float std=1);
+  torch::Tensor generateActions(int n, int nTimesteps, int distribution,float alpha, float std);
+  void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1, int aDist=0, float alhpa=1, float std=1);
   float comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Tensor actionSequence, torch::Tensor estimate);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit, bool disp);
   void displayTAccuracy(int dataSetSize);

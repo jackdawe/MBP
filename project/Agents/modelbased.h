@@ -38,6 +38,9 @@ template<class W, class F, class P>
   torch::Tensor getFinalDA(vector<DiscreteAction> discreteActions, torch::Tensor optiDA);
   torch::Tensor getFinalCA(vector<ContinuousAction> continuousActions, torch::Tensor optiCA);
   float computeTrueReward(torch::Tensor initState, vector<DiscreteAction> discreteActions, torch::Tensor actions, vector<ContinuousAction> continuousActions, int nca, int nda, int nTimesteps);
+
+  torch::Tensor sPred;
+  torch::Tensor sTruth;  
   
  private:
   int epoch;

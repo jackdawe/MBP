@@ -63,6 +63,7 @@ class Commands
   void tc1();
   void tc2();
   void tc3();
+  void tc5();
 };
 
 #endif // COMMANDS_H

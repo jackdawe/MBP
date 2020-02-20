@@ -128,7 +128,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
       
       //Predicting the rewards given the state and action sequences 
 
-      f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nca,nda,nTimesteps)<<endl; //TO REMOVE  
+      //      f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nca,nda,nTimesteps)<<endl; //TO REMOVE  
 
       if (i<nGradsteps)
 	{
@@ -146,8 +146,8 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	    }
 	  optimizer.zero_grad();
 	  costs = -reward.sum(0);	
-	  cout<<-costs.mean()<<endl;
-	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
+	  cout<<"Average reward at grad step " + to_string(i) + ": " + to_string(*(-costs.mean()).to(torch::Device(torch::kCPU)).data<float>())<<endl;
+	  //	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
 	  costs.backward(torch::ones({nRollouts}).to(device));
 	  optimizer.step();
 	}
@@ -161,7 +161,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
   torch::Tensor actionSequences = torch::cat({finalDA,finalCA},2);
   int maxRewardIdx = *torch::argmax(-costs.to(torch::Device(torch::kCPU))).data<long>();
   cout<<"......"<<endl;
-  //cout<<actionSequences[maxRewardIdx]<<endl;      
+  cout<<actionSequences[maxRewardIdx]<<endl;      
   cout<<-costs[maxRewardIdx]<<endl;
   //  cout<<rewards<<endl;
   //  cout<<(actionSequences[maxRewardIdx].slice(1,discreteActions.size(),this->world.getTakenAction().size(),1) - savedCA.transpose(0,1)[maxRewardIdx])<<endl;;
@@ -173,7 +173,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 template <class W, class F, class P>
 void ModelBased<W,F,P>::playOne(ActionSpace actionSpace, int nRollouts, int nTimesteps, int nGradientSteps, float lr, torch::Tensor initActions)
 {
-  torch::Tensor sTruth = torch::zeros(0), sPred = torch::zeros(0);
+  sTruth = torch::zeros(0), sPred = torch::zeros(0);
   sTruth = torch::cat({sTruth,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);
   while(!this->world.isTerminal(this->currentState().getStateVector()))
     {
