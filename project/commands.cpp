@@ -631,15 +631,17 @@ void Commands::tc4()
 {
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
-  SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
-  ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);
-  vector<float> rollouts = {100,100};
-  vector<float> lrs = {0.01,1};
-  vector<float> ngs = {100,0};  
+  vector<float> rollouts = {100,100,10,1000};
+  vector<float> lrs = {0.01,0.01,0.01,0.01};
+  vector<float> ngs = {0,100,100,100};  
+  ofstream h("../temp/time");
   for (unsigned int l=0;l<rollouts.size();l++)
     {
+      SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
+      ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);  
       ofstream f("../temp/score"+to_string(l+1));
       ofstream g("../temp/error"+to_string(l+1));
+      auto start = std::chrono::system_clock::now();
       for (int i=0;i<FLAGS_n;i++)
 	{
 	  agent.playOne(sw.getActions(),rollouts[l],FLAGS_T,ngs[l],lrs[l]);
@@ -647,6 +649,9 @@ void Commands::tc4()
 	  g<<*(ToolsSS().moduloMSE(agent.sPred.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),agent.sTruth.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),false).pow(0.5)).data<float>()<<endl;
 	  agent.resetWorld();
 	}
+      auto end = std::chrono::system_clock::now();
+      std::chrono::duration<double> elapsed_seconds = end-start;
+      h<<elapsed_seconds.count()/FLAGS_n<<endl;
     }
 }
 

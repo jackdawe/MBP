@@ -284,19 +284,7 @@ float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Ten
 
 void ToolsSS::generateSeed(int nTimesteps, int nRollouts, string filename)
 {
-  torch::Tensor actions = torch::zeros(0);
-  //  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1)},2);
-  actions = torch::cat({actions,torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1)},2); 
-  for (unsigned int i=0;i<2;i++)
-    {
-      torch::Tensor center = torch::rand({nRollouts});
-      torch::Tensor initCA = torch::zeros({nRollouts,nTimesteps,1});
-      for (int k=0;k<nRollouts;k++)
-	{
-	  initCA[k] = torch::clamp(torch::zeros({nTimesteps,1}).normal_(*center[k].data<float>(),0.1),0,1);
-	}      
-      actions = torch::cat({actions,initCA.transpose(0,1)},2);
-    }
+  torch::Tensor actions = torch::cat({torch::zeros({nTimesteps,nRollouts,4}).normal_(0,1),torch::rand({nTimesteps,nRollouts,2})},2); 
   cout<<actions<<endl;
   torch::save(actions,filename+".pt");
 }

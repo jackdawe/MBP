@@ -128,7 +128,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
       
       //Predicting the rewards given the state and action sequences 
 
-      //      f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nca,nda,nTimesteps)<<endl; //TO REMOVE  
+      f2<<computeTrueReward(initState, discreteActions, actions, actionSpace.getContinuousActions(), nca,nda,nTimesteps)<<endl; //TO REMOVE  
 
       if (i<nGradsteps)
 	{
@@ -147,7 +147,7 @@ void ModelBased<W,F,P>::gradientBasedPlanner(torch::Tensor initState, ActionSpac
 	  optimizer.zero_grad();
 	  costs = -reward.sum(0);	
 	  cout<<"Average reward at grad step " + to_string(i) + ": " + to_string(*(-costs.mean()).to(torch::Device(torch::kCPU)).data<float>())<<endl;
-	  //	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
+	  f1<<-*costs.to(torch::Device(torch::kCPU)).mean().data<float>()<<endl; //TO REMOVE
 	  costs.backward(torch::ones({nRollouts}).to(device));
 	  optimizer.step();
 	}
