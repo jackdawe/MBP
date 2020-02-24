@@ -42,7 +42,6 @@ void SpaceWorld::init()
   vector<ContinuousAction> cactions = {ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST), ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST)};
   actions = ActionSpace(dactions,cactions);
   takenAction = vector<float>(3,0);
-  size = map.getSize();
   svSize = 4+3*(map.getPlanets().size()+map.getWaypoints().size());
   currentState.setStateVector(vector<float>(svSize,0));
   ship.setWidth(SHIP_WIDTH);
@@ -50,13 +49,13 @@ void SpaceWorld::init()
   reset();
 }
 
-float SpaceWorld::transition()
+float SpaceWorld::transition(vector<float> action)
 {
   previousState.update(0,ship.getP().x),previousState.update(1,ship.getP().y);
   previousState.update(2,ship.getV().x), previousState.update(3,ship.getV().y);
-  
-  int signal = (int)takenAction[0];
-  Vect2d thrust(takenAction[1],takenAction[2]);  
+  takenAction = action;
+  int signal = (int)action[0];
+  Vect2d thrust(action[1],action[2]);  
   if(thrust.norm() > SHIP_MAX_THRUST)
     {
       thrust = thrust.dilate(SHIP_MAX_THRUST/thrust.norm());
@@ -79,38 +78,28 @@ float SpaceWorld::transition()
 	      gravForce = gravForce.sum(vectPS.dilate(GRAVITY*SHIP_MASS*p.getMass()/pow(vectPS.norm(),2)));
 	      ship.setA(Vect2d(gravForce.x-DAMPING*ship.getV().x-ship.getThrust().x,gravForce.y-DAMPING*ship.getV().y-ship.getThrust().y).dilate(1./SHIP_MASS));
 	      Vect2d newP = ship.getP().sum(ship.getV().dilate(STEP_SIZE));
-	      if (newP.x>size)
+	      if (newP.x>SIZE)
 		{
-		  newP.x-=size;
+		  newP.x-=SIZE;
 		}
 	      if (newP.x<0)
 		{
-		  newP.x+=size;
+		  newP.x+=SIZE;
 		}
-	      if (newP.y>size)
+	      if (newP.y>SIZE)
 		{
-		  newP.y-=size;
+		  newP.y-=SIZE;
 		}
 	      if (newP.y<0)
 		{
-		  newP.y+=size;
+		  newP.y+=SIZE;
 		}
 	      ship.setP(newP);
 	      if (!isCrashed())
 		{
 		  ship.setV(ship.getV().sum(ship.getA().dilate(STEP_SIZE)));
 		}
-	      else
-		{
-		  //		ship.setA(Vect2d(0,0));
-		  //		ship.setV(Vect2d(0,0));		
-		}
 	    }
-	}
-      else
-	{
-	  //	  ship.setA(Vect2d(0,0));
-	  //	  ship.setV(Vect2d(0,0));
 	}
       currentState.update(0,ship.getP().x),currentState.update(1,ship.getP().y);
       currentState.update(2,ship.getV().x), currentState.update(3,ship.getV().y);	  
@@ -200,7 +189,6 @@ void SpaceWorld::reset()
       uniform_int_distribution<int> dist(0,mapPoolSize-1);
       int mapId = dist(generator);
       map.load(mapPoolPath+"map"+to_string(mapId));
-      size = map.getSize();      
     }  
   if (planets.size() == 0 || mapPoolSize != -1)
     {
@@ -223,7 +211,7 @@ void SpaceWorld::placeShip()
   ship.setA(Vect2d(0,0));
   ship.setThrust(Vect2d(0,0));
   default_random_engine generator(std::random_device{}());
-  uniform_int_distribution<int> dist(0,size-ship.getHeight());
+  uniform_int_distribution<int> dist(0,SIZE-ship.getHeight());
   if (randomStart)
     {
       bool invalidPosition = true;
@@ -273,12 +261,7 @@ void SpaceWorld::placeShip()
    return false;
  }
 
-int SpaceWorld::getSize()
-{
-  return size;
-}
-
- int SpaceWorld::getSvSize()
+int SpaceWorld::getSvSize()
  {
    return svSize;
  }

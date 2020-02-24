@@ -80,8 +80,7 @@ void ActorCritic<W,M>::train(int nEpisodes, float gamma, float beta, float zeta,
 	  torch::Tensor stateVector = torch::tensor(this->currentState().getStateVector());
 	  torch::Tensor actionProbabilities = model->actorOutput(stateVector.unsqueeze(0));
 	  torch::Tensor action = actionProbabilities.multinomial(1).to(torch::kFloat32);
-	  this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
-	  this->world.setTakenReward(this->world.transition());
+	  this->world.setTakenReward(this->world.transition({*action.to(torch::Device(torch::kCPU)).data<float>()}));
 	  runStates[i] = stateVector;
 	  runRewards.push_back(this->takenReward());
 	  runActions[i] = action.squeeze().to(model->getUsedDevice());
@@ -120,8 +119,7 @@ void ActorCritic<W,M>::playOne()
       torch::Tensor stateVector = torch::tensor(this->currentState().getStateVector());
       torch::Tensor actionProbabilities = model->actorOutput(stateVector.unsqueeze(0));
       torch::Tensor action = torch::argmax(actionProbabilities).to(torch::kFloat32);
-      this->world.setTakenAction({*action.to(torch::Device(torch::kCPU)).data<float>()});
-      this->world.setTakenReward(this->world.transition());
+      this->world.setTakenReward(this->world.transition({*action.to(torch::Device(torch::kCPU)).data<float>()}));
     }
 }
 

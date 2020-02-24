@@ -27,7 +27,7 @@ public:
     SpaceWorld(string filename, Ship s);
     SpaceWorld(string pathToDir, int mapPoolSize);
     
-    float transition();
+    float transition(vector<float> action);
     bool isTerminal(State s);
     void generateVectorStates();
     void reset();
@@ -36,16 +36,13 @@ public:
     bool isCrashed();
 
     int getSvSize();
-    int getSize();    
     vector<Waypoint> getWaypoints();
     Ship getShip();
     void repositionShip(Vect2d p);
     int epCount;
     
  private:
-    void init();
-
-    int size;
+    void init();    
     int svSize;
     MapSS map;
     bool randomStart;

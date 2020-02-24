@@ -9,7 +9,6 @@ public:
     ContinuousAction(float lowerBound, float upperBound);
     float pick();
     float getLowerBound() const;
-
     float getUpperBound() const;
 
 private:

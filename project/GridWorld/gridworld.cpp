@@ -41,9 +41,10 @@ void GridWorld::init()
   reset();
 }
 
-float GridWorld::transition()
+float GridWorld::transition(vector<float> action)
 {
-    int a = (int)takenAction[0];
+    int a = (int)action[0];
+    takenAction = action;
     float r = 0;
     previousState.update(0,agentX), previousState.update(1,agentY);
     if (!isTerminal(currentState))
@@ -180,23 +181,6 @@ int GridWorld::spaceStateSize()
   return size*size;
 }
 
-float GridWorld::idToReward(int id)
-{
-  switch(id)
-    {
-    case 0:
-      return LOSE_REWARD;
-      break;
-    case 1:
-      return EMPTY_SQUARE_REWARD;
-      break;
-    case 2:
-      return WIN_REWARD;
-      break;
-    }
-  return 0;
-}
-  
 int GridWorld::getSize()
 {
   return size;

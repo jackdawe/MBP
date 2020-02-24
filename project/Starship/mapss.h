@@ -30,12 +30,10 @@ class MapSS
   void save(string filename);
   void load(string filename);
   
-  int getSize() const;  
   vector<Planet> getPlanets() const;  
   vector<Waypoint> getWaypoints() const;
   
  private:
-  int size;
   vector<Planet> planets;
   vector<Waypoint> waypoints;
 };

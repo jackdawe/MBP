@@ -56,7 +56,7 @@ void QLearning<W>::epsilonGreedyPolicy(float e)
         this->world.setTakenAction(this->actions().actionFromId(actionId,new vector<float>()));
 		  
     }
-    this->world.setTakenReward(this->world.transition());
+    this->world.setTakenReward(this->world.transition(this->takenAction()));
 }
 
 template <class W>
@@ -106,7 +106,7 @@ void QLearning<W>::train(int nEpisodes, float epsilon, float gamma)
 	  terminal = this->world.isTerminal(this->currentState());
 	  updateQValues();
         }
-        this->world.transition();
+        this->world.transition(this->takenAction());
         updateQValues();
         episodeId++;
         this->world.reset();

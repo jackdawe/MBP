@@ -226,8 +226,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 		{
 		  si = torch::cat({si,torch::tensor(sw.getCurrentState().getStateVector()).unsqueeze(0)},0);
 		}
-	      sw.setTakenAction(tensorToVector(ieActions[nSplits*i+t/nTimesteps][t%nTimesteps]));
-	      float r = sw.transition();
+	      float r = sw.transition(tensorToVector(ieActions[nSplits*i+t/nTimesteps][t%nTimesteps]));
 	      rl[t] = r;	      
 	      if (r == RIGHT_SIGNAL_ON_WAYPOINT_REWARD || r == WRONG_SIGNAL_ON_WAYPOINT_REWARD)
 		{
@@ -275,8 +274,7 @@ float ToolsSS::comparePosMSE(torch::Tensor initState, int nWaypoints, torch::Ten
   torch::Tensor labels = torch::zeros({T,initState.size(0)});
   for (int t=0;t<T;t++)
     {
-      sw.setTakenAction(tensorToVector(actionSequence[t]));
-      sw.transition();
+      sw.transition(tensorToVector(actionSequence[t]));
       labels[t] = torch::tensor(sw.getCurrentState().getStateVector());
     }
   return *moduloMSE(estimate.slice(-1,0,2,1),labels.slice(-1,0,2,1),false).data<float>();

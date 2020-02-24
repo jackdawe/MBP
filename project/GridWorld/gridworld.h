@@ -18,14 +18,13 @@ public:
     GridWorld(string pathToMap, float agentXInit, float agentYInit);
     GridWorld(string pathToDir, int mapPoolSize);
     void init();
-    float transition();
+    float transition(vector<float> action);
     bool isTerminal(State s);
     void generateVectorStates();
     int stateId(State s);
     void reset();
     vector<int> accessibleStates(State s);
     int spaceStateSize();
-    float idToReward(int id);
     void rewardAccuracy(torch::Tensor testData, torch::Tensor labels);
 
     vector<vector<float>> getObstacles();

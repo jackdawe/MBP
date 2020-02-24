@@ -1,11 +1,8 @@
 #include "mapss.h"
 
-MapSS::MapSS(): size(SIZE)
-{
+MapSS::MapSS(){}
 
-}
-
-MapSS::MapSS(vector<float> stateVector, int nWaypoints): size(SIZE)
+MapSS::MapSS(vector<float> stateVector, int nWaypoints)
 {
   for (int i=0;i<nWaypoints;i++)
     {
@@ -39,14 +36,14 @@ void MapSS::generate(int nPlanets, int planetMinSize, int planetMaxSize,int nWay
       dist = uniform_int_distribution<int>(planetMinSize,planetMaxSize);
       int radius = dist(generator);
       planet.setRadius(radius);
-      dist = uniform_int_distribution<int>(radius,size-radius);	
+      dist = uniform_int_distribution<int>(radius,SIZE-radius);	
       planet.setCentre(Vect2d(dist(generator),dist(generator)));
       planets.push_back(planet);
     }
   
   //GENERATING WAYPOINTS
   
-  dist = uniform_int_distribution<int>(wpRadius,size-wpRadius);
+  dist = uniform_int_distribution<int>(wpRadius,SIZE-wpRadius);
   for (int k=0;k<nWaypoints;k++)
     {
       Waypoint waypoint;
@@ -100,7 +97,6 @@ void MapSS::save(string filename)
   ofstream f(filename);
     if (f)
     {
-        f << to_string(size) << endl;
         f << "--- PLANETS ---" << endl;
         for (unsigned int i=0;i<planets.size();i++)
         {
@@ -127,8 +123,6 @@ void MapSS::load(string filename)
   if (f)
     {
         string line;
-        getline(f,line);
-        size = stoi(line);
         getline(f,line);
         getline(f,line);
 
@@ -196,11 +190,6 @@ void MapSS::load(string filename)
             getline(f,line);
         }
     }
-}
-
-int MapSS::getSize() const
-{
-    return size;
 }
 
 vector<Planet> MapSS::getPlanets() const

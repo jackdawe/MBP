@@ -12,32 +12,6 @@ Agent<W>::Agent(W world):
     this->world.generateVectorStates();
 }
 
-template <class W>
-void Agent<W>::generateNameTag(string prefix)
-{
-    string id;
-    ifstream fr("../idCount");
-    if (fr)
-    {
-        getline(fr,id);
-    }
-    else
-    {
-        cout << "an error has occured while trying to read the idCount file" << endl;
-    }
-    nameTag = prefix +"_"+id;
-    ofstream fw("../idCount");
-    if (fw)
-    {
-        fw << to_string(stoi(id)+1) << endl;
-    }
-    else
-    {
-        cout << "an error has occured while trying to update the idCount file" << endl;
-    }
-    cout << "Files saved during training under the name: " + nameTag << endl;
-}
-
 template<class W>
 void Agent<W>::saveRewardHistory()
 {
@@ -126,12 +100,6 @@ template<class W>
 void Agent<W>::setWorld(const W &value)
 {
     world = value;
-}
-
-template<class W>
-string Agent<W>::getNameTag() const
-{
-    return nameTag;
 }
 
 template<class W>

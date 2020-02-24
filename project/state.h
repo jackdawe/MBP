@@ -10,7 +10,6 @@ public:
     void add(float value);
     void update(int index, float value);
     vector<float> currentStateVector();
-
     vector<float > getStateVector() const;
     void setStateVector(const vector<float > &value);
 

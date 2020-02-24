@@ -13,7 +13,6 @@ class Agent
 public:
     Agent();
     Agent(W World);
-    void generateNameTag(string prefix);
     void saveRewardHistory();
     void saveLastEpisode();
     void loadEpisode(string nameTag);
@@ -29,16 +28,11 @@ public:
     State currentState();
     vector<float> rewardHistory();
     void resetWorld();
-    W getWorld() const;
-    
+    W getWorld() const;    
     void setWorld(const W &value);
-
-    string getNameTag() const;
 
 protected:
     W world;
-    string nameTag;
-
 };
 
 #endif // AGENT_H

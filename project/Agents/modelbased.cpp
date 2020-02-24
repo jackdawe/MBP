@@ -185,7 +185,7 @@ void ModelBased<W,F,P>::playOne(ActionSpace actionSpace, int nRollouts, int nTim
 	    {
 	      this->world.updateTakenAction(i,*actionSequence[t][i].data<float>());
 	    }
-	  this->world.transition();
+	  this->world.transition(this->takenAction());
 	  sTruth = torch::cat({sTruth,torch::tensor(this->currentState().getStateVector()).unsqueeze(0)},0);  
 	}
       cout<<this->rewardHistory()<<endl;
@@ -402,8 +402,7 @@ float ModelBased<W,F,P>::computeTrueReward(torch::Tensor initState, vector<Discr
   float r = 0;
   for (int u=0;u<nTimesteps;u++)
     {
-      w.setTakenAction(ToolsSS().tensorToVector(actact[u][0]));
-      r+=w.transition();
+      r+=w.transition(ToolsSS().tensorToVector(actact[u][0]));
     }
 }
 

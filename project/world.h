@@ -14,7 +14,7 @@ public:
      * After the state is updated, the reward is computed depending on the previousState, takenAction, currentState transition
      * @return the reward for taking takenAction and landing in currentState
      */
-    virtual float transition();
+    virtual float transition(vector<float> action);
 
     /**
      * @brief isTerminal
@@ -60,9 +60,6 @@ public:
      * @return The cardinal of the space state or -1 if the space state is infinite
      */
     virtual int spaceStateSize();
-
-    virtual float idToReward(int id);
-    
     vector<float> randomAction();
     void saveRewardHistory();
     void saveLastEpisode();
@@ -82,11 +79,8 @@ public:
     void setTakenAction(const vector<float> &value);
     void setTakenReward(float value);
     void setCurrentState(State s);
-
     string getTag() const;
-
     vector<vector<float> > getStateSequence() const;
-
     vector<vector<float> > getActionSequence() const;
 
 

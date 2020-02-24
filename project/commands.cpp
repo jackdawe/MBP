@@ -447,8 +447,7 @@ void Commands::playRandomSS(int argc, char* argv[])
   for (int i=0;i<FLAGS_n;i++)
     {
       vector<float> a = sw.randomAction();
-      sw.setTakenAction(a);
-      sw.transition();
+      sw.transition(a);
     }
   QApplication a(argc,argv);
   EpisodePlayerSS ep("../Starship/Maps/test");

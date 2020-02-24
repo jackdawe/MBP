@@ -19,8 +19,8 @@ void EpisodePlayerSS::initMap()
   ship.setWidth(SHIP_WIDTH);
   ship.setHeight(SHIP_HEIGHT);
   ssView.setScene(&ssScene);
-  ssScene.setSceneRect(0,0,map.getSize(),map.getSize());
-  ssView.setFixedSize(map.getSize(),map.getSize());
+  ssScene.setSceneRect(0,0,SIZE,SIZE);
+  ssView.setFixedSize(SIZE,SIZE);
   for (unsigned int i=0;i<map.getPlanets().size();i++)
     {
       planetShapes.push_back(new QGraphicsEllipseItem(0,0,map.getPlanets()[i].getRadius()*2,map.getPlanets()[i].getRadius()*2));

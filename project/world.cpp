@@ -2,7 +2,7 @@
 
 World::World(): tag("../temp/world_"){}
 
-float World::transition()
+float World::transition(vector<float> actions)
 {
     return 0;
 }
@@ -16,13 +16,10 @@ void World::generateVectorStates() {}
 
 int World::stateId(State s)
 {
-    return -1;
+  return 0;
 }
 
-void World::reset()
-{
-
-}
+void World::reset() {}
 
 vector<int> World::accessibleStates(State s)
 {
@@ -32,11 +29,6 @@ vector<int> World::accessibleStates(State s)
 int World::spaceStateSize()
 {
     return -1;
-}
-
-float World::idToReward(int id)
-{
-  return 0;
 }
 
 vector<float> World::randomAction()

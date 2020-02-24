@@ -91,8 +91,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  //Building the dataset tensors
       
 	  stateInputs[i][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
-	  gw.setTakenAction(tensorToVector(ieActions[i][t]));
-	  float r = gw.transition();
+	  float r = gw.transition(tensorToVector(ieActions[i][t]));
 	  rewardLabels[i][t] = r;
 	  if (r == WIN_REWARD)
 	    {
