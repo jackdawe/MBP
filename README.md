@@ -400,8 +400,6 @@ ssaof
 - int **T** : the number of transitions in a sample. **T** must divide 80 or the command won't execute itself. Default: 1
 - float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often,  **wp** x **n** trajectories contain at least one transition towards a waypoint. **wp** should range from 0 to 1. Default: 0.1
 - float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-**trp**. Default: 0.9
-- int **dist** : The action distribution. Default: 0. 
-- float **alpha** : How much you want to spread the actions beyond their original boundaries. Default: 1 
 - float **sd** : The standard deviation of the gaussian distribution if **dist** is set to 2 or 3. Default: 0.25
 - bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 - int **i** : the number of points you want in your graph. Default: 1
