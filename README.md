@@ -312,6 +312,7 @@ ssdsgen
 - int **dist** : The action distribution. Default: 0. 
 - float **alpha** : How much you want to spread the actions beyond their original boundaries. Default: 1 
 - float **sd** : The standard deviation of the gaussian distribution if **dist** is set to 2 or 3. Default: 0.25
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 
 ### Example
 
@@ -347,7 +348,7 @@ Other files containing training data are also generated in the temp directory
 
 ### Command
 
-ssmbfm
+ssfmtr
 
 ### Parameters
 
@@ -368,6 +369,48 @@ You can train **myForward** on the datasets generated in **myMapPool** for **100
 ```
 ./project -cmd=ssmbfm -mdl=../temp/myForward -mp=../Starship/Maps/myMapPool -e=100 -bs=128 -lr=0.0001 -beta=10 -lp1=0.1 -lp2=0.1
 ```
+
+## Computing the position error of a model
+
+Print the position error a model makes on a test set. Also creates a file containing the error for each sample. You can use this file to, for example, plot a histogram. 
+
+### Command
+
+ssfmte
+
+### Parameters
+
+- string **mp** : the path to the directory contraining your 8 dataset tensors. These tensors must keep their original names. Default: root directory.
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **f** : the path to the file that will be created. Default: root directory. 
+
+## Testing action overfitting 
+
+Computes the average position error your model makes with datasets with constant continuous actions values. This constant value varies from 0 to the maximum thrust. A file is then generated from which you can plot how the error varies when the constant changes.  
+
+### Command 
+
+ssaof
+
+### Parameters 
+
+- string **mp** : the path to the directory containing your train and test map pools. Default: root directory.
+- int **nmaps** : the number of maps in the map pool. A value higher than the actual number of maps crashes the program. Default: 1
+- int **n** : the number of trajectories. Overall, the dataset contrains **T** x **n** transitions. Default : 10000 
+- int **T** : the number of transitions in a sample. **T** must divide 80 or the command won't execute itself. Default: 1
+- float **wp** : Reaching a waypoint is a rare event. For the model to see this happen more often,  **wp** x **n** trajectories contain at least one transition towards a waypoint. **wp** should range from 0 to 1. Default: 0.1
+- float **trp** : The training set's share of the dataset (ranging from 0 to 1). The testing set's share of the dataset is 1-**trp**. Default: 0.9
+- float **sd** : The standard deviation of the gaussian distribution if **dist** is set to 2 or 3. Default: 0.25
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
+- int **i** : the number of points you want in your graph. Default: 1
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **f** : the path to the file that will be created. Default: root directory. 
+
+You can use the generated file to make this kind of graph: 
+
+![ssaof](https://github.com/jackdawe/joliRL/blob/master/img/ssaof.png)
+
+As you can see, the error increases as the action value changes, which is a sign that your model is overfitting action wise. 
 
 ## Generating a seed for Gradient Based Planner (GBP)
 
@@ -422,6 +465,30 @@ Now if instead you want to use your seed **mySeed** and have your ship start at 
 ```
 ./project -cmd=ssmbplay -mdl=../temp/myForward -map=../Starship/Maps/myMapPool/test/map1 -seed=../temp/mySeed -px=100 -py=200 -lr=0.001 -gs=20
 ```
+## Testing GBP over n trials 
+
+The agent randonly spawns on a random map chosen from a map pool. GBP is used to predict the best sequence of actions. The obtained reward as well as the position error the model made are each written in a file. This process is repeated n times. You can then plot the results to assert the performance of GBP using your forward model.
+
+### Command
+
+ssmbtest
+
+### Parameters
+
+- string **mdl** : the path and prefix to the file that will contain the trained model. Default: ../temp/model
+- string **mp** : the path to the directory containing the maps on which you wish to test gbp. Default: root directory. 
+- string **f** : the path and prefix to the files that will be generated. Default: root directory. 
+- int **K** : the number of rollouts. Unnecessary if a seed is provided. Default: 1
+- int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
+- int **gs** : the number of gradient/optimization steps. Default: 1
+- float **lr** : the learning rate. Default: 0.001 
+
+The files can be used to make these histograms: 
+
+![Reward Plot](https://github.com/jackdawe/joliRL/blob/master/img/ssmbtest1.png)
+
+![Error Plot](https://github.com/jackdawe/joliRL/blob/master/img/ssmbtest2.png)
+
 
 # Full example on how to reproduce my best results so far
 
