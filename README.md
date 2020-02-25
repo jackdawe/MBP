@@ -14,11 +14,17 @@ You can find it [here](https://arxiv.org/abs/1705.07177).
 
 # General Information 
 
-My code provides a certain amount of commands to easily use the main functionalities of this project. Every commands are documented down below.  
+My code provides a certain amount of commands to easily use the main functionalities of this project. The most useful commands are documented down below. 
+
+You will find [here](https://github.com/jackdawe/joliRL/tree/master/tests/baseline) a notebook with a full example on how to use the main commands on the Starship problem, from generating maps to running and testing the planner. 
+
+You will also find 4 [here](https://github.com/jackdawe/joliRL/tree/master/Videos)
 
 1. joliRL/project/ is the root directory for any path you have to provide as parameter.
 2. To use one of my commands, first go to the root directory. Then follow the general architecture:
+```
 ./project -cmd=COMMAND_NAME -myflag1=val1 -myflag2=val2 (...) -myflag100=val100 
+```
 3. Flags to indicate the path to a directory should end with a "/". 
 
 # Installing Dependancies
@@ -41,6 +47,8 @@ sudo apt-get install qt-sdk
 libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.org/](https://pytorch.org/) by selecting Linux, Conda, C++/Java and Cuda 10.1 and clicking on the second link. You should then unzip the directory and move it such as it is in the same directory as joliRL.
 
 ### gflags
+
+You can see how to install gflags [here](https://gflags.github.io/gflags/). 
 
 # GRIDWORLD TASK
 
@@ -452,6 +460,7 @@ ssmbplay
 - int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
 - int **gs** : the number of gradient/optimization steps. Default: 1
 - float **lr** : the learning rate. Default: 0.001
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 
 ### Example
 
@@ -482,6 +491,7 @@ ssmbtest
 - int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
 - int **gs** : the number of gradient/optimization steps. Default: 1
 - float **lr** : the learning rate. Default: 0.001 
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 
 The files can be used to make these histograms: 
 
