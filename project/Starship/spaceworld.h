@@ -40,6 +40,7 @@ public:
     Ship getShip();
     void repositionShip(Vect2d p);
     int epCount;
+    bool woda;
     
  private:
     void init();    

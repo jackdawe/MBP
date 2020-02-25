@@ -25,6 +25,7 @@ DEFINE_double(trp,0.9,"Share of the training set from the whole dataset");
 DEFINE_double(px,-1,"ship x coordinate");
 DEFINE_double(py,-1,"ship y coordinate");
 DEFINE_double(alpha,1,"Multiplicative coefficient for thrust coordinates");
+DEFINE_bool(woda,false,"Discrete actions are made useless by removing dependancies between reward and signal value");
 
 //Model flags
 
@@ -46,15 +47,13 @@ DEFINE_double(lp2,0,"Loss penality parameter");
 DEFINE_int32(K,1,"Number of rollouts");
 DEFINE_int32(T,1,"Number of timesteps to unroll");
 DEFINE_int32(gs,1,"Number of gradient steps");
-
-
-DEFINE_bool(asp,true,"If true, all input states are provided for training for model based agent. If false, only initial state and the action sequence are provided and the agent uses his predicted states to predict the next state"); 
 DEFINE_int32(n,10000,"Number of training episodes");
 DEFINE_int32(e,100,"Number of training epochs");
 DEFINE_double(wp,0.1,"Percentage of forced win scenarios during the dataset generation"); 
 DEFINE_bool(wn,false,"Adding white noise to the one-hot encoded action vectors");
 DEFINE_double(sd,0.25,"Standard deviation");
 DEFINE_int32(dist,0,"Chose your distribution");
+DEFINE_int32(i,1,"Number of iterations");
 
 Commands::Commands(){}
 
@@ -458,10 +457,10 @@ void Commands::playRandomSS(int argc, char* argv[])
 void Commands::generateDataSetSS()
 {
   ToolsSS t;
-  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp, FLAGS_dist, FLAGS_alpha, FLAGS_sd);
+  t.generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp, FLAGS_dist, FLAGS_alpha, FLAGS_sd, FLAGS_woda);
 }
 
-void Commands::learnForwardModelSS()
+void Commands::trainForwardModelSS()
 {
   SpaceWorld sw;
   string path = FLAGS_mp;
@@ -534,12 +533,52 @@ void Commands::learnForwardModelSS()
     }  
 }
 
+void Commands::testForwardModelSS()
+{
+  string path = FLAGS_mp;
+  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+  torch::load(stateInputsTe,path+"stateInputsTest.pt");
+  torch::load(actionInputsTe, path+"actionInputsTest.pt");
+  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+  int T=actionInputsTe.size(1), n=actionInputsTe.size(0);
+  ForwardSS forwardModel(FLAGS_mdl+"_Params");
+  torch::load(forwardModel,FLAGS_mdl+".pt");
+  forwardModel->forward(stateInputsTe,actionInputsTe);
+  ofstream f(FLAGS_f);
+  for (int i=0;i<stateLabelsTe.size(0);i++)
+    {
+      f<<*ToolsSS().moduloMSE(stateLabelsTe[i].slice(-1,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates[i].slice(-1,0,2,1),false).pow(0.5).to(torch::Device(torch::kCPU)).data<float>()<<endl;
+    }
+  cout<<"AVERAGE POSITION ERROR ON THIS TEST SET: "+to_string(*ToolsSS().moduloMSE(stateLabelsTe.slice(-1,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates.slice(-1,0,2,1),false).pow(0.5).to(torch::Device(torch::kCPU)).data<float>())<<endl;
+}
+
+void Commands::actionOverfitSS()
+{
+  ForwardSS forwardModel(FLAGS_mdl+"_Params");
+  torch::load(forwardModel,FLAGS_mdl+".pt");
+  ofstream f(FLAGS_f);
+  for (int i=0;i<FLAGS_i;i++)
+    {
+      ToolsSS().generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp,10, -SHIP_MAX_THRUST+i*SHIP_MAX_THRUST*2./FLAGS_i, FLAGS_sd, FLAGS_woda);      
+      string path=FLAGS_mp;
+      torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
+      torch::load(stateInputsTe,path+"stateInputsTest.pt");
+      torch::load(actionInputsTe, path+"actionInputsTest.pt");
+      torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
+      torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
+      int T=actionInputsTe.size(1), n=actionInputsTe.size(0);
+      forwardModel->forward(stateInputsTe,actionInputsTe);      
+      f<<*(ToolsSS().moduloMSE(stateLabelsTe.slice(2,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates.slice(2,0,2,1),false).pow(0.5)).to(torch::Device(torch::kCPU)).data<float>()<<endl;
+    }
+  cout<<"Your file was successfully generated"<<endl;
+}
+
 void Commands::generateSeedSS()
 {
   ToolsSS().generateSeed(FLAGS_T,FLAGS_K,FLAGS_seed);
 }
 
-void Commands::playModelBasedSS(int argc, char* argv[])
+void Commands::playPlannerSS(int argc, char* argv[])
 {
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
@@ -568,89 +607,24 @@ void Commands::playModelBasedSS(int argc, char* argv[])
   a.exec();
 }
 
-void Commands::testModelBasedSS()
-{
-  string path=FLAGS_mp;
-  torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
-  torch::load(stateInputsTe,path+"stateInputsTest.pt");
-  torch::load(actionInputsTe, path+"actionInputsTest.pt");
-  torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
-  torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  stateInputsTe = stateInputsTe.slice(0,0,1000,1);
-  stateLabelsTe = stateLabelsTe.slice(0,0,1000,1);
-  actionInputsTe = actionInputsTe.slice(0,0,1000,1);
-  rewardLabelsTe = rewardLabelsTe.slice(0,0,1000,1);
-  int T=actionInputsTe.size(1), n=actionInputsTe.size(0);
-  ForwardSS forwardModel(FLAGS_mdl+"_Params");
-  torch::load(forwardModel,FLAGS_mdl+".pt");
-  forwardModel->forward(stateInputsTe,actionInputsTe);
-  ofstream g("../temp/x");
-  ofstream h("../temp/y");
-  torch::Tensor uwu = actionInputsTe.slice(-1,4,5,1).flatten();
-  torch::Tensor uwuu = actionInputsTe.slice(-1,5,6,1).flatten();
-  for (int i=0;i<uwu.size(0);i++)
-    {
-      g<<*uwu[i].data<float>()<<endl;
-      h<<*uwuu[i].data<float>()<<endl;
-    }
-
-  ofstream f("../temp/f2");
-  for (int i=0;i<stateLabelsTe.size(0);i++)
-    {
-      f<<*ToolsSS().moduloMSE(stateLabelsTe[i].slice(-1,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates[i].slice(-1,0,2,1),false).pow(0.5).to(torch::Device(torch::kCPU)).data<float>()<<endl;
-    }
-  cout<<ToolsSS().moduloMSE(stateLabelsTe.slice(2,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates.slice(2,0,2,1),false).pow(0.5)<<endl;
-}
-
-void Commands::tc5()
-{
-  ForwardSS forwardModel(FLAGS_mdl+"_Params");
-  torch::load(forwardModel,FLAGS_mdl+".pt");
-  ofstream f("../temp/hey2");
-  for (int i=0;i<FLAGS_e;i++)
-    {
-      ToolsSS().generateDataSet(FLAGS_mp,FLAGS_nmaps,FLAGS_n,FLAGS_T,FLAGS_trp, FLAGS_wp,FLAGS_dist, -1+i*2./FLAGS_e, FLAGS_sd);      
-      string path=FLAGS_mp;
-      torch::Tensor stateInputsTe, actionInputsTe, stateLabelsTe, rewardLabelsTe;
-      torch::load(stateInputsTe,path+"stateInputsTest.pt");
-      torch::load(actionInputsTe, path+"actionInputsTest.pt");
-      torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
-      torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-      stateInputsTe = stateInputsTe.slice(0,0,1000,1);
-      stateLabelsTe = stateLabelsTe.slice(0,0,1000,1);
-      actionInputsTe = actionInputsTe.slice(0,0,1000,1);
-      rewardLabelsTe = rewardLabelsTe.slice(0,0,1000,1);
-      int T=actionInputsTe.size(1), n=actionInputsTe.size(0);
-      forwardModel->forward(stateInputsTe,actionInputsTe);      
-      f<<*(ToolsSS().moduloMSE(stateLabelsTe.slice(2,0,2,1).to(forwardModel->usedDevice),forwardModel->predictedStates.slice(2,0,2,1),false).pow(0.5)).to(torch::Device(torch::kCPU)).data<float>()<<endl;
-    }
-}
-
-void Commands::tc4()
+void Commands::testPlannerSS()
 {
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
-  vector<float> rollouts = {100,100,10,1000};
-  vector<float> lrs = {0.01,0.01,0.01,0.01};
-  vector<float> ngs = {0,100,100,100};  
-  ofstream h("../temp/time");
-  for (unsigned int l=0;l<rollouts.size();l++)
+  SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
+  ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);  
+  ofstream f(FLAGS_f+"_reward");
+  ofstream g(FLAGS_f+"_error");
+  auto start = std::chrono::system_clock::now();
+  for (int i=0;i<FLAGS_n;i++)
     {
-      SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
-      ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);  
-      ofstream f("../temp/score"+to_string(l+1));
-      ofstream g("../temp/error"+to_string(l+1));
-      auto start = std::chrono::system_clock::now();
-      for (int i=0;i<FLAGS_n;i++)
-	{
-	  agent.playOne(sw.getActions(),rollouts[l],FLAGS_T,ngs[l],lrs[l]);
-	  f<<agent.rewardHistory().back()<<endl;
-	  g<<*(ToolsSS().moduloMSE(agent.sPred.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),agent.sTruth.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),false).pow(0.5)).data<float>()<<endl;
-	  agent.resetWorld();
-	}
-      auto end = std::chrono::system_clock::now();
-      std::chrono::duration<double> elapsed_seconds = end-start;
-      h<<elapsed_seconds.count()/FLAGS_n<<endl;
+      agent.playOne(sw.getActions(),FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
+      f<<agent.rewardHistory().back()<<endl;
+      g<<*(ToolsSS().moduloMSE(agent.sPred.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),agent.sTruth.slice(1,0,2,1).slice(0,1,FLAGS_T+1,1),false).pow(0.5)).data<float>()<<endl;
+      agent.resetWorld();
     }
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  cout<<"Average execution time: "+to_string(elapsed_seconds.count()/FLAGS_n)<<endl;
 }
 

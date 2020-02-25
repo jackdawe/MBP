@@ -54,18 +54,18 @@ class Commands
   //ModelBased Planning
 
   void generateDataSetSS();
-  void learnForwardModelSS();
+  void trainForwardModelSS();
+  void testForwardModelSS();
+  void actionOverfitSS();
   void generateSeedSS();
-  void playModelBasedSS(int argc, char* argv[]);
-  void testModelBasedSS();  
-  void tc4();
+  void playPlannerSS(int argc, char* argv[]);
+  void testPlannerSS();
   
   //Other
   
   void tc1();
   void tc2();
   void tc3();
-  void tc5();
 };
 
 #endif // COMMANDS_H

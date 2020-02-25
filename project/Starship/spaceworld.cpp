@@ -38,6 +38,7 @@ SpaceWorld::SpaceWorld(string pathToDir, int mapPoolSize):
 void SpaceWorld::init()
 {
   epCount=0;
+  woda = false;
   vector<DiscreteAction> dactions = {DiscreteAction(map.getWaypoints().size()+1)};
   vector<ContinuousAction> cactions = {ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST), ContinuousAction(-SHIP_MAX_THRUST,SHIP_MAX_THRUST)};
   actions = ActionSpace(dactions,cactions);
@@ -112,41 +113,42 @@ float SpaceWorld::transition(vector<float> action)
 	}
       else
 	{
-	  /*
-	  if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize()-1)
+	  if (woda)
 	    {
 	      for (unsigned int i=0;i<waypoints.size();i++)
 		{
 		  if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
 		    {
-		      if (ship.getSignalColor() == i)
+		      r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
+		    }
+		}	  
+	    }
+	  else
+	    {
+	      if (ship.getSignalColor() != actions.getDiscreteActions()[0].getSize()-1)
+		{
+		  for (unsigned int i=0;i<waypoints.size();i++)
+		    {
+		      if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
 			{
-			  //			  cout<<"yes"<<endl;
-			  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
-			  break;
+			  if (ship.getSignalColor() == i)
+			    {
+			      r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
+			      break;
+			    }
+			  else
+			    {
+			      r = WRONG_SIGNAL_ON_WAYPOINT_REWARD;
+			      break;
+			    }
 			}
 		      else
 			{
-			  r = WRONG_SIGNAL_ON_WAYPOINT_REWARD;
-			  break;
+			  r = SIGNAL_OFF_WAYPOINT_REWARD;	  		      
 			}
-		    }
-		  else
-		    {
-		      r = SIGNAL_OFF_WAYPOINT_REWARD;	  		      
 		    }
 		}
 	    }
-	  */
-	  ///*
-	  for (unsigned int i=0;i<waypoints.size();i++)
-	    {
-	      if (ship.getP().distance(waypoints[i].getCentre()) < waypoints[i].getRadius())
-		{
-		  r = RIGHT_SIGNAL_ON_WAYPOINT_REWARD;
-		}
-	    }	  
-	  //*/
 	}
     }  
   actionSequence.push_back({signal,thrust.x,thrust.y});

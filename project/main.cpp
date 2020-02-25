@@ -32,13 +32,11 @@ int main(int argc, char *argv[])
   else if (FLAGS_cmd == "gwqleval")
     {
       c.evaluateQLPolicy(argc,argv);
-    }  
-  
+    }    
   else if (FLAGS_cmd == "gwa2ctr")
     {
       c.trainA2CGW();
-    }
-  
+    }  
   else if(FLAGS_cmd == "gwa2cvshow")
     {
       c.showCriticOnMapGW(argc,argv);
@@ -79,14 +77,6 @@ int main(int argc, char *argv[])
     {
       c.tc3();
     }
-  else if(FLAGS_cmd == "tc4")
-    {
-      c.tc4();
-    }
-  else if(FLAGS_cmd == "tc5")
-    {
-      c.tc5();
-    }      
   else if(FLAGS_cmd=="ssmgen")    
     {
       c.generateMapSS();
@@ -107,9 +97,17 @@ int main(int argc, char *argv[])
     {
       c.generateDataSetSS();
     }
-  else if(FLAGS_cmd=="ssmbfm")
+  else if(FLAGS_cmd=="ssfmtr")
     {
-      c.learnForwardModelSS();
+      c.trainForwardModelSS();
+    }
+  else if(FLAGS_cmd=="ssfmte")
+    {
+      c.testForwardModelSS();
+    }
+  else if(FLAGS_cmd=="ssaof")
+    {
+      c.actionOverfitSS();
     }
   else if(FLAGS_cmd=="sssgen")
     {
@@ -117,13 +115,12 @@ int main(int argc, char *argv[])
     }
   else if(FLAGS_cmd=="ssmbplay")
     {
-      c.playModelBasedSS(argc,argv);
+      c.playPlannerSS(argc,argv);
     }
   else if(FLAGS_cmd=="ssmbtest")
     {
-      c.testModelBasedSS();
+      c.testPlannerSS();
     }
-
   else
     {
       cout<<"Invalid command. Please refer to github README file for valid commands"<<endl;

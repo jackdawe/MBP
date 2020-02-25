@@ -163,9 +163,8 @@ torch::Tensor ToolsSS::generateActions(int n, int nTimesteps, int distribution, 
 }
 
 
-void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, int aDist, float alpha, float std)
+void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp, int aDist, float alpha, float std, bool woda)
 {
-
   if (EPISODE_LENGTH % nTimesteps!=0)
     {
       cout<<"Impossible to make samples of equal length. Please chose nTimesteps such as EPISODE_LENGTH%nTimesteps == 0"<<endl;
@@ -177,8 +176,8 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
       cout<<"To help with the training, only samples containing at least one waypoint connexion are kept in " + to_string((int)(100*winProp)) + "% of the episodes."<<endl;
       
       int nSplits = EPISODE_LENGTH/nTimesteps;
-      
       sw = SpaceWorld(path+"train/",nmaps);
+      sw.woda = woda;
       int nTr=(int)(trainSetProp*n*nSplits), nTe = nSplits*n-nTr;
       
       //Initialising the tensors that will contain the training set
@@ -213,6 +212,7 @@ void ToolsSS::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  if (i==nTr)
 	    {
 	      sw = SpaceWorld(path+"test/",nmaps);
+	      sw.woda=woda;
 	    }            
 	  torch::Tensor si = torch::zeros(0);      
 	  torch::Tensor sl = torch::zeros({EPISODE_LENGTH,4});
