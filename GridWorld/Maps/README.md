@@ -1,0 +1,1 @@
+This directory is meant to contain your GridWorld map pool directories.

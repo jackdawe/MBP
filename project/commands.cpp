@@ -583,6 +583,7 @@ void Commands::playPlannerSS(int argc, char* argv[])
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_map);
+  sw.woda = FLAGS_woda;
   
   if (FLAGS_px != -1 && FLAGS_py != -1)
     {
@@ -612,6 +613,7 @@ void Commands::testPlannerSS()
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
+  sw.woda = FLAGS_woda;
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);  
   ofstream f(FLAGS_f+"_reward");
   ofstream g(FLAGS_f+"_error");
