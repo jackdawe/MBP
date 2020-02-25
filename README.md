@@ -163,7 +163,7 @@ A neural network learns the physics of the GridWorld using a pre-generated datas
 
 ### Command
 
-gwmbfm
+gwfmtr
 
 ### Parameters
 
