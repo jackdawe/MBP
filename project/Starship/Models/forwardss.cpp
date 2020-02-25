@@ -145,8 +145,9 @@ void ForwardSSImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardL
   
   stateLoss = ToolsSS().moduloMSE(stateTarget.slice(-1,0,2,1),stateLabel.slice(-1,0,2,1))+
   torch::mse_loss(stateTarget.slice(-1,2,4,1),stateLabel.slice(-1,2,4,1));
-  rewardLoss = torch::mse_loss(predictedRewards,rewardLabels) + ToolsSS().penalityMSE(predictedRewards,rewardLabels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,wpWinWeight);
-  //  cout<<torch::cat({10*torch::mse_loss(stateTarget.slice(-1,2,4,1),stateLabel.slice(-1,2,4,1)).unsqueeze(0),(ToolsSS().moduloMSE(stateTarget.slice(-1,0,2,1),stateLabel.slice(-1,0,2,1))*10).unsqueeze(0),torch::mse_loss(predictedRewards,rewardLabels).unsqueeze(0),ToolsSS().penalityMSE(predictedRewards,rewardLabels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,wpWinWeight).unsqueeze(0)},0)<<endl;
+  rewardLoss = torch::mse_loss(predictedRewards,rewardLabels) +
+    ToolsSS().penalityMSE(predictedRewards,rewardLabels,RIGHT_SIGNAL_ON_WAYPOINT_REWARD,wpWinWeight) +
+    ToolsSS().penalityMSE(predictedRewards,rewardLabels,WRONG_SIGNAL_ON_WAYPOINT_REWARD,wpLoseWeight);
 }
 
 void ForwardSSImpl::saveParams(std::string filename)
