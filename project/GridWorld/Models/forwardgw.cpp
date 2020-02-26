@@ -137,27 +137,25 @@ void ForwardGWImpl::forwardOne(torch::Tensor stateBatch, torch::Tensor actionBat
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
-  bool imState = stateBatch.size(2)==3;        
+  bool imState = stateBatch.size(1)==3;        
   torch::Tensor x = stateBatch.clone();
   torch::Tensor y = x.clone();
   if (!imState)
     {
-      cout<<stateBatch.sizes()<<endl;
       x = ToolsGW().toRGBTensor(stateBatch.to(torch::Device(torch::kCPU))).to(usedDevice);            
-      cout<<"C"<<endl;
     }
 
    vector<torch::Tensor> channels = torch::split(x,1,1);
 
    
   //Forward Pass
-
+   
   torch::Tensor encoderOut = this->encoderForward(x);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
   x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});
   x = torch::cat({encoderOut,x},1);
   x = decoderForward(x);
-  cout<<"C"<<endl;  
+
   //Converting output into state vector if needed
   
   if(imState)
@@ -199,9 +197,7 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequen
   int bs=stateBatch.size(0), T=actIn.size(0);
   predictedStates = torch::zeros({T,bs,3,size,size}).to(usedDevice);
   predictedRewards = torch::zeros({T,bs}).to(usedDevice);
-  cout<<"B"<<endl;
   forwardOne(stateBatch,actIn[0]);
-  cout<<"B"<<endl;
   predictedStates[0] = predictedState, predictedRewards[0] = predictedReward;
   for (int t=1;t<T;t++)
     {
@@ -213,7 +209,8 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequen
 
 void ForwardGWImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {
-  stateLoss = torch::mse_loss(predictedStates, stateLabels);
+  stateLabels = stateLabels.to(usedDevice), rewardLabels = rewardLabels.to(usedDevice);
+  stateLoss = torch::mse_loss(predictedStates.slice(-3,0,1,1), stateLabels);
   rewardLoss = torch::mse_loss(predictedRewards, rewardLabels);
 }
 

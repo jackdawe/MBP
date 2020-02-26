@@ -53,7 +53,7 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({n,nTimesteps,size*size+4});
+  torch::Tensor stateInputs = torch::zeros({n,1,size*size+4});
   torch::Tensor actionInputs = generateActions(n,nTimesteps);
   torch::Tensor stateLabels = torch::zeros({n,nTimesteps,size*size+4});
   torch::Tensor rewardLabels = torch::zeros({n,nTimesteps});
@@ -84,11 +84,11 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	  cout<< "Training set generation is complete! Now generating test set..."<<endl; 
 	}
       bool hitsGoal = false;
+      stateInputs[i][0] = torch::tensor(gw.getCurrentState().getStateVector());
       for (int t=0;t<nTimesteps;t++)
 	{      
 	  //Building the dataset tensors
       
-	  stateInputs[i][t] = torch::tensor(gw.getCurrentState().getStateVector());
 	  float r = gw.transition(tensorToVector(ieActions[i][t]));
 	  rewardLabels[i][t] = r;
 	  if (r == WIN_REWARD)
@@ -109,8 +109,8 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Saving the test set
   
   cout<< "Test set generation is complete!"<<endl;
-  stateInputs = toRGBTensor(stateInputs);
-  stateLabels = toRGBTensor(stateLabels);
+  stateInputs = toRGBTensor(stateInputs).squeeze();
+  stateLabels = toRGBTensor(stateLabels).slice(-3,0,1,1);
   torch::save(stateInputs.slice(0,0,nTr,1),path+"stateInputsTrain.pt");
   torch::save(actionInputs.slice(0,0,nTr,1),path+"actionInputsTrain.pt");
   torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTrain.pt");
@@ -123,11 +123,13 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 
 void ToolsGW::transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit)
 {
+  int s = labels.size(-1);
   tMSE = torch::mse_loss(testData,labels)/nSplit;
   testData = testData.to(torch::Device(torch::kCPU));
   labels = labels.to(torch::Device(torch::kCPU));  
   testData = torch::round(testData);
-  tScores = *torch::eq(labels,testData).sum().data<long>();
+  cout<<labels.sizes()<<endl;
+  tScores = *(torch::eq(labels,testData).sum()/(s*s)).to(torch::kLong).data<long>();
 }
 
 void ToolsGW::displayTAccuracy(int dataSetSize)
@@ -136,7 +138,7 @@ void ToolsGW::displayTAccuracy(int dataSetSize)
   cout<<"Correct state images: " + to_string(tScores)+"/"+to_string(dataSetSize) + " (" + to_string(100.*tScores/dataSetSize) + "%)" << endl;
   cout<<endl;
   cout<< "PIXEL WISE AVERAGE MSE: ";
-  cout<<pow(*tMSE.data<float>(),0.5)<<endl;
+  cout<<pow(*tMSE.to(torch::Device(torch::kCPU)).data<float>(),0.5)<<endl;
   cout<<endl;  
   cout<<"################################################"<<endl;  
 }
