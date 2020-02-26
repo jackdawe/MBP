@@ -309,7 +309,6 @@ void Commands::learnForwardModelGW()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-
   int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);  
   if (FLAGS_wn)
     {
@@ -329,6 +328,7 @@ void Commands::learnForwardModelGW()
       torch::save(agent.getForwardModel(),FLAGS_mdl+".pt");
       torch::save(optimizer,FLAGS_mdl+"_opti.pt");
       agent.getForwardModel()->saveParams(FLAGS_mdl+"_Params");
+
       //Computing accuracy
 
       {	
@@ -392,27 +392,6 @@ void Commands::tc1()
 	fm->forward(s.unsqueeze(0),a.unsqueeze(0).to(fm->usedDevice));
 	f<<*fm->predictedRewards.to(torch::Device(torch::kCPU)).data<float>()<<endl;    
       }
-}
-
-void Commands::tc2()
-{
-  ForwardGW fm("../temp/ForwardGW_Params");
-  torch::load(fm,"../temp/ForwardGW.pt");
-  ofstream f("../temp/gbpAcc");
-  GridWorld gw(FLAGS_map);
-  ModelBased<GridWorld,ForwardGW,PlannerGW> agent(gw,fm,PlannerGW());
-  for (int i=0;i<FLAGS_n;i++)
-    {      
-      //      agent.playOne(FLAGS_K,FLAGS_T,FLAGS_gs,FLAGS_lr);
-      f<<agent.rewardHistory().back()<<endl;
-      agent.resetWorld();
-    }
-}
-
-void Commands::tc3()
-{
-  ForwardGW forwardModel(8,FLAGS_sc1);
-  cout<<forwardModel<<endl;
 }
 
 void Commands::generateMapSS()
@@ -583,6 +562,7 @@ void Commands::playPlannerSS(int argc, char* argv[])
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_map);
+  sw.woda = FLAGS_woda;
   
   if (FLAGS_px != -1 && FLAGS_py != -1)
     {
@@ -612,6 +592,7 @@ void Commands::testPlannerSS()
   ForwardSS fm(FLAGS_mdl+"_Params");
   torch::load(fm,FLAGS_mdl+".pt");
   SpaceWorld sw(FLAGS_mp, FLAGS_nmaps);
+  sw.woda = FLAGS_woda;
   ModelBased<SpaceWorld,ForwardSS,PlannerGW> agent(sw,fm);  
   ofstream f(FLAGS_f+"_reward");
   ofstream g(FLAGS_f+"_error");
