@@ -13,7 +13,8 @@ class ForwardGWImpl: public ForwardImpl
   torch::Tensor actionForward(torch::Tensor x);
   torch::Tensor decoderForward(torch::Tensor x);
   torch::Tensor rewardForward(torch::Tensor x);
-  void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalize=false);
+  void forwardOne(torch::Tensor stateBatch, torch::Tensor actionBatch);
+  void forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch);
   void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels);
   
   void saveParams(std::string filename);
@@ -33,6 +34,9 @@ class ForwardGWImpl: public ForwardImpl
   int nc_decoderIn;
   int nc_decoderConv1In;
 
+  torch::Tensor predictedState;
+  torch::Tensor predictedReward;  
+  
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers1;
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateConvLayers2;
   std::vector<std::shared_ptr<torch::nn::Conv2dImpl>> stateDeconvLayers;
