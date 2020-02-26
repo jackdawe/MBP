@@ -14,11 +14,17 @@ You can find it [here](https://arxiv.org/abs/1705.07177).
 
 # General Information 
 
-My code provides a certain amount of commands to easily use the main functionalities of this project. Every commands are documented down below.  
+My code provides a certain amount of commands to easily use the main functionalities of this project. The most useful commands are documented down below. 
+
+You will find [here](https://github.com/jackdawe/joliRL/tree/master/tests/baseline) a notebook with a full example on how to use the main commands on the Starship problem, from generating maps to running and testing the planner. 
+
+You will also find 4 [here](https://github.com/jackdawe/joliRL/tree/master/Videos)
 
 1. joliRL/project/ is the root directory for any path you have to provide as parameter.
 2. To use one of my commands, first go to the root directory. Then follow the general architecture:
+```
 ./project -cmd=COMMAND_NAME -myflag1=val1 -myflag2=val2 (...) -myflag100=val100 
+```
 3. Flags to indicate the path to a directory should end with a "/". 
 
 # Installing Dependancies
@@ -41,6 +47,8 @@ sudo apt-get install qt-sdk
 libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.org/](https://pytorch.org/) by selecting Linux, Conda, C++/Java and Cuda 10.1 and clicking on the second link. You should then unzip the directory and move it such as it is in the same directory as joliRL.
 
 ### gflags
+
+You can see how to install gflags [here](https://gflags.github.io/gflags/). 
 
 # GRIDWORLD TASK
 
@@ -155,7 +163,7 @@ A neural network learns the physics of the GridWorld using a pre-generated datas
 
 ### Command
 
-gwmbfm
+gwfmtr
 
 ### Parameters
 
@@ -452,6 +460,7 @@ ssmbplay
 - int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
 - int **gs** : the number of gradient/optimization steps. Default: 1
 - float **lr** : the learning rate. Default: 0.001
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 
 ### Example
 
@@ -482,117 +491,10 @@ ssmbtest
 - int **T** : the number of timesteps to unroll. Unnecessary if a seed is provided. Default: 1
 - int **gs** : the number of gradient/optimization steps. Default: 1
 - float **lr** : the learning rate. Default: 0.001 
+- bool **woda** : you can disable the signal by setting this parameter to true. If so, the agent will receive a positive reward as long as he is on the waypoint. Default: false
 
 The files can be used to make these histograms: 
 
 ![Reward Plot](https://github.com/jackdawe/joliRL/blob/master/img/ssmbtest1.png)
 
 ![Error Plot](https://github.com/jackdawe/joliRL/blob/master/img/ssmbtest2.png)
-
-
-# Full example on how to reproduce my best results so far
-
-In this section I will give you a "to reproduce" example whith all the steps that you should take to make the model based planner produce the best results that I was able to get. 
-In this example, we take the standard case with one planet and three waypoints. 
-
-## Step 1: Generate a map pool 
-
-You first need to create maps on which your starship can fly. These maps will be used to generate your datasets. The more maps you have, the better your forward model will be able to generalise. 1000 maps is usually enough, but you can have more without any additionnal computationnal cost. 
-```
-./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000
-```
-By executing this command, the MapPool1 directory is created in the ../Starship/Maps/ directory. MapPool1 contains the test and train subdirectories whith 1000 maps each. The default values are used for the map parameters (waypoint and planet radii, etc...).
-
-## Step 2: Generate your dataset using your map pool
-
-We know want to use the maps we just created to make a dataset. As described above, you can chose from different action distributions which can have an impact on training. In this example, we can take the most basic distribution.  
-
-You can use the following command: 
-```
-./project -cmd=ssdsgen -mp=../Starship/Maps/MapPool1/ -nmaps=1000 -n=50000 -T=40 -wp=0.5 -trp=0.99
-```
-With the first two flags you indicate that you want to use the map pool you previously generated.
-The n flag will determine the size of your dataset. A rather large dataset is required to prevent overfitting.
-
-The T flag determines how many timesteps there are in one data sample. We set T to 40 so that the neural network can learn to take into account its errors while predicting the next state and reward. Training is way more challenging that way, but prediction errors not build up way less during inference, even if you want to predict 80 timesteps ahead.
-Since an episode lasts for 80 timesteps, your dataset will contain 125000 episodes.
-If you ask the ship to wander randomly on a map, the probability of encountering a waypoint is very low. As a result, the forward model will have alot of trouble to predict a positive reward. By setting wp to 0.5, I ask my dataset to only keep samples that contain at least one encounter with a waypoint for 50% of the dataset.
-Finally, 2500 samples (100 000 transitions) is enough for the test set, thus I set trp to 0.99.
-
-Please note that this command does not use the GPU. The higher n, T and wp the longer it will take to execute. Generating such a dataset can take up to 2 hours. Lowering wp greatly reduces computational time.
-
-## Step 3: Learn a forward model
-
-My neural network will use the dataset generated in step 2 to learn the transition and reward function of the space world.
-```
-./project -cmd=ssmbfm -mp=../Starship/Maps/MapPool1/ -mdl=../myForward -tag?? -lr=0.0001 -bs=128 -n=100 -wn -sd=0.25 -lp1=0.1 -lp2=0.05
-```
-You should give the directory containing your 8 ".pt" dataset files to the mp flag.
-By setting mdl to "../myForward", three files will be created and updated in the root's parent directory: myForward.pt containing the weights of the model, myForward_Params containing the parameters that you set to create the model and myForward_opti.pt containing the weights of the optimizer. 
-lr and bs are hyperparameters that you can change, but training goes well with the ones I chose.
-wn enables white noise to be added to the discrete action one-hot encoding. sd represents the standard deviation of the white noise. The white noise is supposed to smooth the reward function in the space between the one-hot encoded vectors in such a way that optimisation using gradient descent works better. If sd is too low, there will be little effect. If it is too high, there will be a non-negligeable probability that the original action value becomes lower than another one, thus creating an inconsistency in the dataset.
-lp1 and lp2 are coefficients that affect the reward penality loss. Penality loss is here to speed up training by penalizing the model whenever it makes an error when trying to predict rare events. In Starship, these rare events correspond to reaching a waypoint and firing a signal (correct or incorrect). With the value I chose, the penality loss is not too high and becomes significant later on during training.   
-
-Every epoch, training pauses to do the following operations:
-
-- Replacing the myForward.pt and myForward_opti.pt files with files containing the updated weights
-- Printing the performance of the network on the test set
-- Saving some training data such as state and reward loss for you to plot
-
-Training then resumes for another epoch. 
-
-In this configuration, you should see hover around 10 pixel position error after 1 hour of training on a GPU. If left for a few hours, you should be able to have less than 10 pixel of position error on all the test set.
-
-## Step 4: Use the forward model to plan your actions 
-
-[TUTORIAL] Making you own world class
-
-A world class describes the rules of your world: the environment, the state encoding, the possible actions, how an agent is rewarded for performing a specific transition and so on.
-
-Your world class should be a children of my World class and implement the following methods:
-
-- float transition()
-- bool isTerminal(State s)
-- void generateVectorStates()
-- void reset() 
-
-[TUTORIAL] How to use model based planning with your own world?
-
-My code includes a ModelBased class that you can use to plan with your own worlds. To initialise a ModelBased object, you will need to provide your neural network class.    
-Model based planning is divided into 2 main steps: training your neural network and action planning using your learnt forward model.
-
-LEARNING THE FORWARD MODEL
-
-The ModelBased class has a method that you can use to train your forward model using a dataset that you should provide. Here is the prototype:
-
-learnForwardModel(torch::optim::Adam *optimizer, torch::Tensor actionInputs, torch::Tensor stateInputs, torch::Tensor stateLabels, torch::Tensor rewardLabels, int epochs, int batchSize=32, float beta=1, bool allStatesProvided = true);
-
-BUILDING THE DATASET
-
-You are free on the method to build your dataset. For compatibility purpose, your dataset tensors should respect these few conditions:
-
-1. All 4 tensors must have at least 2 dimensions. Dimension 0 contains samples that each contain T transitions. Thus dimension 1 should be of size T.
-2. stateInputs 
-
-To use the model based planner, you will have to build your own forward model class. It will have to fulfill some requirements for it to be fully compatible with the ModelBased class.
-
-To help you, I have provided a mother class (forward.h forward.cpp) from which your class should be derived. You'll have to override the forward and computeLoss methods:
-
-### forward
-
-Prototype: void forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool restore=false)
-
-This method takes as input a batch of states and actions and should update the predictedState and predictedReward attributes inherited from the ForwardImpl class. Your are free to use this method to encode / decode your data to meet the requirements of the ModelBased class. You might need, for example, to normalize your data or encode your states as images if your model uses convolutions.
-
-stateBatch and actionBatch's dimension 0 and 1 have been merged in such a way that new dimension 0's size is batchSize*T. predictedState and predictedReward should have this same dimension 0 size.
-
-### computeLoss
-
-Prototype: virtual void computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
-
-This method should use the input labels as well as the predictedState and predictedReward attributes to update the stateLoss and rewardLoss attributes inherited from the ForwardImpl class. These losses are then used by ModelBased to perform a backward pass through your forward model and update its weights. stateLoss and rewardLoss should be scalar tensors.
-
-stateLabels and rewardLabels are batches from your provided dataset also have their two first dimension merged.
-
-The ForwardImpl method also provides a public usedDevice attribute that contains the nature of the device on which the training will be done on (GPU or CPU). usedDevice will be updated upon initialisation of an object of your forward model class.    
-
