@@ -1,4 +1,4 @@
-# joliRL
+# Model Based Planning
 
 This project aims to reproduce Mikael Henaff, Will Whitney and Yann LeCun's work on model-based planning.
 
@@ -40,8 +40,7 @@ You'll need to have the three libraries installed to run this code:
 I use Qt5 for the GridWorld and Starship GUIs. You can do so with the following command:
 ```
 sudo apt-get install qt-sdk
-```
-
+``` 
 ## libtorch
 
 libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.org/](https://pytorch.org/) by selecting Linux, Conda, C++/Java and Cuda 10.1 and clicking on the second link. You should then unzip the directory and move it such as it is in the same directory as joliRL.
@@ -50,6 +49,20 @@ libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.or
 
 <<<<<<< HEAD
 You can see how to install gflags [here](https://gflags.github.io/gflags/). 
+
+# Compiling the code
+
+Of you need to compile the code from scratch, there are a few things you need to know. 
+
+Each time to change the project.pro file (to add new classes or to manage libraries), you need to update the makefile by running the following command in the root directory:
+```
+qmake project.pro
+```
+Then you can compile the code using the simple command:
+```
+make WARN=-w
+```
+WARN=-w is to disable warnings. You do not have to write it if you want to display warnings. 
 
 # GRIDWORLD TASK
 =======
