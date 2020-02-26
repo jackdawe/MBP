@@ -269,13 +269,13 @@ Action tensors are generated with discrete actions being encoded as one-hot vect
 
 #### Per trajectory isotopic gaussian over thrust vector coordinates (dist = 2)
 
-On this plot you see the action distribution over one trajectory with a 0.1 standard deviation
+On this plot you see the action distribution over one trajectory with a 0.02 standard deviation
 
 ![dist3](https://github.com/jackdawe/joliRL/blob/master/img/dist3.png)
 
 #### Per trajectory isotopic gaussian over thrust norm and angle (dist = 3)
 
-On this plot you also see the action distribution over one trajectory with a 0.1 standard deviation
+On this plot you also see the action distribution over one trajectory with a 0.02 standard deviation
 
 ![dist4](https://github.com/jackdawe/joliRL/blob/master/img/dist4.png)
 
