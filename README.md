@@ -48,9 +48,13 @@ libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.or
 
 ### gflags
 
+<<<<<<< HEAD
 You can see how to install gflags [here](https://gflags.github.io/gflags/). 
 
 # GRIDWORLD TASK
+=======
+# GRIDWORLD TASK (OUTDATED) 
+>>>>>>> f9f04aa48fcb80f4e6156cad948297068158ef5c
 
 ## Map Generation
 
@@ -175,15 +179,6 @@ gwfmtr
 - float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
 - bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
 
-## Gradient Based Planner
-
-Command: ???
-Parameters:
-- K : The number of rollouts.
-- T : The amount of time steps to be planned
-- gs : The number of gradient steps to be performed
-- lr : Learning rate
-
 # STARSHIP COMMANDS
 
 ## Map Generation
@@ -277,13 +272,13 @@ Action tensors are generated with discrete actions being encoded as one-hot vect
 
 #### Per trajectory isotopic gaussian over thrust vector coordinates (dist = 2)
 
-On this plot you see the action distribution over one trajectory with a 0.1 standard deviation
+On this plot you see the action distribution over one trajectory with a 0.02 standard deviation
 
 ![dist3](https://github.com/jackdawe/joliRL/blob/master/img/dist3.png)
 
 #### Per trajectory isotopic gaussian over thrust norm and angle (dist = 3)
 
-On this plot you also see the action distribution over one trajectory with a 0.1 standard deviation
+On this plot you also see the action distribution over one trajectory with a 0.02 standard deviation
 
 ![dist4](https://github.com/jackdawe/joliRL/blob/master/img/dist4.png)
 
