@@ -309,7 +309,7 @@ void Commands::learnForwardModelGW()
   torch::load(actionInputsTe, path+"actionInputsTest.pt");
   torch::load(stateLabelsTe,path+"stateLabelsTest.pt");
   torch::load(rewardLabelsTe, path+"rewardLabelsTest.pt");
-  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateInputsTe.size(1), s = stateInputsTe.size(3);  
+  int nTr = stateInputsTr.size(0), nTe = stateInputsTe.size(0), T = stateLabelsTe.size(1), s = stateInputsTe.size(3);  
   if (FLAGS_wn)
     {
       actionInputsTr+=torch::zeros({actionInputsTr.size(0),T,4}).normal_(0,FLAGS_sd);      
@@ -345,7 +345,7 @@ void Commands::learnForwardModelGW()
 	  {
 	    int nSpl = siteSplit[i].size(0); 
 	    model->forward(siteSplit[i],aiteSplit[i]);
-	    t.transitionAccuracy(model->predictedStates,slteSplit[i].to(model->usedDevice),nSplit);
+	    t.transitionAccuracy(model->predictedStates.slice(-3,0,1,1),slteSplit[i].to(model->usedDevice),nSplit);
 	    t.rewardAccuracy(model->predictedRewards,rlteSplit[i].to(model->usedDevice), nSplit);
 	  }	
 	t.displayTAccuracy(nTe*T);

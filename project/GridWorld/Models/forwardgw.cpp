@@ -132,11 +132,8 @@ torch::Tensor ForwardGWImpl::rewardForward(torch::Tensor x)
   return x;
 }
 
-
-void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch, bool unnormalise)
+void ForwardGWImpl::forwardOne(torch::Tensor stateBatch, torch::Tensor actionBatch)
 {
-  stateBatch = stateBatch.to(usedDevice), actionBatch = actionBatch.to(usedDevice);
-
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
@@ -149,21 +146,21 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
     }
 
    vector<torch::Tensor> channels = torch::split(x,1,1);
-   
+
    
   //Forward Pass
-
+   
   torch::Tensor encoderOut = this->encoderForward(x);
   torch::Tensor actionEmbedding = this->actionForward(actionBatch);
   x = actionEmbedding.reshape({actionEmbedding.size(0),nc_actEmb,2,2});
   x = torch::cat({encoderOut,x},1);
   x = decoderForward(x);
-  
+
   //Converting output into state vector if needed
   
   if(imState)
     {      
-      predictedStates = torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state;
+      predictedState = torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state;
     }
   else
     {
@@ -175,18 +172,45 @@ void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionBatch,
 	  y[s][0] = xmax;
 	  y[s][1] = ymax;
 	}
-      predictedStates = y;
+      predictedState = y;
     }
 
   /*PREDICTING THE REWARD ASSOCIATED TO THE TRANSITION*/
 
   x=torch::cat({x,channels[1],channels[2]},1);   //Reconstituting the 3-channel image from the predicted state
-  predictedRewards = rewardForward(x).squeeze();  
+  predictedReward = rewardForward(x).squeeze();  
+
+}
+
+void ForwardGWImpl::forward(torch::Tensor stateBatch, torch::Tensor actionSequenceBatch)
+{
+  stateBatch = stateBatch.to(usedDevice);
+  torch::Tensor actIn = actionSequenceBatch.clone().to(usedDevice);
+  if (actionSequenceBatch.dim()==2)
+    {
+      actIn = actIn.unsqueeze(0);
+    }
+  else
+    {
+      actIn = actIn.transpose(0,1);
+    }
+  int bs=stateBatch.size(0), T=actIn.size(0);
+  predictedStates = torch::zeros({T,bs,3,size,size}).to(usedDevice);
+  predictedRewards = torch::zeros({T,bs}).to(usedDevice);
+  forwardOne(stateBatch,actIn[0]);
+  predictedStates[0] = predictedState, predictedRewards[0] = predictedReward;
+  for (int t=1;t<T;t++)
+    {
+      forwardOne(predictedStates[t-1],actIn[t]);
+      predictedStates[t] = predictedState, predictedRewards[t] = predictedReward;		    
+    }
+  predictedStates = predictedStates.transpose(0,1), predictedRewards = predictedRewards.transpose(0,1);
 }
 
 void ForwardGWImpl::computeLoss(torch::Tensor stateLabels, torch::Tensor rewardLabels)
 {
-  stateLoss = torch::mse_loss(predictedStates, stateLabels);
+  stateLabels = stateLabels.to(usedDevice), rewardLabels = rewardLabels.to(usedDevice);
+  stateLoss = torch::mse_loss(predictedStates.slice(-3,0,1,1), stateLabels);
   rewardLoss = torch::mse_loss(predictedRewards, rewardLabels);
 }
 

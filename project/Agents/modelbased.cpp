@@ -49,7 +49,7 @@ void ModelBased<W,F,P>::learnForwardModel(torch::optim::Adam *optimizer, torch::
 	      rlBatch[j] = rewardLabels[index]; 
 	    }
 	  //Forward and backward pass
-	  
+
 	  forwardModel->forward(siBatch,aiBatch);
 	  forwardModel->computeLoss(slBatch,rlBatch);
 	  torch::Tensor sLoss = beta*forwardModel->stateLoss, rLoss = forwardModel->rewardLoss;
