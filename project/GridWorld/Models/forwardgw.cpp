@@ -137,7 +137,7 @@ void ForwardGWImpl::forwardOne(torch::Tensor stateBatch, torch::Tensor actionBat
   /*PREDICTING THE NEXT STATE*/
   
   //Conversion to image if input is a batch of state vector
-  bool imState = stateBatch.size(1)==3;        
+  bool imState = stateBatch.size(2)==3;        
   torch::Tensor x = stateBatch.clone();
   torch::Tensor y = x.clone();
   if (!imState)

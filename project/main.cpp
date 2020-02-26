@@ -69,14 +69,6 @@ int main(int argc, char *argv[])
     {
       c.tc1();
     }
-  else if(FLAGS_cmd == "tc2")
-    {
-      c.tc2();
-    }
-  else if(FLAGS_cmd == "tc3")
-    {
-      c.tc3();
-    }
   else if(FLAGS_cmd=="ssmgen")    
     {
       c.generateMapSS();

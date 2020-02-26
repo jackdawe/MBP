@@ -18,22 +18,20 @@ vector<float> ToolsGW::tensorToVector(torch::Tensor stateVector)
 
 torch::Tensor ToolsGW::toRGBTensor(torch::Tensor batch)
 {
-  
-  int size = sqrt(batch.size(1)-4);
-  torch::Tensor rgbState = torch::zeros({batch.size(0),3,size,size});
-  for (int s=0;s<batch.size(0);s++)
-    {
-      for (int i=0;i<size;i++)
-	{
-	  for (int j=0;j<size;j++)
-	    {
-	      rgbState[s][2][i][j] = batch[s][i*size+j+4];
-	    }
-	}
-      rgbState[s][0][(int)*batch[s][0].data<float>()][(int)*batch[s][1].data<float>()] = 1;
-      rgbState[s][1][(int)*batch[s][2].data<float>()][(int)*batch[s][3].data<float>()] = 1;
-    }
-  return rgbState;
+  int n = batch.size(0), T = batch.size(1), size = sqrt(batch.size(-1)-4);
+  torch::Tensor rChannel = posToChannel(batch.slice(-1,0,2,1),size,n,T).unsqueeze(-3);
+  torch::Tensor gChannel = posToChannel(batch.slice(-1,2,4,1),size,n,T).unsqueeze(-3);
+  torch::Tensor bChannel = batch.slice(-1,4,batch.size(-1),1).reshape({n,T,1,size,size});
+  return torch::cat({rChannel,gChannel,bChannel},-3);
+}
+
+torch::Tensor ToolsGW::posToChannel(torch::Tensor pos, int chanSize, int batchDim1, int batchDim2)
+{
+  torch::Tensor zeros = torch::zeros({chanSize,batchDim1,batchDim2});
+  pos = pos.transpose(0,2).transpose(1,2);
+  torch::Tensor x = zeros.clone().scatter_(0,pos.slice(0,0,1,1).to(torch::kLong),torch::ones_like(zeros)).transpose(0,2).transpose(0,1).unsqueeze(-1);
+  torch::Tensor y = zeros.clone().scatter_(0,pos.slice(0,1,2,1).to(torch::kLong),torch::ones_like(zeros)).transpose(0,2).transpose(0,1).unsqueeze(-1).transpose(-1,-2);
+  return torch::matmul(x,y);
 }
 
 torch::Tensor ToolsGW::generateActions(int n, int nTimesteps)
@@ -55,9 +53,9 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   //Initialising the tensors that will contain the training set
 
   int size = gw.getSize();
-  torch::Tensor stateInputs = torch::zeros({n,nTimesteps,3,size,size});
+  torch::Tensor stateInputs = torch::zeros({n,nTimesteps,size*size+4});
   torch::Tensor actionInputs = generateActions(n,nTimesteps);
-  torch::Tensor stateLabels = torch::zeros({n,nTimesteps,3,size,size});
+  torch::Tensor stateLabels = torch::zeros({n,nTimesteps,size*size+4});
   torch::Tensor rewardLabels = torch::zeros({n,nTimesteps});
 
   //Generating another action tensor where signal is encoded as an int
@@ -90,14 +88,14 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
 	{      
 	  //Building the dataset tensors
       
-	  stateInputs[i][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
+	  stateInputs[i][t] = torch::tensor(gw.getCurrentState().getStateVector());
 	  float r = gw.transition(tensorToVector(ieActions[i][t]));
 	  rewardLabels[i][t] = r;
 	  if (r == WIN_REWARD)
 	    {
 	      hitsGoal = true;
 	    }
-	  stateLabels[i][t] = toRGBTensor(torch::tensor(gw.getCurrentState().getStateVector()).unsqueeze(0))[0];
+	  stateLabels[i][t] = torch::tensor(gw.getCurrentState().getStateVector());
 	}
       if ((i>=winProp*nTr && i<=n-winProp*nTe) || hitsGoal)
 	{
@@ -110,7 +108,9 @@ void ToolsGW::generateDataSet(string path, int nmaps, int n, int nTimesteps, flo
   
   //Saving the test set
   
-  cout<< "Test set generation is complete!"<<endl; 
+  cout<< "Test set generation is complete!"<<endl;
+  stateInputs = toRGBTensor(stateInputs);
+  stateLabels = toRGBTensor(stateLabels);
   torch::save(stateInputs.slice(0,0,nTr,1),path+"stateInputsTrain.pt");
   torch::save(actionInputs.slice(0,0,nTr,1),path+"actionInputsTrain.pt");
   torch::save(rewardLabels.slice(0,0,nTr,1),path+"rewardLabelsTrain.pt");

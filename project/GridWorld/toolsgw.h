@@ -9,6 +9,7 @@ class ToolsGW
   ToolsGW(GridWorld gw);
   vector<float> tensorToVector(torch::Tensor stateVector);
   torch::Tensor toRGBTensor(torch::Tensor batch);
+  torch::Tensor posToChannel(torch::Tensor pos, int chanSize, int batchDim1, int batchDim2);
   torch::Tensor generateActions(int n, int nTimesteps);
   void generateDataSet(string path, int nmaps, int n, int nTimesteps, float trainSetProp, float winProp=0.1);
   void transitionAccuracy(torch::Tensor testData, torch::Tensor labels, int nSplit);
