@@ -42,7 +42,7 @@ libtorch is the PyTorch C++ API. You can install libtorch at [https://pytorch.or
 
 ### gflags
 
-# GRIDWORLD TASK
+# GRIDWORLD TASK (OUTDATED) 
 
 ## Map Generation
 
@@ -166,15 +166,6 @@ gwmbfm
 - int **bs** : batch size. Default: 32
 - float **beta** : state loss multiplicative coefficient. Total loss = beta * stateloss + reward loss. Default: 1. 
 - bool **asp** : If set to false, the neural network will only be provided with the initial state for each sample. The next states are then calculated using the model's previous predictions. Default: true.
-
-## Gradient Based Planner
-
-Command: ???
-Parameters:
-- K : The number of rollouts.
-- T : The amount of time steps to be planned
-- gs : The number of gradient steps to be performed
-- lr : Learning rate
 
 # STARSHIP COMMANDS
 
